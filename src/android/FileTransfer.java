@@ -65,6 +65,8 @@ import android.os.Build;
 import android.util.Log;
 import android.webkit.CookieManager;
 
+import com.squareup.okhttp.OkHttpClient;
+
 public class FileTransfer extends CordovaPlugin {
 
     private static final String LOG_TAG = "FileTransfer";
@@ -79,6 +81,8 @@ public class FileTransfer extends CordovaPlugin {
 
     private static HashMap<String, RequestContext> activeRequests = new HashMap<String, RequestContext>();
     private static final int MAX_BUFFER_SIZE = 16 * 1024;
+
+    private static OkHttpClient httpClient = new OkHttpClient();
 
     private static final class RequestContext {
         String source;
@@ -328,13 +332,13 @@ public class FileTransfer extends CordovaPlugin {
                     if (useHttps) {
                         // Using standard HTTPS connection. Will not allow self signed certificate
                         if (!trustEveryone) {
-                            conn = (HttpsURLConnection) url.openConnection();
+                            conn = (HttpsURLConnection) httpClient.open(url);
                         }
                         // Use our HTTPS connection that blindly trusts everyone.
                         // This should only be used in debug environments
                         else {
                             // Setup the HTTPS connection class to trust everyone
-                            HttpsURLConnection https = (HttpsURLConnection) url.openConnection();
+                            HttpsURLConnection https = (HttpsURLConnection) httpClient.open(url);
                             oldSocketFactory  = trustAllHosts(https);
                             // Save the current hostnameVerifier
                             oldHostnameVerifier = https.getHostnameVerifier();
@@ -345,7 +349,7 @@ public class FileTransfer extends CordovaPlugin {
                     }
                     // Return a standard HTTP connection
                     else {
-                        conn = (HttpURLConnection) url.openConnection();
+                        conn = httpClient.open(url);
                     }
 
                     // Allow Inputs
@@ -682,7 +686,7 @@ public class FileTransfer extends CordovaPlugin {
      */
     private static String getArgument(JSONArray args, int position, String defaultString) {
         String arg = defaultString;
-        if (args.length() >= position) {
+        if (args.length() > position) {
             arg = args.optString(position);
             if (arg == null || "null".equals(arg)) {
                 arg = defaultString;
@@ -750,13 +754,13 @@ public class FileTransfer extends CordovaPlugin {
                     if (useHttps) {
                         // Using standard HTTPS connection. Will not allow self signed certificate
                         if (!trustEveryone) {
-                            connection = (HttpsURLConnection) url.openConnection();
+                            connection = (HttpsURLConnection) httpClient.open(url);
                         }
                         // Use our HTTPS connection that blindly trusts everyone.
                         // This should only be used in debug environments
                         else {
                             // Setup the HTTPS connection class to trust everyone
-                            HttpsURLConnection https = (HttpsURLConnection) url.openConnection();
+                            HttpsURLConnection https = (HttpsURLConnection) httpClient.open(url);
                             oldSocketFactory = trustAllHosts(https);
                             // Save the current hostnameVerifier
                             oldHostnameVerifier = https.getHostnameVerifier();
@@ -767,7 +771,8 @@ public class FileTransfer extends CordovaPlugin {
                     }
                     // Return a standard HTTP connection
                     else {
-                          connection = url.openConnection();
+                          connection = httpClient.open(url);
+
                     }
     
                     if (connection instanceof HttpURLConnection) {
