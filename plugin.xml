@@ -18,7 +18,7 @@ id="org.apache.cordova.core.FileTransfer">
         
     <!-- android -->
     <platform name="android">
-        <config-file target="res/xml/config.xml" parent="/cordova/plugins">
+        <config-file target="config.xml" parent="/*">
             <plugin name="FileTransfer" value="org.apache.cordova.core.FileTransfer"/>
         </config-file>
 
@@ -26,9 +26,9 @@ id="org.apache.cordova.core.FileTransfer">
             <uses-permission android:name="android.permission.WRITE_EXTERNAL_STORAGE" />
         </config-file>
         
-        <source-file src="FileTransfer.java" target-dir="org/apache/cordova/core" />
-        <source-file src="FileProgressResult.java" target-dir="org/apache/cordova/core" />
-        <source-file src="FileUploadResult.java" target-dir="org/apache/cordova/core" />
+        <source-file src="src/android/FileTransfer.java" target-dir="src/org/apache/cordova/core" />
+        <source-file src="src/android/FileProgressResult.java" target-dir="src/org/apache/cordova/core" />
+        <source-file src="src/android/FileUploadResult.java" target-dir="src/org/apache/cordova/core" />
     </platform>
     
     <!-- ios -->
