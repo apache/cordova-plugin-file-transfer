@@ -16,4 +16,16 @@ id="org.apache.cordova.core">
         <source-file src="FileProgressResult.java" target-dir="org/apache/cordova/core" />
         <source-file src="FileUploadResult.java" target-dir="org/apache/cordova/core" />
     </platform>
+    
+    <!-- ios -->
+    <platform name="ios">    
+        <config-file target="config.xml" parent="/*">
+            <feature name="FileTransfer">
+                <param name="ios-package" value="CDVFileTransfer" /> 
+            </feature>
+        </config-file>
+        <header-file src="src/ios/CDVFileTransfer.h" />
+        <source-file src="src/ios/CDVFileTransfer.m" />
+    </platform>    
+    
 </plugin>
