@@ -18,7 +18,7 @@
  */
 
 #import <Foundation/Foundation.h>
-#import "CDVPlugin.h"
+#import <Cordova/CDVPlugin.h>
 
 enum CDVFileTransferError {
     FILE_NOT_FOUND_ERR = 1,

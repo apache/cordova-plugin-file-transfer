@@ -17,7 +17,9 @@
  under the License.
  */
 
-#import "CDV.h"
+#import <Cordova/CDV.h>
+#import "CDVFileTransfer.h"
+#import "CDVFile"
 
 #import <AssetsLibrary/ALAsset.h>
 #import <AssetsLibrary/ALAssetRepresentation.h>
