@@ -21,8 +21,8 @@
 
 var argscheck = require('cordova/argscheck'),
     exec = require('cordova/exec'),
-    FileTransferError = require('cordova/plugin/FileTransferError'),
-    ProgressEvent = require('cordova/plugin/ProgressEvent');
+    FileTransferError = require('org.apache.cordova.core.FileTransfer.FileTransferError'),
+    ProgressEvent = require('org.apache.cordova.core.FileUtils.ProgressEvent');
 
 function newProgressEvent(result) {
     var pe = new ProgressEvent();
@@ -175,10 +175,10 @@ FileTransfer.prototype.download = function(source, target, successCallback, erro
         } else if (successCallback) {
             var entry = null;
             if (result.isDirectory) {
-                entry = new (require('cordova/plugin/DirectoryEntry'))();
+                entry = new (require('org.apache.cordova.core.FileUtils.DirectoryEntry'))();
             }
             else if (result.isFile) {
-                entry = new (require('cordova/plugin/FileEntry'))();
+                entry = new (require('org.apache.cordova.core.FileUtils.FileEntry'))();
             }
             entry.isDirectory = result.isDirectory;
             entry.isFile = result.isFile;
