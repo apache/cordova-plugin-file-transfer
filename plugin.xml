@@ -52,6 +52,27 @@ id="org.apache.cordova.core.FileTransfer" version="0.1.0">
         </config-file>
 
         <source-file src="src/wp7/FileTransfer.cs" />
+
+        <js-module src="www/wp/FileTransfer.js" name="FileTransfer1">
+            <clobbers target="window.FileTransfer" />
+        </js-module>
+
+    </platform>
+
+    <!-- wp8 -->
+    <platform name="wp8">
+        <config-file target="config.xml" parent="/*">
+            <feature name="FileTransfer">
+                <param name="wp-package" value="FileTransfer"/>
+            </feature>
+        </config-file>
+
+        <source-file src="src/wp8/FileTransfer.cs" />
+
+        <js-module src="www/wp/FileTransfer.js" name="FileTransfer1">
+            <clobbers target="window.FileTransfer" />
+        </js-module>
+
     </platform>
 
 </plugin>
