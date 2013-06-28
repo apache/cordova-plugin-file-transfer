@@ -14,7 +14,7 @@
     <js-module src="www/FileTransfer.js" name="FileTransfer">
         <clobbers target="window.FileTransfer" />
     </js-module>
-        
+
     <!-- android -->
     <platform name="android">
         <config-file target="res/xml/config.xml" parent="/*">
@@ -26,22 +26,32 @@
         <config-file target="AndroidManifest.xml" parent="/*">
             <uses-permission android:name="android.permission.WRITE_EXTERNAL_STORAGE" />
         </config-file>
-        
+
         <source-file src="src/android/FileTransfer.java" target-dir="src/org/apache/cordova/core" />
         <source-file src="src/android/FileProgressResult.java" target-dir="src/org/apache/cordova/core" />
         <source-file src="src/android/FileUploadResult.java" target-dir="src/org/apache/cordova/core" />
     </platform>
-    
+
+    <platform name="blackberry10">
+        <config-file target="www/config.xml" parent="/widget">
+            <feature name="FileTransfer" value="FileTransfer"></feature>
+        </config-file>
+        <js-module src="www/blackberry10/FileTransfer.js" name="BB10FileTransfer">
+            <clobbers target="window.FileTransfer"></clobbers>
+        </js-module>
+        <js-module src="www/blackberry10/XHRImplementation.js" name="BB10XHRImplementation"></js-module>
+    </platform>
+
     <!-- ios -->
-    <platform name="ios">    
+    <platform name="ios">
         <config-file target="config.xml" parent="/*">
             <feature name="FileTransfer">
-                <param name="ios-package" value="CDVFileTransfer" /> 
+                <param name="ios-package" value="CDVFileTransfer" />
             </feature>
         </config-file>
         <header-file src="src/ios/CDVFileTransfer.h" />
         <source-file src="src/ios/CDVFileTransfer.m" />
-    </platform>    
+    </platform>
 
     <!-- wp7 -->
     <platform name="wp7">
