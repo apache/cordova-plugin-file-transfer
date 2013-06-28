@@ -20,17 +20,9 @@
 */
 
 var argscheck = require('cordova/argscheck'),
-    exec = require('cordova/exec'),
-    FileTransferError = require('org.apache.cordova.core.FileTransfer.FileTransferError'),
-    ProgressEvent = require('org.apache.cordova.core.file.ProgressEvent');
+    FileTransferError = require('org.apache.cordova.core.FileTransfer.FileTransferError');
+    xhrImpl = require('org.apache.cordova.core.FileTransfer.BB10XHRImplementation');
 
-function newProgressEvent(result) {
-    var pe = new ProgressEvent();
-    pe.lengthComputable = result.lengthComputable;
-    pe.loaded = result.loaded;
-    pe.total = result.total;
-    return pe;
-}
 
 function getBasicAuthHeader(urlString) {
     var header =  null;
@@ -133,13 +125,13 @@ FileTransfer.prototype.upload = function(filePath, server, successCallback, erro
     var win = function(result) {
         if (typeof result.lengthComputable != "undefined") {
             if (self.onprogress) {
-                self.onprogress(newProgressEvent(result));
+                self.onprogress(result);
             }
         } else {
             successCallback && successCallback(result);
         }
     };
-    exec(win, fail, 'FileTransfer', 'upload', [filePath, server, fileKey, fileName, mimeType, params, trustAllHosts, chunkedMode, headers, this._id, httpMethod]);
+    xhrImpl.upload(win, fail, [filePath, server, fileKey, fileName, mimeType, params, trustAllHosts, chunkedMode, headers, this._id, httpMethod]);
 };
 
 /**
@@ -170,21 +162,10 @@ FileTransfer.prototype.download = function(source, target, successCallback, erro
     var win = function(result) {
         if (typeof result.lengthComputable != "undefined") {
             if (self.onprogress) {
-                return self.onprogress(newProgressEvent(result));
+                return self.onprogress(result);
             }
         } else if (successCallback) {
-            var entry = null;
-            if (result.isDirectory) {
-                entry = new (require('org.apache.cordova.core.file.DirectoryEntry'))();
-            }
-            else if (result.isFile) {
-                entry = new (require('org.apache.cordova.core.file.FileEntry'))();
-            }
-            entry.isDirectory = result.isDirectory;
-            entry.isFile = result.isFile;
-            entry.name = result.name;
-            entry.fullPath = result.fullPath;
-            successCallback(entry);
+            successCallback(result);
         }
     };
 
@@ -193,7 +174,7 @@ FileTransfer.prototype.download = function(source, target, successCallback, erro
         errorCallback(error);
     };
 
-    exec(win, fail, 'FileTransfer', 'download', [source, target, trustAllHosts, this._id, headers]);
+    xhrImpl.download(win, fail, [source, target, trustAllHosts, this._id, headers]);
 };
 
 /**
@@ -201,7 +182,7 @@ FileTransfer.prototype.download = function(source, target, successCallback, erro
  * callback for the file transfer will be called if necessary.
  */
 FileTransfer.prototype.abort = function() {
-    exec(null, null, 'FileTransfer', 'abort', [this._id]);
+    xhrImpl.abort(null, null, [this._id]);
 };
 
 module.exports = FileTransfer;

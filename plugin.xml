@@ -5,7 +5,7 @@ xmlns:android="http://schemas.android.com/apk/res/android"
 id="org.apache.cordova.core.FileTransfer" version="0.1.0">
     <name>File Transfer</name>
 
-    <dependency id="org.apache.cordova.core.FileUtils" url="https://git-wip-us.apache.org/repos/asf/cordova-plugin-file" commit="master" subdir="/*" />
+    <dependency id="org.apache.cordova.core.file" url="https://git-wip-us.apache.org/repos/asf/cordova-plugin-file" commit="master" subdir="/*" />
 
     <js-module src="www/FileTransferError.js" name="FileTransferError">
         <clobbers target="window.FileTransferError" />
@@ -14,7 +14,7 @@ id="org.apache.cordova.core.FileTransfer" version="0.1.0">
     <js-module src="www/FileTransfer.js" name="FileTransfer">
         <clobbers target="window.FileTransfer" />
     </js-module>
-        
+
     <!-- android -->
     <platform name="android">
         <config-file target="res/xml/config.xml" parent="/*">
@@ -26,22 +26,32 @@ id="org.apache.cordova.core.FileTransfer" version="0.1.0">
         <config-file target="AndroidManifest.xml" parent="/*">
             <uses-permission android:name="android.permission.WRITE_EXTERNAL_STORAGE" />
         </config-file>
-        
+
         <source-file src="src/android/FileTransfer.java" target-dir="src/org/apache/cordova/core" />
         <source-file src="src/android/FileProgressResult.java" target-dir="src/org/apache/cordova/core" />
         <source-file src="src/android/FileUploadResult.java" target-dir="src/org/apache/cordova/core" />
     </platform>
-    
+
+    <platform name="blackberry10">
+        <config-file target="www/config.xml" parent="/widget">
+            <feature name="FileTransfer" value="FileTransfer"></feature>
+        </config-file>
+        <js-module src="www/blackberry10/FileTransfer.js" name="BB10FileTransfer">
+            <clobbers target="window.FileTransfer"></clobbers>
+        </js-module>
+        <js-module src="www/blackberry10/XHRImplementation.js" name="BB10XHRImplementation"></js-module>
+    </platform>
+
     <!-- ios -->
-    <platform name="ios">    
+    <platform name="ios">
         <config-file target="config.xml" parent="/*">
             <feature name="FileTransfer">
-                <param name="ios-package" value="CDVFileTransfer" /> 
+                <param name="ios-package" value="CDVFileTransfer" />
             </feature>
         </config-file>
         <header-file src="src/ios/CDVFileTransfer.h" />
         <source-file src="src/ios/CDVFileTransfer.m" />
-    </platform>    
+    </platform>
 
     <!-- wp7 -->
     <platform name="wp7">
