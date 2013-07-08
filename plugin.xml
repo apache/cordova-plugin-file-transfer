@@ -51,7 +51,7 @@
             </feature>
         </config-file>
 
-        <source-file src="src/wp7/FileTransfer.cs" />
+        <source-file src="src/wp/FileTransfer.cs" />
 
         <js-module src="www/wp/FileTransfer.js" name="FileTransfer1">
             <clobbers target="window.FileTransfer" />
@@ -67,7 +67,7 @@
             </feature>
         </config-file>
 
-        <source-file src="src/wp8/FileTransfer.cs" />
+        <source-file src="src/wp/FileTransfer.cs" />
 
         <js-module src="www/wp/FileTransfer.js" name="FileTransfer1">
             <clobbers target="window.FileTransfer" />
