@@ -56,10 +56,12 @@ import org.apache.cordova.Config;
 import org.apache.cordova.CallbackContext;
 import org.apache.cordova.CordovaPlugin;
 import org.apache.cordova.PluginResult;
+import org.apache.cordova.UriResolver;
 import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
 
+import android.content.ContentResolver;
 import android.net.Uri;
 import android.os.Build;
 import android.util.Log;
@@ -112,20 +114,20 @@ public class FileTransfer extends CordovaPlugin {
      * the HTTP Content-Length header value from the server.
      */
     private static abstract class TrackingInputStream extends FilterInputStream {
-    	public TrackingInputStream(final InputStream in) {
-    		super(in);
-    	}
+      public TrackingInputStream(final InputStream in) {
+        super(in);
+      }
         public abstract long getTotalRawBytesRead();
-	}
+  }
 
     private static class ExposedGZIPInputStream extends GZIPInputStream {
-	    public ExposedGZIPInputStream(final InputStream in) throws IOException {
-	    	super(in);
-	    }
-	    public Inflater getInflater() {
-	    	return inf;
-	    }
-	}
+      public ExposedGZIPInputStream(final InputStream in) throws IOException {
+        super(in);
+      }
+      public Inflater getInflater() {
+        return inf;
+      }
+  }
 
     /**
      * Provides raw bytes-read tracking for a GZIP input stream. Reports the
@@ -133,30 +135,30 @@ public class FileTransfer extends CordovaPlugin {
      * number of uncompressed bytes.
      */
     private static class TrackingGZIPInputStream extends TrackingInputStream {
-    	private ExposedGZIPInputStream gzin;
-	    public TrackingGZIPInputStream(final ExposedGZIPInputStream gzin) throws IOException {
-	    	super(gzin);
-	    	this.gzin = gzin;
-	    }
-	    public long getTotalRawBytesRead() {
-	    	return gzin.getInflater().getBytesRead();
-	    }
-	}
+      private ExposedGZIPInputStream gzin;
+      public TrackingGZIPInputStream(final ExposedGZIPInputStream gzin) throws IOException {
+        super(gzin);
+        this.gzin = gzin;
+      }
+      public long getTotalRawBytesRead() {
+        return gzin.getInflater().getBytesRead();
+      }
+  }
 
     /**
      * Provides simple total-bytes-read tracking for an existing InputStream
      */
-    private static class TrackingHTTPInputStream extends TrackingInputStream {
+    private static class SimpleTrackingInputStream extends TrackingInputStream {
         private long bytesRead = 0;
-        public TrackingHTTPInputStream(InputStream stream) {
+        public SimpleTrackingInputStream(InputStream stream) {
             super(stream);
         }
 
         private int updateBytesRead(int newBytesRead) {
-        	if (newBytesRead != -1) {
-        		bytesRead += newBytesRead;
-        	}
-        	return newBytesRead;
+          if (newBytesRead != -1) {
+            bytesRead += newBytesRead;
+          }
+          return newBytesRead;
         }
 
         @Override
@@ -175,7 +177,7 @@ public class FileTransfer extends CordovaPlugin {
         }
 
         public long getTotalRawBytesRead() {
-        	return bytesRead;
+          return bytesRead;
         }
     }
 
@@ -373,7 +375,7 @@ public class FileTransfer extends CordovaPlugin {
 
                     
                     // Get a input stream of the file on the phone
-                    InputStream sourceInputStream = getPathFromUri(source);
+                    InputStream sourceInputStream = webView.resolveUri(Uri.parse(source)).getInputStream();
                     
                     int stringLength = beforeDataBytes.length + tailParamsBytes.length;
                     if (sourceInputStream instanceof FileInputStream) {
@@ -535,9 +537,9 @@ public class FileTransfer extends CordovaPlugin {
     private static TrackingInputStream getInputStream(URLConnection conn) throws IOException {
         String encoding = conn.getContentEncoding();
         if (encoding != null && encoding.equalsIgnoreCase("gzip")) {
-        	return new TrackingGZIPInputStream(new ExposedGZIPInputStream(conn.getInputStream()));
+          return new TrackingGZIPInputStream(new ExposedGZIPInputStream(conn.getInputStream()));
         }
-        return new TrackingHTTPInputStream(conn.getInputStream());
+        return new SimpleTrackingInputStream(conn.getInputStream());
     }
 
     // always verify the host - don't check for certificate
@@ -618,7 +620,7 @@ public class FileTransfer extends CordovaPlugin {
 
         /**
         * Create an error object based on the passed in errorCode
-        * @param errorCode 	the error
+        * @param errorCode      the error
         * @return JSONObject containing the error
         */
     private static JSONObject createFileTransferError(int errorCode, String source, String target, String body, Integer httpStatus) {
@@ -643,8 +645,8 @@ public class FileTransfer extends CordovaPlugin {
 
     /**
      * Convenience method to read a parameter from the list of JSON args.
-     * @param args			the args passed to the Plugin
-     * @param position		the position to retrieve the arg from
+     * @param args                      the args passed to the Plugin
+     * @param position          the position to retrieve the arg from
      * @param defaultString the default to be used if the arg does not exist
      * @return String with the retrieved value
      */
@@ -663,7 +665,7 @@ public class FileTransfer extends CordovaPlugin {
      * Downloads a file form a given URL and saves it to the specified directory.
      *
      * @param source        URL of the server to receive the file
-     * @param target      	Full path of the file on the file system
+     * @param target            Full path of the file on the file system
      */
     private void download(final String source, final String target, JSONArray args, CallbackContext callbackContext) throws JSONException {
         Log.d(LOG_TAG, "download " + source + " to " +  target);
@@ -681,9 +683,15 @@ public class FileTransfer extends CordovaPlugin {
             callbackContext.sendPluginResult(new PluginResult(PluginResult.Status.IO_EXCEPTION, error));
             return;
         }
-        final boolean useHttps = url.getProtocol().equals("https");
+        final String sourceProtocol = url.getProtocol();
+        final boolean useHttps = "https".equals(sourceProtocol);
+        final boolean useResolvers =
+                ContentResolver.SCHEME_FILE.equals(sourceProtocol) ||
+                ContentResolver.SCHEME_CONTENT.equals(sourceProtocol) ||
+                ContentResolver.SCHEME_ANDROID_RESOURCE.equals(sourceProtocol);
 
-        if (!Config.isUrlWhiteListed(source)) {
+        // TODO: refactor to also allow resources & content:
+        if (!useResolvers && !Config.isUrlWhiteListed(source)) {
             Log.w(LOG_TAG, "Source URL is not in white list: '" + source + "'");
             JSONObject error = createFileTransferError(CONNECTION_ERR, source, target, null, 401);
             callbackContext.sendPluginResult(new PluginResult(PluginResult.Status.IO_EXCEPTION, error));
@@ -708,74 +716,85 @@ public class FileTransfer extends CordovaPlugin {
                 PluginResult result = null;
 
                 try {
-                    file = getFileFromPath(target);
+                    UriResolver sourceResolver = null;
+                    UriResolver targetResolver = webView.resolveUri(Uri.parse(target));
+                    TrackingInputStream inputStream = null;
+
+                    file = targetResolver.getLocalFile();
                     context.targetFile = file;
-                    // create needed directories
-                    file.getParentFile().mkdirs();
-        
-                    // connect to server
-                    // Open a HTTP connection to the URL based on protocol
-                    if (useHttps) {
-                        // Using standard HTTPS connection. Will not allow self signed certificate
-                        if (!trustEveryone) {
-                            connection = (HttpsURLConnection) httpClient.open(url);
-                        }
-                        // Use our HTTPS connection that blindly trusts everyone.
-                        // This should only be used in debug environments
-                        else {
-                            // Setup the HTTPS connection class to trust everyone
-                            HttpsURLConnection https = (HttpsURLConnection) httpClient.open(url);
-                            oldSocketFactory = trustAllHosts(https);
-                            // Save the current hostnameVerifier
-                            oldHostnameVerifier = https.getHostnameVerifier();
-                            // Setup the connection not to verify hostnames
-                            https.setHostnameVerifier(DO_NOT_VERIFY);
-                            connection = https;
-                        }
-                    }
-                    // Return a standard HTTP connection
-                    else {
-                          connection = httpClient.open(url);
-
-                    }
-    
-                    if (connection instanceof HttpURLConnection) {
-                        ((HttpURLConnection)connection).setRequestMethod("GET");
-                    }
-    
-                    //Add cookie support
-                    String cookie = CookieManager.getInstance().getCookie(source);
-                    if(cookie != null)
-                    {
-                        connection.setRequestProperty("cookie", cookie);
-                    }
                     
-                    // This must be explicitly set for gzip progress tracking to work.
-                    connection.setRequestProperty("Accept-Encoding", "gzip");
-
-                    // Handle the other headers
-                    if (headers != null) {
-                        addHeadersToRequest(connection, headers);
-                    }
-    
-                    connection.connect();
-    
                     Log.d(LOG_TAG, "Download file:" + url);
 
                     FileProgressResult progress = new FileProgressResult();
-                    if (connection.getContentEncoding() == null || connection.getContentEncoding().equalsIgnoreCase("gzip")) {
-                        // Only trust content-length header if we understand
-                        // the encoding -- identity or gzip
-                        progress.setLengthComputable(true);
-                        progress.setTotal(connection.getContentLength());
+
+                    if (useResolvers) {
+                        sourceResolver = webView.resolveUri(Uri.parse(source));
+                        long len = sourceResolver.computeLength();
+                        if (len != -1) {
+                            progress.setLengthComputable(true);
+                            progress.setTotal(len);
+                        }
+                        inputStream = new SimpleTrackingInputStream(sourceResolver.getInputStream());
+                    } else {
+                        // connect to server
+                        // Open a HTTP connection to the URL based on protocol
+                        if (useHttps) {
+                            // Using standard HTTPS connection. Will not allow self signed certificate
+                            if (!trustEveryone) {
+                                connection = (HttpsURLConnection) httpClient.open(url);
+                            }
+                            // Use our HTTPS connection that blindly trusts everyone.
+                            // This should only be used in debug environments
+                            else {
+                                // Setup the HTTPS connection class to trust everyone
+                                HttpsURLConnection https = (HttpsURLConnection) httpClient.open(url);
+                                oldSocketFactory = trustAllHosts(https);
+                                // Save the current hostnameVerifier
+                                oldHostnameVerifier = https.getHostnameVerifier();
+                                // Setup the connection not to verify hostnames
+                                https.setHostnameVerifier(DO_NOT_VERIFY);
+                                connection = https;
+                            }
+                        }
+                        // Return a standard HTTP connection
+                        else {
+                              connection = httpClient.open(url);
+                        }
+        
+                        if (connection instanceof HttpURLConnection) {
+                            ((HttpURLConnection)connection).setRequestMethod("GET");
+                        }
+        
+                        //Add cookie support
+                        String cookie = CookieManager.getInstance().getCookie(source);
+                        if(cookie != null)
+                        {
+                            connection.setRequestProperty("cookie", cookie);
+                        }
+                        
+                        // This must be explicitly set for gzip progress tracking to work.
+                        connection.setRequestProperty("Accept-Encoding", "gzip");
+    
+                        // Handle the other headers
+                        if (headers != null) {
+                            addHeadersToRequest(connection, headers);
+                        }
+        
+                        connection.connect();
+    
+                        if (connection.getContentEncoding() == null || connection.getContentEncoding().equalsIgnoreCase("gzip")) {
+                            // Only trust content-length header if we understand
+                            // the encoding -- identity or gzip
+                            progress.setLengthComputable(true);
+                            progress.setTotal(connection.getContentLength());
+                        }
+                        inputStream = getInputStream(connection);
                     }
                     
-                    FileOutputStream outputStream = null;
-                    TrackingInputStream inputStream = null;
+                    OutputStream outputStream = null;
                     
                     try {
-                        inputStream = getInputStream(connection);
-                        outputStream = new FileOutputStream(file);
+                        outputStream = targetResolver.getOutputStream();
                         synchronized (context) {
                             if (context.aborted) {
                                 return;
@@ -846,54 +865,6 @@ public class FileTransfer extends CordovaPlugin {
                 }
             }
         });
-    }
-
-    /**
-     * Get an input stream based on file path or content:// uri
-     *
-     * @param path foo
-     * @return an input stream
-     * @throws FileNotFoundException
-     */
-    private InputStream getPathFromUri(String path) throws FileNotFoundException {
-        if (path.startsWith("content:")) {
-            Uri uri = Uri.parse(path);
-            return cordova.getActivity().getContentResolver().openInputStream(uri);
-        }
-        else if (path.startsWith("file://")) {
-            int question = path.indexOf("?");
-            if (question == -1) {
-                return new FileInputStream(path.substring(7));
-            } else {
-                return new FileInputStream(path.substring(7, question));
-            }
-        }
-        else {
-            return new FileInputStream(path);
-        }
-    }
-
-    /**
-     * Get a File object from the passed in path
-     *
-     * @param path file path
-     * @return file object
-     */
-    private File getFileFromPath(String path) throws FileNotFoundException {
-        File file;
-        String prefix = "file://";
-
-        if (path.startsWith(prefix)) {
-            file = new File(path.substring(prefix.length()));
-        } else {
-            file = new File(path);
-        }
-
-        if (file.getParent() == null) {
-            throw new FileNotFoundException();
-        }
-
-        return file;
     }
 
     /**
