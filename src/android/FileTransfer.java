@@ -24,13 +24,11 @@ import java.io.Closeable;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
-import java.io.FileOutputStream;
 import java.io.FilterInputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.io.OutputStream;
-import java.io.StringWriter;
 import java.io.UnsupportedEncodingException;
 import java.net.HttpURLConnection;
 import java.net.MalformedURLException;
@@ -714,11 +712,11 @@ public class FileTransfer extends CordovaPlugin {
                 SSLSocketFactory oldSocketFactory = null;
                 File file = null;
                 PluginResult result = null;
+                TrackingInputStream inputStream = null;
 
                 try {
                     UriResolver sourceResolver = null;
                     UriResolver targetResolver = webView.resolveUri(Uri.parse(target));
-                    TrackingInputStream inputStream = null;
 
                     file = targetResolver.getLocalFile();
                     context.targetFile = file;
