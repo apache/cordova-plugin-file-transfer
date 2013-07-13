@@ -22,7 +22,6 @@ import java.io.BufferedReader;
 import java.io.ByteArrayOutputStream;
 import java.io.Closeable;
 import java.io.File;
-import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.FilterInputStream;
 import java.io.IOException;
@@ -31,8 +30,6 @@ import java.io.InputStreamReader;
 import java.io.OutputStream;
 import java.io.UnsupportedEncodingException;
 import java.net.HttpURLConnection;
-import java.net.MalformedURLException;
-import java.net.URL;
 import java.net.URLConnection;
 import java.net.URLDecoder;
 import java.security.cert.CertificateException;
@@ -53,19 +50,17 @@ import javax.net.ssl.X509TrustManager;
 import org.apache.cordova.Config;
 import org.apache.cordova.CallbackContext;
 import org.apache.cordova.CordovaPlugin;
+import org.apache.cordova.CordovaResourceApi;
+import org.apache.cordova.CordovaResourceApi.OpenForReadResult;
 import org.apache.cordova.PluginResult;
-import org.apache.cordova.UriResolver;
 import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
 
-import android.content.ContentResolver;
 import android.net.Uri;
 import android.os.Build;
 import android.util.Log;
 import android.webkit.CookieManager;
-
-import com.squareup.okhttp.OkHttpClient;
 
 public class FileTransfer extends CordovaPlugin {
 
@@ -81,8 +76,6 @@ public class FileTransfer extends CordovaPlugin {
 
     private static HashMap<String, RequestContext> activeRequests = new HashMap<String, RequestContext>();
     private static final int MAX_BUFFER_SIZE = 16 * 1024;
-
-    private static OkHttpClient httpClient = new OkHttpClient();
 
     private static final class RequestContext {
         String source;
@@ -252,6 +245,8 @@ public class FileTransfer extends CordovaPlugin {
         final JSONObject headers = args.optJSONObject(8) == null ? params.optJSONObject("headers") : args.optJSONObject(8);
         final String objectId = args.getString(9);
         final String httpMethod = getArgument(args, 10, "POST");
+        
+        final CordovaResourceApi resourceApi = webView.getResourceApi();
 
         Log.d(LOG_TAG, "fileKey: " + fileKey);
         Log.d(LOG_TAG, "fileName: " + fileName);
@@ -263,16 +258,20 @@ public class FileTransfer extends CordovaPlugin {
         Log.d(LOG_TAG, "objectId: " + objectId);
         Log.d(LOG_TAG, "httpMethod: " + httpMethod);
         
-        final URL url;
-        try {
-            url = new URL(target);
-        } catch (MalformedURLException e) {
+        final Uri targetUri = resourceApi.remapUri(Uri.parse(target));
+        // Accept a path or a URI for the source.
+        Uri tmpSrc = Uri.parse(source);
+        final Uri sourceUri = resourceApi.remapUri(
+            tmpSrc.getScheme() != null ? tmpSrc : Uri.fromFile(new File(source)));
+
+        int uriType = CordovaResourceApi.getUriType(targetUri);
+        final boolean useHttps = uriType == CordovaResourceApi.URI_TYPE_HTTPS;
+        if (uriType != CordovaResourceApi.URI_TYPE_HTTP && !useHttps) {
             JSONObject error = createFileTransferError(INVALID_URL_ERR, source, target, null, 0);
-            Log.e(LOG_TAG, error.toString(), e);
+            Log.e(LOG_TAG, "Unsupported URI: " + targetUri);
             callbackContext.sendPluginResult(new PluginResult(PluginResult.Status.IO_EXCEPTION, error));
             return;
         }
-        final boolean useHttps = url.getProtocol().equals("https");
 
         final RequestContext context = new RequestContext(source, target, callbackContext);
         synchronized (activeRequests) {
@@ -296,27 +295,15 @@ public class FileTransfer extends CordovaPlugin {
 
                     //------------------ CLIENT REQUEST
                     // Open a HTTP connection to the URL based on protocol
-                    if (useHttps) {
-                        // Using standard HTTPS connection. Will not allow self signed certificate
-                        if (!trustEveryone) {
-                            conn = (HttpsURLConnection) httpClient.open(url);
-                        }
-                        // Use our HTTPS connection that blindly trusts everyone.
-                        // This should only be used in debug environments
-                        else {
-                            // Setup the HTTPS connection class to trust everyone
-                            HttpsURLConnection https = (HttpsURLConnection) httpClient.open(url);
-                            oldSocketFactory  = trustAllHosts(https);
-                            // Save the current hostnameVerifier
-                            oldHostnameVerifier = https.getHostnameVerifier();
-                            // Setup the connection not to verify hostnames
-                            https.setHostnameVerifier(DO_NOT_VERIFY);
-                            conn = https;
-                        }
-                    }
-                    // Return a standard HTTP connection
-                    else {
-                        conn = httpClient.open(url);
+                    conn = resourceApi.createHttpConnection(targetUri);
+                    if (useHttps && trustEveryone) {
+                        // Setup the HTTPS connection class to trust everyone
+                        HttpsURLConnection https = (HttpsURLConnection)conn;
+                        oldSocketFactory  = trustAllHosts(https);
+                        // Save the current hostnameVerifier
+                        oldHostnameVerifier = https.getHostnameVerifier();
+                        // Setup the connection not to verify hostnames
+                        https.setHostnameVerifier(DO_NOT_VERIFY);
                     }
 
                     // Allow Inputs
@@ -373,11 +360,11 @@ public class FileTransfer extends CordovaPlugin {
 
                     
                     // Get a input stream of the file on the phone
-                    InputStream sourceInputStream = webView.resolveUri(Uri.parse(source)).getInputStream();
+                    OpenForReadResult readResult = resourceApi.openForRead(sourceUri);
                     
                     int stringLength = beforeDataBytes.length + tailParamsBytes.length;
-                    if (sourceInputStream instanceof FileInputStream) {
-                        fixedLength = (int) ((FileInputStream)sourceInputStream).getChannel().size() + stringLength;
+                    if (readResult.length >= 0) {
+                        fixedLength = (int)readResult.length + stringLength;
                         progress.setLengthComputable(true);
                         progress.setTotal(fixedLength);
                     }
@@ -413,12 +400,12 @@ public class FileTransfer extends CordovaPlugin {
                         totalBytes += beforeDataBytes.length;
     
                         // create a buffer of maximum size
-                        int bytesAvailable = sourceInputStream.available();
+                        int bytesAvailable = readResult.inputStream.available();
                         int bufferSize = Math.min(bytesAvailable, MAX_BUFFER_SIZE);
                         byte[] buffer = new byte[bufferSize];
     
                         // read file and write it into form...
-                        int bytesRead = sourceInputStream.read(buffer, 0, bufferSize);
+                        int bytesRead = readResult.inputStream.read(buffer, 0, bufferSize);
     
                         long prevBytesRead = 0;
                         while (bytesRead > 0) {
@@ -429,9 +416,9 @@ public class FileTransfer extends CordovaPlugin {
                                 prevBytesRead = totalBytes;
                                 Log.d(LOG_TAG, "Uploaded " + totalBytes + " of " + fixedLength + " bytes");
                             }
-                            bytesAvailable = sourceInputStream.available();
+                            bytesAvailable = readResult.inputStream.available();
                             bufferSize = Math.min(bytesAvailable, MAX_BUFFER_SIZE);
-                            bytesRead = sourceInputStream.read(buffer, 0, bufferSize);
+                            bytesRead = readResult.inputStream.read(buffer, 0, bufferSize);
 
                             // Send a progress event.
                             progress.setLoaded(totalBytes);
@@ -445,7 +432,7 @@ public class FileTransfer extends CordovaPlugin {
                         totalBytes += tailParamsBytes.length;
                         sendStream.flush();
                     } finally {
-                        safeClose(sourceInputStream);
+                        safeClose(readResult.inputStream);
                         safeClose(sendStream);
                     }
                     context.currentOutputStream = null;
@@ -668,28 +655,30 @@ public class FileTransfer extends CordovaPlugin {
     private void download(final String source, final String target, JSONArray args, CallbackContext callbackContext) throws JSONException {
         Log.d(LOG_TAG, "download " + source + " to " +  target);
 
+        final CordovaResourceApi resourceApi = webView.getResourceApi();
+
         final boolean trustEveryone = args.optBoolean(2);
         final String objectId = args.getString(3);
         final JSONObject headers = args.optJSONObject(4);
+        
+        final Uri sourceUri = resourceApi.remapUri(Uri.parse(source));
+        // Accept a path or a URI for the source.
+        Uri tmpTarget = Uri.parse(target);
+        final Uri targetUri = resourceApi.remapUri(
+            tmpTarget.getScheme() != null ? tmpTarget : Uri.fromFile(new File(target)));
 
-        final URL url;
-        try {
-            url = new URL(source);
-        } catch (MalformedURLException e) {
+        int uriType = CordovaResourceApi.getUriType(sourceUri);
+        final boolean useHttps = uriType == CordovaResourceApi.URI_TYPE_HTTPS;
+        final boolean isLocalTransfer = !useHttps && uriType != CordovaResourceApi.URI_TYPE_HTTP;
+        if (uriType == CordovaResourceApi.URI_TYPE_UNKNOWN) {
             JSONObject error = createFileTransferError(INVALID_URL_ERR, source, target, null, 0);
-            Log.e(LOG_TAG, error.toString(), e);
+            Log.e(LOG_TAG, "Unsupported URI: " + targetUri);
             callbackContext.sendPluginResult(new PluginResult(PluginResult.Status.IO_EXCEPTION, error));
             return;
         }
-        final String sourceProtocol = url.getProtocol();
-        final boolean useHttps = "https".equals(sourceProtocol);
-        final boolean useResolvers =
-                ContentResolver.SCHEME_FILE.equals(sourceProtocol) ||
-                ContentResolver.SCHEME_CONTENT.equals(sourceProtocol) ||
-                ContentResolver.SCHEME_ANDROID_RESOURCE.equals(sourceProtocol);
-
+        
         // TODO: refactor to also allow resources & content:
-        if (!useResolvers && !Config.isUrlWhiteListed(source)) {
+        if (!isLocalTransfer && !Config.isUrlWhiteListed(source)) {
             Log.w(LOG_TAG, "Source URL is not in white list: '" + source + "'");
             JSONObject error = createFileTransferError(CONNECTION_ERR, source, target, null, 401);
             callbackContext.sendPluginResult(new PluginResult(PluginResult.Status.IO_EXCEPTION, error));
@@ -707,64 +696,50 @@ public class FileTransfer extends CordovaPlugin {
                 if (context.aborted) {
                     return;
                 }
-                URLConnection connection = null;
+                HttpURLConnection connection = null;
                 HostnameVerifier oldHostnameVerifier = null;
                 SSLSocketFactory oldSocketFactory = null;
                 File file = null;
                 PluginResult result = null;
                 TrackingInputStream inputStream = null;
 
+                OutputStream outputStream = null;
                 try {
-                    UriResolver sourceResolver = null;
-                    UriResolver targetResolver = webView.resolveUri(Uri.parse(target));
+                    OpenForReadResult readResult = null;
+                    outputStream = resourceApi.openOutputStream(targetUri);
 
-                    file = targetResolver.getLocalFile();
+                    file = resourceApi.mapUriToFile(targetUri);
                     context.targetFile = file;
                     
-                    Log.d(LOG_TAG, "Download file:" + url);
+                    Log.d(LOG_TAG, "Download file:" + sourceUri);
 
                     FileProgressResult progress = new FileProgressResult();
 
-                    if (useResolvers) {
-                        sourceResolver = webView.resolveUri(Uri.parse(source));
-                        long len = sourceResolver.computeLength();
-                        if (len != -1) {
+                    if (isLocalTransfer) {
+                        readResult = resourceApi.openForRead(sourceUri);
+                        if (readResult.length != -1) {
                             progress.setLengthComputable(true);
-                            progress.setTotal(len);
+                            progress.setTotal(readResult.length);
                         }
-                        inputStream = new SimpleTrackingInputStream(sourceResolver.getInputStream());
+                        inputStream = new SimpleTrackingInputStream(readResult.inputStream);
                     } else {
                         // connect to server
                         // Open a HTTP connection to the URL based on protocol
-                        if (useHttps) {
-                            // Using standard HTTPS connection. Will not allow self signed certificate
-                            if (!trustEveryone) {
-                                connection = (HttpsURLConnection) httpClient.open(url);
-                            }
-                            // Use our HTTPS connection that blindly trusts everyone.
-                            // This should only be used in debug environments
-                            else {
-                                // Setup the HTTPS connection class to trust everyone
-                                HttpsURLConnection https = (HttpsURLConnection) httpClient.open(url);
-                                oldSocketFactory = trustAllHosts(https);
-                                // Save the current hostnameVerifier
-                                oldHostnameVerifier = https.getHostnameVerifier();
-                                // Setup the connection not to verify hostnames
-                                https.setHostnameVerifier(DO_NOT_VERIFY);
-                                connection = https;
-                            }
-                        }
-                        // Return a standard HTTP connection
-                        else {
-                              connection = httpClient.open(url);
+                        connection = resourceApi.createHttpConnection(sourceUri);
+                        if (useHttps && trustEveryone) {
+                            // Setup the HTTPS connection class to trust everyone
+                            HttpsURLConnection https = (HttpsURLConnection)connection;
+                            oldSocketFactory = trustAllHosts(https);
+                            // Save the current hostnameVerifier
+                            oldHostnameVerifier = https.getHostnameVerifier();
+                            // Setup the connection not to verify hostnames
+                            https.setHostnameVerifier(DO_NOT_VERIFY);
                         }
         
-                        if (connection instanceof HttpURLConnection) {
-                            ((HttpURLConnection)connection).setRequestMethod("GET");
-                        }
+                        connection.setRequestMethod("GET");
         
-                        //Add cookie support
-                        String cookie = CookieManager.getInstance().getCookie(source);
+                        // TODO: Make OkHttp use this CookieManager by default.
+                        String cookie = CookieManager.getInstance().getCookie(sourceUri.toString());
                         if(cookie != null)
                         {
                             connection.setRequestProperty("cookie", cookie);
@@ -789,10 +764,7 @@ public class FileTransfer extends CordovaPlugin {
                         inputStream = getInputStream(connection);
                     }
                     
-                    OutputStream outputStream = null;
-                    
                     try {
-                        outputStream = targetResolver.getOutputStream();
                         synchronized (context) {
                             if (context.aborted) {
                                 return;
@@ -839,6 +811,7 @@ public class FileTransfer extends CordovaPlugin {
                     Log.e(LOG_TAG, error.toString(), e);
                     result = new PluginResult(PluginResult.Status.IO_EXCEPTION, error);
                 } finally {
+                    safeClose(outputStream);
                     synchronized (activeRequests) {
                         activeRequests.remove(objectId);
                     }
