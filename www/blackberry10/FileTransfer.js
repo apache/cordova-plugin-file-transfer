@@ -20,7 +20,7 @@
 */
 
 var argscheck = require('cordova/argscheck'),
-    FileTransferError = require('org.apache.cordova.core.FileTransfer.FileTransferError');
+    FileTransferError = require('./FileTransferError');
     xhrImpl = require('org.apache.cordova.core.FileTransfer.BB10XHRImplementation');
 
 
