@@ -21,7 +21,7 @@
 
 var argscheck = require('cordova/argscheck'),
     FileTransferError = require('./FileTransferError');
-    xhrImpl = require('org.apache.cordova.core.FileTransfer.BB10XHRImplementation');
+    xhrImpl = require('./BB10XHRImplementation');
 
 
 function getBasicAuthHeader(urlString) {
