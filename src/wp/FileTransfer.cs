@@ -30,12 +30,45 @@ namespace WPCordovaClassLib.Cordova.Commands
         {
             // This class stores the State of the request.
             public HttpWebRequest request;
-            public DownloadOptions options;
+            public TransferOptions options;
 
             public DownloadRequestState()
             {
                 request = null;
                 options = null;
+            }
+        }
+
+
+        public class TransferOptions
+        {
+            /// File path to upload  OR File path to download to
+            public string FilePath { get; set; }
+
+            public string Url { get; set; }
+            /// Flag to recognize if we should trust every host (only in debug environments)
+            public bool TrustAllHosts { get; set; }
+            public string Id { get; set; }
+            public string Headers { get; set; }
+            public string CallbackId { get; set; }
+            public bool ChunkedMode { get; set; }
+            /// Server address
+            public string Server { get; set; }
+            /// File key
+            public string FileKey { get; set; }
+            /// File name on the server
+            public string FileName { get; set; }
+            /// File Mime type
+            public string MimeType { get; set; }
+            /// Additional options
+            public string Params { get; set; }
+            public string Method { get; set; }
+
+            public TransferOptions()
+            {
+                FileKey = "file";
+                FileName = "image.jpg";
+                MimeType = "image/jpeg";
             }
         }
 
@@ -48,117 +81,10 @@ namespace WPCordovaClassLib.Cordova.Commands
         public const int FileNotFoundError = 1;
         public const int InvalidUrlError = 2;
         public const int ConnectionError = 3;
+        public const int AbortError = 4; // not really an error, but whatevs
 
         private static Dictionary<string, DownloadRequestState> InProcDownloads = new Dictionary<string,DownloadRequestState>();
 
-
-        /// <summary>
-        /// Options for downloading file
-        /// </summary>
-        [DataContract]
-        public class DownloadOptions
-        {
-            /// <summary>
-            /// File path to download to
-            /// </summary>
-            [DataMember(Name = "filePath", IsRequired = true)]
-            public string FilePath { get; set; }
-
-            /// <summary>
-            /// Server address to the file to download
-            /// </summary>
-            [DataMember(Name = "url", IsRequired = true)]
-            public string Url { get; set; }
-
-            [DataMember(Name = "trustAllHosts", IsRequired = true)]
-            public bool TrustAllHosts { get; set; }
-
-            [DataMember(Name = "id", IsRequired = true)]
-            public string Id { get; set; }
-
-            [DataMember(Name = "headers", IsRequired = true)]
-            public string Headers { get; set; }
-
-            [DataMember(Name = "callbackId", IsRequired = true)]
-            public string CallbackId { get; set; }
-        }
-
-        /// <summary>
-        /// Options for uploading file
-        /// </summary>
-        [DataContract]
-        public class UploadOptions
-        {
-            /// <summary>
-            /// File path to upload
-            /// </summary>
-            [DataMember(Name = "filePath", IsRequired = true)]
-            public string FilePath { get; set; }
-
-            /// <summary>
-            /// Server address
-            /// </summary>
-            [DataMember(Name = "server", IsRequired = true)]
-            public string Server { get; set; }
-
-            /// <summary>
-            /// File key
-            /// </summary>
-            [DataMember(Name = "fileKey")]
-            public string FileKey { get; set; }
-
-            /// <summary>
-            /// File name on the server
-            /// </summary>
-            [DataMember(Name = "fileName")]
-            public string FileName { get; set; }
-
-            /// <summary>
-            /// File Mime type
-            /// </summary>
-            [DataMember(Name = "mimeType")]
-            public string MimeType { get; set; }
-
-
-            /// <summary>
-            /// Additional options
-            /// </summary>
-            [DataMember(Name = "params")]
-            public string Params { get; set; }
-
-            /// <summary>
-            /// Flag to recognize if we should trust every host (only in debug environments)
-            /// </summary>
-            [DataMember(Name = "debug")]
-            public bool TrustAllHosts { get; set; }
-
-            [DataMember(Name = "callbackId", IsRequired = true)]
-            public string CallbackId { get; set; }
-
-            public string Method { get; set; }
-
-            /// <summary>
-            /// Creates options object with default parameters
-            /// </summary>
-            public UploadOptions()
-            {
-                this.SetDefaultValues(new StreamingContext());
-            }
-
-            /// <summary>
-            /// Initializes default values for class fields.
-            /// Implemented in separate method because default constructor is not invoked during deserialization.
-            /// </summary>
-            /// <param name="context"></param>
-            [OnDeserializing()]
-            public void SetDefaultValues(StreamingContext context)
-            {
-                this.FileKey = "file";
-                this.FileName = "image.jpg";
-                this.MimeType = "image/jpeg";
-            }
-
-        }
 
         /// <summary>
         /// Uploading response info
@@ -197,7 +123,6 @@ namespace WPCordovaClassLib.Cordova.Commands
                 this.Response = response;
             }
         }
-
         /// <summary>
         /// Represents transfer error codes for callback
         /// </summary>
@@ -219,8 +144,12 @@ namespace WPCordovaClassLib.Cordova.Commands
             /// <summary>
             /// The target URI
             /// </summary>
+            /// 
             [DataMember(Name = "target", IsRequired = true)]
             public string Target { get; set; }
+
+            [DataMember(Name = "body", IsRequired = true)]
+            public string Body { get; set; }
 
             /// <summary>
             /// The http status code response from the remote URI
@@ -238,20 +167,22 @@ namespace WPCordovaClassLib.Cordova.Commands
                 this.Source = null;
                 this.Target = null;
                 this.HttpStatus = 0;
+                this.Body = "";
             }
-            public FileTransferError(int errorCode, string source, string target, int status)
+            public FileTransferError(int errorCode, string source, string target, int status, string body = "")
             {
                 this.Code = errorCode;
                 this.Source = source;
                 this.Target = target;
                 this.HttpStatus = status;
+                this.Body = body;
             }
         }
 
         /// <summary>
         /// Upload options
         /// </summary>
-        private UploadOptions uploadOptions;
+        //private TransferOptions uploadOptions;
 
         /// <summary>
         /// Bytes sent
@@ -265,16 +196,18 @@ namespace WPCordovaClassLib.Cordova.Commands
         /// exec(win, fail, 'FileTransfer', 'upload', [filePath, server, fileKey, fileName, mimeType, params, trustAllHosts, chunkedMode, headers, this._id, httpMethod]);
         public void upload(string options)
         {
-            Debug.WriteLine("options = " + options);
-            options = options.Replace("{}", "null");
+            options = options.Replace("{}", ""); // empty objects screw up the Deserializer
             string callbackId = "";
+
+            TransferOptions uploadOptions = null;
+            HttpWebRequest webRequest = null;
+
             try 
             {
                 try 
                 {
                     string[] args = JSON.JsonHelper.Deserialize<string[]>(options);
-                    //uploadOptions = JSON.JsonHelper.Deserialize<UploadOptions>(args[0]);
-                    uploadOptions = new UploadOptions();
+                    uploadOptions = new TransferOptions();
                     uploadOptions.FilePath = args[0];
                     uploadOptions.Server = args[1];
                     uploadOptions.FileKey = args[2];
@@ -282,17 +215,21 @@ namespace WPCordovaClassLib.Cordova.Commands
                     uploadOptions.MimeType = args[4];
                     uploadOptions.Params = args[5];
 
+
                     bool trustAll = false;
                     bool.TryParse(args[6],out trustAll);
                     uploadOptions.TrustAllHosts = trustAll;
 
-                    //uploadOptions.ChunkedMode = args[7]; // TODO: bool
+                    bool doChunked = false;
+                    bool.TryParse(args[7], out doChunked);
+                    uploadOptions.ChunkedMode = doChunked;
+
                     //8 : Headers
                     //9 : id
                     //10: method
 
-                    //uploadOptions.Headers = args[8];
-                    //uploadOptions.Id = args[9];
+                    uploadOptions.Headers = args[8];
+                    uploadOptions.Id = args[9];
                     uploadOptions.Method = args[10];
 
                     uploadOptions.CallbackId = callbackId = args[11];
@@ -313,10 +250,27 @@ namespace WPCordovaClassLib.Cordova.Commands
                     DispatchCommandResult(new PluginResult(PluginResult.Status.ERROR, new FileTransferError(InvalidUrlError, uploadOptions.Server, null, 0)));
                     return;
                 }
-                HttpWebRequest webRequest = (HttpWebRequest)WebRequest.Create(serverUri);
+                webRequest = (HttpWebRequest)WebRequest.Create(serverUri);
                 webRequest.ContentType = "multipart/form-data;boundary=" + Boundary;
                 webRequest.Method = uploadOptions.Method;
-                webRequest.BeginGetRequestStream(WriteCallback, webRequest);
+
+                if (!string.IsNullOrEmpty(uploadOptions.Headers))
+                {
+                    Dictionary<string, string> headers = parseHeaders(uploadOptions.Headers);
+                    foreach (string key in headers.Keys)
+                    {
+                        webRequest.Headers[key] = headers[key];
+                    }
+                }
+
+                DownloadRequestState reqState = new DownloadRequestState();
+                reqState.options = uploadOptions;
+                reqState.request = webRequest;
+
+                InProcDownloads[uploadOptions.Id] = reqState;
+
+
+                webRequest.BeginGetRequestStream(WriteCallback, reqState);
             }
             catch (Exception ex)
             {
@@ -327,9 +281,32 @@ namespace WPCordovaClassLib.Cordova.Commands
             }
         }
 
+        // example : "{\"Authorization\":\"Basic Y29yZG92YV91c2VyOmNvcmRvdmFfcGFzc3dvcmQ=\"}"
+        protected Dictionary<string,string> parseHeaders(string jsonHeaders) 
+        {
+            Dictionary<string, string> result = new Dictionary<string, string>();
+
+            string temp = jsonHeaders.StartsWith("{") ? jsonHeaders.Substring(1) : jsonHeaders;
+            temp = temp.EndsWith("}") ? temp.Substring(0,temp.Length - 1) :  temp;
+            // "\"Authorization\":\"Basic Y29yZG92YV91c2VyOmNvcmRvdmFfcGFzc3dvcmQ=\""
+
+            string[] strHeaders = temp.Split(',');
+            for (int n = 0; n < strHeaders.Length; n++)
+            {
+                string[] split = strHeaders[n].Split(':');
+                if (split.Length == 2)
+                {
+                    split[0] = JSON.JsonHelper.Deserialize<string>(split[0]);
+                    split[1] = JSON.JsonHelper.Deserialize<string>(split[1]);
+                    result[split[0]] = split[1];
+                }
+            }
+            return result;
+        }
+
         public void download(string options)
         {
-            DownloadOptions downloadOptions = null;
+            TransferOptions downloadOptions = null;
             HttpWebRequest webRequest = null;
             string callbackId;
 
@@ -337,13 +314,14 @@ namespace WPCordovaClassLib.Cordova.Commands
             {
                 string[] optionStrings = JSON.JsonHelper.Deserialize<string[]>(options);
 
-                downloadOptions = new DownloadOptions();
+                downloadOptions = new TransferOptions();
                 downloadOptions.Url = optionStrings[0];
                 downloadOptions.FilePath = optionStrings[1];
+
                 bool trustAll = false;
                 bool.TryParse(optionStrings[2],out trustAll);
-
                 downloadOptions.TrustAllHosts = trustAll;
+
                 downloadOptions.Id = optionStrings[3];
                 downloadOptions.Headers = optionStrings[4];
                 downloadOptions.CallbackId = callbackId = optionStrings[5];
@@ -357,8 +335,13 @@ namespace WPCordovaClassLib.Cordova.Commands
 
             try
             {
+                Debug.WriteLine("Creating WebRequest for url : " + downloadOptions.Url);
                 webRequest = (HttpWebRequest)WebRequest.Create(downloadOptions.Url);
             }
+            //catch (WebException webEx)
+            //{
+
+            //}
             catch (Exception)
             {
                 DispatchCommandResult(new PluginResult(PluginResult.Status.ERROR, new FileTransferError(InvalidUrlError, downloadOptions.Url, null, 0)));
@@ -371,6 +354,16 @@ namespace WPCordovaClassLib.Cordova.Commands
                 state.options = downloadOptions;
                 state.request = webRequest;
                 InProcDownloads[downloadOptions.Id] = state;
+
+                if (!string.IsNullOrEmpty(downloadOptions.Headers))
+                {
+                    Dictionary<string, string> headers = parseHeaders(downloadOptions.Headers);
+                    foreach (string key in headers.Keys)
+                    {
+                        webRequest.Headers[key] = headers[key];
+                    }
+                }
+                
                 webRequest.BeginGetResponse(new AsyncCallback(downloadCallback), state);
             }
 
@@ -382,16 +375,19 @@ namespace WPCordovaClassLib.Cordova.Commands
         {
             string[] optionStrings = JSON.JsonHelper.Deserialize<string[]>(options);
             string id = optionStrings[0];
-            string callbackId = optionStrings[1];
+            string callbackId = optionStrings[1];  
 
             if (InProcDownloads.ContainsKey(id))
             {
                  DownloadRequestState state = InProcDownloads[id];
                  state.request.Abort();
                  state.request = null;
-                 state = null;
+                 
+                 callbackId = state.options.CallbackId;
                  InProcDownloads.Remove(id);
-                 DispatchCommandResult(new PluginResult(PluginResult.Status.OK), callbackId);
+                 state = null;
+                 DispatchCommandResult(new PluginResult(PluginResult.Status.ERROR, new FileTransferError(FileTransfer.AbortError)),
+                       callbackId);
 
             }
             else
@@ -408,6 +404,13 @@ namespace WPCordovaClassLib.Cordova.Commands
         {
             DownloadRequestState reqState = (DownloadRequestState)asynchronousResult.AsyncState;
             HttpWebRequest request = reqState.request;
+
+            string callbackId = reqState.options.CallbackId;
+
+            if (InProcDownloads.ContainsKey(reqState.options.Id))
+            {
+                InProcDownloads.Remove(reqState.options.Id);
+            }
 
             try
             {
@@ -428,7 +431,6 @@ namespace WPCordovaClassLib.Cordova.Commands
                         int bytesRead = 0;
                         using (BinaryReader reader = new BinaryReader(response.GetResponseStream()))
                         {
-
                             using (BinaryWriter writer = new BinaryWriter(fileStream))
                             {
                                 int BUFFER_SIZE = 1024;
@@ -458,38 +460,60 @@ namespace WPCordovaClassLib.Cordova.Commands
 
                     }
                 }
-                WPCordovaClassLib.Cordova.Commands.File.FileEntry entry = new WPCordovaClassLib.Cordova.Commands.File.FileEntry(reqState.options.FilePath);
-                DispatchCommandResult(new PluginResult(PluginResult.Status.OK, entry), reqState.options.CallbackId);
+                File.FileEntry entry = new File.FileEntry(reqState.options.FilePath);
+                DispatchCommandResult(new PluginResult(PluginResult.Status.OK, entry), callbackId);
             }
             catch (IsolatedStorageException)
             {
                 // Trying to write the file somewhere within the IsoStorage.
-                DispatchCommandResult(new PluginResult(PluginResult.Status.ERROR, new FileTransferError(FileNotFoundError)), reqState.options.CallbackId);
+                DispatchCommandResult(new PluginResult(PluginResult.Status.ERROR, new FileTransferError(FileNotFoundError)),
+                                      callbackId);
             }
             catch (SecurityException)
             {
                 // Trying to write the file somewhere not allowed.
-                DispatchCommandResult(new PluginResult(PluginResult.Status.ERROR, new FileTransferError(FileNotFoundError)), reqState.options.CallbackId);
+                DispatchCommandResult(new PluginResult(PluginResult.Status.ERROR, new FileTransferError(FileNotFoundError)),
+                                      callbackId);
             }
             catch (WebException webex)
             {
                 // TODO: probably need better work here to properly respond with all http status codes back to JS
                 // Right now am jumping through hoops just to detect 404.
-                if ((webex.Status == WebExceptionStatus.ProtocolError && ((HttpWebResponse)webex.Response).StatusCode == HttpStatusCode.NotFound) || webex.Status == WebExceptionStatus.UnknownError)
+                HttpWebResponse response = (HttpWebResponse)webex.Response;
+                if ((webex.Status == WebExceptionStatus.ProtocolError && response.StatusCode == HttpStatusCode.NotFound) 
+                    || webex.Status == WebExceptionStatus.UnknownError)
                 {
+                    
                     // Weird MSFT detection of 404... seriously... just give us the f(*&#$@ status code as a number ffs!!!
                     // "Numbers for HTTP status codes? Nah.... let's create our own set of enums/structs to abstract that stuff away."
                     // FACEPALM
-                    DispatchCommandResult(new PluginResult(PluginResult.Status.ERROR, new FileTransferError(ConnectionError, null, null, 404)), reqState.options.CallbackId);
+                    // Or just cast it to an int, whiner ... -jm
+                    int statusCode = (int)response.StatusCode;
+                    string body = "";
+
+                    using (Stream streamResponse = response.GetResponseStream())
+                    {
+                        using (StreamReader streamReader = new StreamReader(streamResponse))
+                        {
+                            body = streamReader.ReadToEnd();
+                        }
+                    }
+                    FileTransferError ftError = new FileTransferError(ConnectionError, null, null, statusCode, body);
+                    DispatchCommandResult(new PluginResult(PluginResult.Status.ERROR, ftError), 
+                                          callbackId);
                 }
                 else
                 {
-                    DispatchCommandResult(new PluginResult(PluginResult.Status.ERROR, new FileTransferError(ConnectionError)), reqState.options.CallbackId);
+                    DispatchCommandResult(new PluginResult(PluginResult.Status.ERROR, 
+                                                           new FileTransferError(ConnectionError)),
+                                          callbackId);
                 }
             }
             catch (Exception)
             {
-                DispatchCommandResult(new PluginResult(PluginResult.Status.ERROR, new FileTransferError(FileNotFoundError)), reqState.options.CallbackId);
+                DispatchCommandResult(new PluginResult(PluginResult.Status.ERROR, 
+                                                        new FileTransferError(FileNotFoundError)),
+                                      callbackId);
             }
         }
 
@@ -501,9 +525,12 @@ namespace WPCordovaClassLib.Cordova.Commands
         /// <param name="asynchronousResult"></param>
         private void WriteCallback(IAsyncResult asynchronousResult)
         {
+            DownloadRequestState reqState = (DownloadRequestState)asynchronousResult.AsyncState;
+            HttpWebRequest webRequest = reqState.request;
+            string callbackId = reqState.options.CallbackId;
+
             try
             {
-                HttpWebRequest webRequest = (HttpWebRequest)asynchronousResult.AsyncState;
                 using (Stream requestStream = (webRequest.EndGetRequestStream(asynchronousResult)))
                 {
                     string lineStart = "--";
@@ -511,18 +538,13 @@ namespace WPCordovaClassLib.Cordova.Commands
                     byte[] boundaryBytes = System.Text.Encoding.UTF8.GetBytes(lineStart + Boundary + lineEnd);
                     string formdataTemplate = "Content-Disposition: form-data; name=\"{0}\"" + lineEnd + lineEnd + "{1}" + lineEnd;
 
-                    if (uploadOptions.Params != null)
+                    if (!string.IsNullOrEmpty(reqState.options.Params))
                     {
-
-                        string[] arrParams = uploadOptions.Params.Split(new[] { '&' }, StringSplitOptions.RemoveEmptyEntries);
-
-                        foreach (string param in arrParams)
+                        Dictionary<string, string> paramMap = parseHeaders(reqState.options.Params);
+                        foreach (string key in paramMap.Keys)
                         {
-                            string[] split = param.Split('=');
-                            string key = split[0];
-                            string val = split[1];
                             requestStream.Write(boundaryBytes, 0, boundaryBytes.Length);
-                            string formItem = string.Format(formdataTemplate, key, val);
+                            string formItem = string.Format(formdataTemplate, key, paramMap[key]);
                             byte[] formItemBytes = System.Text.Encoding.UTF8.GetBytes(formItem);
                             requestStream.Write(formItemBytes, 0, formItemBytes.Length);
                         }
@@ -530,16 +552,16 @@ namespace WPCordovaClassLib.Cordova.Commands
                     }
                     using (IsolatedStorageFile isoFile = IsolatedStorageFile.GetUserStoreForApplication())
                     {
-                        if (!isoFile.FileExists(uploadOptions.FilePath))
+                        if (!isoFile.FileExists(reqState.options.FilePath))
                         {
-                            DispatchCommandResult(new PluginResult(PluginResult.Status.ERROR, new FileTransferError(FileNotFoundError, uploadOptions.Server, uploadOptions.FilePath, 0)));
+                            DispatchCommandResult(new PluginResult(PluginResult.Status.ERROR, new FileTransferError(FileNotFoundError, reqState.options.Server, reqState.options.FilePath, 0)));
                             return;
                         }
 
-                        using (FileStream fileStream = new IsolatedStorageFileStream(uploadOptions.FilePath, FileMode.Open, isoFile))
+                        using (FileStream fileStream = new IsolatedStorageFileStream(reqState.options.FilePath, FileMode.Open, isoFile))
                         {
                             string headerTemplate = "Content-Disposition: form-data; name=\"{0}\"; filename=\"{1}\"" + lineEnd + "Content-Type: {2}" + lineEnd + lineEnd;
-                            string header = string.Format(headerTemplate, uploadOptions.FileKey, uploadOptions.FileName, uploadOptions.MimeType);
+                            string header = string.Format(headerTemplate, reqState.options.FileKey, reqState.options.FileName, reqState.options.MimeType);
                             byte[] headerBytes = System.Text.Encoding.UTF8.GetBytes(header);
                             requestStream.Write(boundaryBytes, 0, boundaryBytes.Length);
                             requestStream.Write(headerBytes, 0, headerBytes.Length);
@@ -548,6 +570,7 @@ namespace WPCordovaClassLib.Cordova.Commands
 
                             while ((bytesRead = fileStream.Read(buffer, 0, buffer.Length)) != 0)
                             {
+                                // TODO: Progress event
                                 requestStream.Write(buffer, 0, bytesRead);
                                 bytesSent += bytesRead;
                             }
@@ -556,14 +579,13 @@ namespace WPCordovaClassLib.Cordova.Commands
                         requestStream.Write(endRequest, 0, endRequest.Length);
                     }
                 }
-                webRequest.BeginGetResponse(ReadCallback, webRequest);
+                // webRequest
+
+                webRequest.BeginGetResponse(ReadCallback, reqState);
             }
-            catch (Exception)
+            catch (Exception ex)
             {
-                Deployment.Current.Dispatcher.BeginInvoke(() =>
-                {
-                    DispatchCommandResult(new PluginResult(PluginResult.Status.ERROR, new FileTransferError(ConnectionError)));
-                });
+                DispatchCommandResult(new PluginResult(PluginResult.Status.ERROR, new FileTransferError(ConnectionError)),callbackId);
             }
         }
 
@@ -573,9 +595,17 @@ namespace WPCordovaClassLib.Cordova.Commands
         /// <param name="asynchronousResult"></param>
         private void ReadCallback(IAsyncResult asynchronousResult)
         {
+            DownloadRequestState reqState = (DownloadRequestState)asynchronousResult.AsyncState;
             try
             {
-                HttpWebRequest webRequest = (HttpWebRequest)asynchronousResult.AsyncState;
+                HttpWebRequest webRequest = reqState.request;
+                string callbackId = reqState.options.CallbackId;
+
+                if (InProcDownloads.ContainsKey(reqState.options.Id))
+                {
+                    InProcDownloads.Remove(reqState.options.Id);
+                }
+
                 using (HttpWebResponse response = (HttpWebResponse)webRequest.EndGetResponse(asynchronousResult))
                 {
                     using (Stream streamResponse = response.GetResponseStream())
@@ -591,13 +621,29 @@ namespace WPCordovaClassLib.Cordova.Commands
                     }
                 }
             }
-            catch (Exception)
+            catch (WebException webex)
             {
-                Deployment.Current.Dispatcher.BeginInvoke(() =>
+                // TODO: probably need better work here to properly respond with all http status codes back to JS
+                // Right now am jumping through hoops just to detect 404.
+                if ((webex.Status == WebExceptionStatus.ProtocolError && ((HttpWebResponse)webex.Response).StatusCode == HttpStatusCode.NotFound)
+                    || webex.Status == WebExceptionStatus.UnknownError)
                 {
-                    FileTransferError transferError = new FileTransferError(ConnectionError, uploadOptions.Server, uploadOptions.FilePath, 403);
-                    DispatchCommandResult(new PluginResult(PluginResult.Status.ERROR, transferError));
-                });
+                    int statusCode = (int)((HttpWebResponse)webex.Response).StatusCode;
+                    FileTransferError ftError = new FileTransferError(ConnectionError, null, null, statusCode);
+                    DispatchCommandResult(new PluginResult(PluginResult.Status.ERROR, ftError), reqState.options.CallbackId);
+                }
+                else
+                {
+                    DispatchCommandResult(new PluginResult(PluginResult.Status.ERROR,
+                                                           new FileTransferError(ConnectionError)),
+                                          reqState.options.CallbackId);
+                }
+            }
+            catch (Exception ex)
+            {
+                FileTransferError transferError = new FileTransferError(ConnectionError, reqState.options.Server, reqState.options.FilePath, 403);
+                DispatchCommandResult(new PluginResult(PluginResult.Status.ERROR, transferError), reqState.options.CallbackId);
+
             }
         }
     }
