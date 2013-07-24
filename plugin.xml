@@ -51,6 +51,8 @@
         </config-file>
         <header-file src="src/ios/CDVFileTransfer.h" />
         <source-file src="src/ios/CDVFileTransfer.m" />
+        
+        <framework src="AssetsLibrary.framework" />
     </platform>
 
     <!-- wp7 -->
