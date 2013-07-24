@@ -16,7 +16,7 @@
        specific language governing permissions and limitations
        under the License.
 */
-package org.apache.cordova.core;
+package org.apache.cordova.filetransfer;
 
 import java.io.BufferedReader;
 import java.io.ByteArrayOutputStream;
@@ -53,6 +53,7 @@ import org.apache.cordova.CordovaPlugin;
 import org.apache.cordova.CordovaResourceApi;
 import org.apache.cordova.CordovaResourceApi.OpenForReadResult;
 import org.apache.cordova.PluginResult;
+import org.apache.cordova.file.FileUtils;
 import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
@@ -595,7 +596,8 @@ public class FileTransfer extends CordovaPlugin {
                         body = bodyBuilder.toString();
                     }
                 }
-            } catch (IOException e) {
+            // IOException can leave connection object in a bad state, so catch all exceptions.
+            } catch (Throwable e) {
                 Log.w(LOG_TAG, "Error getting HTTP status code from connection.", e);
             }
         }

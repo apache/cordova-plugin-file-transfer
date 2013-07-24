@@ -1,11 +1,15 @@
 <?xml version="1.0" encoding="UTF-8"?>
 
 <plugin xmlns="http://apache.org/cordova/ns/plugins/1.0"
-           id="org.apache.cordova.core.file-transfer"
-      version="0.1.0">
-    <name>filetransfer</name>
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    id="org.apache.cordova.core.file-transfer"
+    version="0.2.0">
+    <name>File Transfer</name>
+    <description>Cordova File Transfer Plugin</description>
+    <license>Apache 2.0</license>
+    <keywords>cordova,file,transfer</keywords>
 
-    <dependency id="org.apache.cordova.core.file" url="https://git-wip-us.apache.org/repos/asf/cordova-plugin-file" commit="master" subdir="/*" />
+    <dependency id="org.apache.cordova.core.file" url="https://git-wip-us.apache.org/repos/asf/cordova-plugin-file" commit="master" />
 
     <js-module src="www/FileTransferError.js" name="FileTransferError">
         <clobbers target="window.FileTransferError" />
@@ -19,7 +23,7 @@
     <platform name="android">
         <config-file target="res/xml/config.xml" parent="/*">
             <feature name="FileTransfer" >
-                <param name="android-package" value="org.apache.cordova.core.FileTransfer"/>
+                <param name="android-package" value="org.apache.cordova.filetransfer.FileTransfer"/>
             </feature>
         </config-file>
 
@@ -27,9 +31,9 @@
             <uses-permission android:name="android.permission.WRITE_EXTERNAL_STORAGE" />
         </config-file>
 
-        <source-file src="src/android/FileTransfer.java" target-dir="src/org/apache/cordova/core" />
-        <source-file src="src/android/FileProgressResult.java" target-dir="src/org/apache/cordova/core" />
-        <source-file src="src/android/FileUploadResult.java" target-dir="src/org/apache/cordova/core" />
+        <source-file src="src/android/FileTransfer.java" target-dir="src/org/apache/cordova/filetransfer" />
+        <source-file src="src/android/FileProgressResult.java" target-dir="src/org/apache/cordova/filetransfer" />
+        <source-file src="src/android/FileUploadResult.java" target-dir="src/org/apache/cordova/filetransfer" />
     </platform>
 
     <platform name="blackberry10">
@@ -86,5 +90,12 @@
         </js-module>
 
     </platform>
+
+    <!-- windows8 -->
+    <platform name="windows8">
+        <js-module src="www/windows8/FileTransferProxy.js" name="FileTransferProxy">
+            <clobbers target="" />
+        </js-module>
+    </platform>     
 
 </plugin>
