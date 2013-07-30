@@ -595,7 +595,8 @@ public class FileTransfer extends CordovaPlugin {
                         body = bodyBuilder.toString();
                     }
                 }
-            } catch (IOException e) {
+            // IOException can leave connection object in a bad state, so catch all exceptions.
+            } catch (Throwable e) {
                 Log.w(LOG_TAG, "Error getting HTTP status code from connection.", e);
             }
         }
