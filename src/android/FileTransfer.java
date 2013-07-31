@@ -16,7 +16,7 @@
        specific language governing permissions and limitations
        under the License.
 */
-package org.apache.cordova.core;
+package org.apache.cordova.filetransfer;
 
 import java.io.BufferedReader;
 import java.io.ByteArrayOutputStream;
@@ -53,6 +53,7 @@ import org.apache.cordova.CordovaPlugin;
 import org.apache.cordova.CordovaResourceApi;
 import org.apache.cordova.CordovaResourceApi.OpenForReadResult;
 import org.apache.cordova.PluginResult;
+import org.apache.cordova.file.FileUtils;
 import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;

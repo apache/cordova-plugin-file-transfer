@@ -16,7 +16,7 @@
        specific language governing permissions and limitations
        under the License.
 */
-package org.apache.cordova.core;
+package org.apache.cordova.filetransfer;
 
 import org.json.JSONException;
 import org.json.JSONObject;

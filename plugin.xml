@@ -23,7 +23,7 @@
     <platform name="android">
         <config-file target="res/xml/config.xml" parent="/*">
             <feature name="FileTransfer" >
-                <param name="android-package" value="org.apache.cordova.core.FileTransfer"/>
+                <param name="android-package" value="org.apache.cordova.filetransfer.FileTransfer"/>
             </feature>
         </config-file>
 
@@ -31,9 +31,9 @@
             <uses-permission android:name="android.permission.WRITE_EXTERNAL_STORAGE" />
         </config-file>
 
-        <source-file src="src/android/FileTransfer.java" target-dir="src/org/apache/cordova/core" />
-        <source-file src="src/android/FileProgressResult.java" target-dir="src/org/apache/cordova/core" />
-        <source-file src="src/android/FileUploadResult.java" target-dir="src/org/apache/cordova/core" />
+        <source-file src="src/android/FileTransfer.java" target-dir="src/org/apache/cordova/filetransfer" />
+        <source-file src="src/android/FileProgressResult.java" target-dir="src/org/apache/cordova/filetransfer" />
+        <source-file src="src/android/FileUploadResult.java" target-dir="src/org/apache/cordova/filetransfer" />
     </platform>
 
     <platform name="blackberry10">
