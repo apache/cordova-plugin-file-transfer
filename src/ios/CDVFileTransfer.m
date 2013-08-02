@@ -209,7 +209,7 @@ static CFIndex WriteDataToStream(NSData* data, CFWriteStreamRef stream)
     NSData* postBodyAfterFile = [[NSString stringWithFormat:@"\r\n--%@--\r\n", kFormBoundary] dataUsingEncoding:NSUTF8StringEncoding];
 
     long long totalPayloadLength = [postBodyBeforeFile length] + [fileData length] + [postBodyAfterFile length];
-    [req setValue:[[NSNumber numberWithUnsignedLongLong:totalPayloadLength] stringValue] forHTTPHeaderField:@"Content-Length"];
+    [req setValue:[[NSNumber numberWithLongLong:totalPayloadLength] stringValue] forHTTPHeaderField:@"Content-Length"];
 
     if (chunkedMode) {
         CFReadStreamRef readStream = NULL;
@@ -535,7 +535,7 @@ static CFIndex WriteDataToStream(NSData* data, CFWriteStreamRef stream)
             if (uploadResponse != nil) {
                 [uploadResult setObject:uploadResponse forKey:@"response"];
             }
-            [uploadResult setObject:[NSNumber numberWithUnsignedLongLong:self.bytesTransfered] forKey:@"bytesSent"];
+            [uploadResult setObject:[NSNumber numberWithLongLong:self.bytesTransfered] forKey:@"bytesSent"];
             [uploadResult setObject:[NSNumber numberWithInt:self.responseCode] forKey:@"responseCode"];
             result = [CDVPluginResult resultWithStatus:CDVCommandStatus_OK messageAsDictionary:uploadResult];
         } else {
@@ -683,8 +683,8 @@ static CFIndex WriteDataToStream(NSData* data, CFWriteStreamRef stream)
         }
         NSMutableDictionary* downloadProgress = [NSMutableDictionary dictionaryWithCapacity:3];
         [downloadProgress setObject:[NSNumber numberWithBool:lengthComputable] forKey:@"lengthComputable"];
-        [downloadProgress setObject:[NSNumber numberWithUnsignedLongLong:self.bytesTransfered] forKey:@"loaded"];
-        [downloadProgress setObject:[NSNumber numberWithUnsignedLongLong:self.bytesExpected] forKey:@"total"];
+        [downloadProgress setObject:[NSNumber numberWithLongLong:self.bytesTransfered] forKey:@"loaded"];
+        [downloadProgress setObject:[NSNumber numberWithLongLong:self.bytesExpected] forKey:@"total"];
         CDVPluginResult* result = [CDVPluginResult resultWithStatus:CDVCommandStatus_OK messageAsDictionary:downloadProgress];
         [result setKeepCallbackAsBool:true];
         [self.command.commandDelegate sendPluginResult:result callbackId:callbackId];
@@ -697,8 +697,8 @@ static CFIndex WriteDataToStream(NSData* data, CFWriteStreamRef stream)
         NSMutableDictionary* uploadProgress = [NSMutableDictionary dictionaryWithCapacity:3];
 
         [uploadProgress setObject:[NSNumber numberWithBool:true] forKey:@"lengthComputable"];
-        [uploadProgress setObject:[NSNumber numberWithUnsignedLongLong:totalBytesWritten] forKey:@"loaded"];
-        [uploadProgress setObject:[NSNumber numberWithUnsignedLongLong:totalBytesExpectedToWrite] forKey:@"total"];
+        [uploadProgress setObject:[NSNumber numberWithLongLong:totalBytesWritten] forKey:@"loaded"];
+        [uploadProgress setObject:[NSNumber numberWithLongLong:totalBytesExpectedToWrite] forKey:@"total"];
         CDVPluginResult* result = [CDVPluginResult resultWithStatus:CDVCommandStatus_OK messageAsDictionary:uploadProgress];
         [result setKeepCallbackAsBool:true];
         [self.command.commandDelegate sendPluginResult:result callbackId:callbackId];
