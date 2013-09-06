@@ -67,11 +67,6 @@
         </config-file>
 
         <source-file src="src/wp/FileTransfer.cs" />
-
-        <js-module src="www/wp/FileTransfer.js" name="FileTransfer1">
-            <clobbers target="window.FileTransfer" />
-        </js-module>
-
     </platform>
 
     <!-- wp8 -->
