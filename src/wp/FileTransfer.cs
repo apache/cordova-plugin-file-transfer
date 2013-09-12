@@ -1,4 +1,4 @@
-﻿/*  
+/*  
 	Licensed under the Apache License, Version 2.0 (the "License");
 	you may not use this file except in compliance with the License.
 	You may obtain a copy of the License at
@@ -326,7 +326,7 @@ namespace WPCordovaClassLib.Cordova.Commands
             string[] strHeaders = temp.Split(',');
             for (int n = 0; n < strHeaders.Length; n++)
             {
-                string[] split = strHeaders[n].Split(':');
+                string[] split = strHeaders[n].Split(":".ToCharArray(), 2);
                 if (split.Length == 2)
                 {
                     split[0] = JSON.JsonHelper.Deserialize<string>(split[0]);
