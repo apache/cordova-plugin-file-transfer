@@ -54,7 +54,7 @@
         </config-file>
         <header-file src="src/ios/CDVFileTransfer.h" />
         <source-file src="src/ios/CDVFileTransfer.m" />
-        
+
         <framework src="AssetsLibrary.framework" />
     </platform>
 
@@ -67,6 +67,11 @@
         </config-file>
 
         <source-file src="src/wp/FileTransfer.cs" />
+
+        <js-module src="www/wp7/base64.js" name="base64">
+            <clobbers target="window.FileTransfer" />
+        </js-module>
+
     </platform>
 
     <!-- wp8 -->
@@ -78,6 +83,7 @@
         </config-file>
 
         <source-file src="src/wp/FileTransfer.cs" />
+
     </platform>
 
     <!-- windows8 -->
@@ -85,6 +91,6 @@
         <js-module src="www/windows8/FileTransferProxy.js" name="FileTransferProxy">
             <clobbers target="" />
         </js-module>
-    </platform>     
+    </platform>
 
 </plugin>
