@@ -328,15 +328,18 @@ namespace WPCordovaClassLib.Cordova.Commands
                 string[] strHeaders = temp.Split(',');
                 for (int n = 0; n < strHeaders.Length; n++)
                 {
-                    string[] split = strHeaders[n].Split(':');
-                    if (split.Length == 2)
+                    // we need to use indexOf in order to WP7 compatible
+                    int splitIndex = strHeaders[n].IndexOf(':');
+                    if (splitIndex > 0)
                     {
+                        string[] split = new string[2];
+                        split[0] = strHeaders[n].Substring(0, splitIndex);
+                        split[1] = strHeaders[n].Substring(splitIndex + 1);
+
                         split[0] = JSON.JsonHelper.Deserialize<string>(split[0]);
                         split[1] = JSON.JsonHelper.Deserialize<string>(split[1]);
                         result[split[0]] = split[1];
                     }
-
-
                 }
                 return result;
             }

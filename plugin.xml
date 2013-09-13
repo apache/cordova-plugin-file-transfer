@@ -69,7 +69,7 @@
         <source-file src="src/wp/FileTransfer.cs" />
 
         <js-module src="www/wp7/base64.js" name="base64">
-            <clobbers target="window.FileTransfer" />
+            <clobbers target="window.FileTransferBase64" />
         </js-module>
 
     </platform>
