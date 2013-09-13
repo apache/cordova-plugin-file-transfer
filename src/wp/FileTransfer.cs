@@ -325,11 +325,8 @@ namespace WPCordovaClassLib.Cordova.Commands
                 string temp = jsonHeaders.StartsWith("{") ? jsonHeaders.Substring(1) : jsonHeaders;
                 temp = temp.EndsWith("}") ? temp.Substring(0, temp.Length - 1) : temp;
 
-            string[] strHeaders = temp.Split(',');
-            for (int n = 0; n < strHeaders.Length; n++)
-            {
-                string[] split = strHeaders[n].Split(":".ToCharArray(), 2);
-                if (split.Length == 2)
+                string[] strHeaders = temp.Split(',');
+                for (int n = 0; n < strHeaders.Length; n++)
                 {
                     string[] split = strHeaders[n].Split(':');
                     if (split.Length == 2)
@@ -338,6 +335,8 @@ namespace WPCordovaClassLib.Cordova.Commands
                         split[1] = JSON.JsonHelper.Deserialize<string>(split[1]);
                         result[split[0]] = split[1];
                     }
+
+
                 }
                 return result;
             }
@@ -347,6 +346,7 @@ namespace WPCordovaClassLib.Cordova.Commands
             }
             return null;
         }
+
 
 
         public void download(string options)
