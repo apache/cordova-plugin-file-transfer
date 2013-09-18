@@ -29,6 +29,7 @@ module.exports = {
     upload:function(successCallback, error, options) {
         var filePath = options[0];
         var server = options[1];
+        var headers = options[8] || {};
 
 
         var win = function (fileUploadResult) {
@@ -49,7 +50,7 @@ module.exports = {
                 var blob = MSApp.createBlobFromRandomAccessStream(storageFile.contentType, stream);
                 var formData = new FormData();
                 formData.append("source\";filename=\"" + storageFile.name + "\"", blob);
-                WinJS.xhr({ type: "POST", url: server, data: formData }).then(function (response) {
+                WinJS.xhr({ type: "POST", url: server, data: formData, headers: headers }).then(function (response) {
                     var code = response.status;
                     storageFile.getBasicPropertiesAsync().done(function (basicProperties) {
 
