@@ -73,6 +73,7 @@ module.exports = {
     download:function(win, error, options) {
         var source = options[0];
         var target = options[1];
+        var headers = options[4] || {};
 
 
         if (target === null || typeof target === undefined) {
@@ -96,6 +97,13 @@ module.exports = {
             storageFolder.createFileAsync(fileName, Windows.Storage.CreationCollisionOption.generateUniqueName).then(function (storageFile) {
                 var uri = Windows.Foundation.Uri(source);
                 var downloader = new Windows.Networking.BackgroundTransfer.BackgroundDownloader();
+
+                if (headers) {
+                    for (var header in headers) {
+                        downloader.setRequestHeader(header, headers[header]);
+                    }
+                }
+
                 download = downloader.createDownload(uri, storageFile);
                 download.startAsync().then(function () {
                     win(new FileEntry(storageFile.name, storageFile.path));
