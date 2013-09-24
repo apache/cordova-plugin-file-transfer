@@ -107,4 +107,4 @@ module.exports = {
     }
 };
 
-require("cordova/commandProxy").add("FileTransfer",module.exports);
+require("cordova/windows8/commandProxy").add("FileTransfer",module.exports);
