@@ -21,8 +21,8 @@
 
 
 var FileTransferError = require('./FileTransferError'),
-    FileUploadResult = require('org.apache.cordova.core.file.FileUploadResult'),
-    FileEntry = require('org.apache.cordova.core.file.FileEntry');
+    FileUploadResult = require('org.apache.cordova.file.FileUploadResult'),
+    FileEntry = require('org.apache.cordova.file.FileEntry');
 
 module.exports = {
 
