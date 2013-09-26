@@ -20,4 +20,9 @@
 -->
 # Release Notes
 
-
+### 0.3.2 (Sept 25, 2013)
+* CB-4889 bumping&resetting version
+* [windows8] commandProxy was moved
+* CB-4889 updating core references
+* CB-4889 renaming org.apache.cordova.core.file-transfer to org.apache.cordova.file-transfer and updating dependency
+* Rename CHANGELOG.md -> RELEASENOTES.md
