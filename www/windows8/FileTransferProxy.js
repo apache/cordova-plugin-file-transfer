@@ -99,11 +99,10 @@ module.exports = {
                 var uri = Windows.Foundation.Uri(source);
                 var downloader = new Windows.Networking.BackgroundTransfer.BackgroundDownloader();
 
-                if (headers) {
-                    for (var header in headers) {
-                        downloader.setRequestHeader(header, headers[header]);
-                    }
+                for (var header in headers) {
+                    downloader.setRequestHeader(header, headers[header]);
                 }
+
 
                 download = downloader.createDownload(uri, storageFile);
                 download.startAsync().then(function () {
