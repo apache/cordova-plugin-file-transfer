@@ -26,3 +26,10 @@
 * CB-4889 updating core references
 * CB-4889 renaming org.apache.cordova.core.file-transfer to org.apache.cordova.file-transfer and updating dependency
 * Rename CHANGELOG.md -> RELEASENOTES.md
+
+### 0.3.3 (Oct 9, 2013)
+* removed un-needed undef check
+* Fix missing headers in Windows 8 upload proxy
+* Fix missing headers in Windows 8 Proxy
+* Fix Windows 8 HTMLAnchorElement return host:80 which force Basic Auth Header to replace options Auth Header
+* [CB-4915] Incremented plugin version on dev branch.
