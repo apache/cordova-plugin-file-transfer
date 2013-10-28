@@ -33,3 +33,7 @@
 * Fix missing headers in Windows 8 Proxy
 * Fix Windows 8 HTMLAnchorElement return host:80 which force Basic Auth Header to replace options Auth Header
 * [CB-4915] Incremented plugin version on dev branch.
+
+ ### 0.3.4 (Oct 28, 2013)
+* CB-5128: added repo + issue tag to plugin.xml for file transfer plugin
+* [CB-5010] Incremented plugin version on dev branch.
