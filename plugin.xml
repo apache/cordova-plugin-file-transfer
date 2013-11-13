@@ -35,6 +35,12 @@
         <source-file src="src/android/FileUploadResult.java" target-dir="src/org/apache/cordova/filetransfer" />
     </platform>
 
+    <!-- ubuntu -->
+    <platform name="ubuntu">
+        <header-file src="src/ubuntu/file-transfer.h" />
+        <source-file src="src/ubuntu/file-transfer.cpp" />
+    </platform>
+
     <platform name="blackberry10">
         <config-file target="www/config.xml" parent="/widget">
             <feature name="FileTransfer" value="FileTransfer"></feature>
