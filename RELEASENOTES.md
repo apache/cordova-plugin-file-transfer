@@ -37,3 +37,10 @@
  ### 0.3.4 (Oct 28, 2013)
 * CB-5128: added repo + issue tag to plugin.xml for file transfer plugin
 * [CB-5010] Incremented plugin version on dev branch.
+
+### 0.4.0 (Dec 4, 2013)
+* CB-5466: Partial revert; we're not ready yet for FS urls
+* add ubuntu platform
+* CB-5466: Minor version bump
+* CB-5466: Update FileTransfer plugin to accept filesystem urls
+* Added amazon-fireos platform. Change to use amazon-fireos as the platform if the user agen string contains 'cordova-amazon-fireos'
