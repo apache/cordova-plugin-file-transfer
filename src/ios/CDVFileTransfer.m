@@ -20,14 +20,11 @@
 #import <Cordova/CDV.h>
 #import "CDVFileTransfer.h"
 #import "CDVFile.h"
-#import "CDVLocalFilesystem.h"
 
 #import <AssetsLibrary/ALAsset.h>
 #import <AssetsLibrary/ALAssetRepresentation.h>
 #import <AssetsLibrary/ALAssetsLibrary.h>
 #import <CFNetwork/CFNetwork.h>
-
-extern CDVFile *filePlugin;
 
 @interface CDVFileTransfer ()
 // Sets the requests headers for the request.
@@ -277,23 +274,31 @@ static CFIndex WriteDataToStream(NSData* data, CFWriteStreamRef stream)
     NSString* server = [command.arguments objectAtIndex:1];
     NSError* __autoreleasing err = nil;
 
-    CDVFilesystemURL *sourceURL = [CDVFilesystemURL fileSystemURLWithString:source];
-    NSObject<CDVFileSystem> *fs;
-    if (sourceURL) {
-        // Try to get a CDVFileSystem which will handle this file.
-        // This requires talking to the current CDVFile plugin.
-        fs = [filePlugin filesystemForURL:sourceURL];
-    }
-    if (fs) {
-        [fs readFileAtURL:sourceURL start:0 end:-1 callback:^(NSData *fileData, NSString *mimeType, CDVFileError err) {
-            if (err) {
+    // return unsupported result for assets-library URLs
+    if ([source hasPrefix:kCDVAssetsLibraryPrefix]) {
+        // Instead, we return after calling the asynchronous method and send `result` in each of the blocks.
+        ALAssetsLibraryAssetForURLResultBlock resultBlock = ^(ALAsset* asset) {
+            if (asset) {
+                // We have the asset!  Get the data and send it off.
+                ALAssetRepresentation* assetRepresentation = [asset defaultRepresentation];
+                Byte* buffer = (Byte*)malloc([assetRepresentation size]);
+                NSUInteger bufferSize = [assetRepresentation getBytes:buffer fromOffset:0.0 length:[assetRepresentation size] error:nil];
+                NSData* fileData = [NSData dataWithBytesNoCopy:buffer length:bufferSize freeWhenDone:YES];
+                [self uploadData:fileData command:command];
+            } else {
                 // We couldn't find the asset.  Send the appropriate error.
                 CDVPluginResult* result = [CDVPluginResult resultWithStatus:CDVCommandStatus_ERROR messageAsDictionary:[self createFileTransferError:NOT_FOUND_ERR AndSource:source AndTarget:server]];
                 [self.commandDelegate sendPluginResult:result callbackId:command.callbackId];
-            }  else {
-                [self uploadData:fileData command:command];
             }
-        }];
+        };
+        ALAssetsLibraryAccessFailureBlock failureBlock = ^(NSError* error) {
+            // Retrieving the asset failed for some reason.  Send the appropriate error.
+            CDVPluginResult* result = [CDVPluginResult resultWithStatus:CDVCommandStatus_IO_EXCEPTION messageAsString:[error localizedDescription]];
+            [self.commandDelegate sendPluginResult:result callbackId:command.callbackId];
+        };
+
+        ALAssetsLibrary* assetsLibrary = [[ALAssetsLibrary alloc] init];
+        [assetsLibrary assetForURL:[NSURL URLWithString:source] resultBlock:resultBlock failureBlock:failureBlock];
         return;
     } else {
         // Extract the path part out of a file: URL.
@@ -304,17 +309,14 @@ static CFIndex WriteDataToStream(NSData* data, CFWriteStreamRef stream)
             [self.commandDelegate sendPluginResult:result callbackId:command.callbackId];
             return;
         }
-        
+
         // Memory map the file so that it can be read efficiently even if it is large.
         NSData* fileData = [NSData dataWithContentsOfFile:filePath options:NSDataReadingMappedIfSafe error:&err];
-        
+
         if (err != nil) {
             NSLog(@"Error opening file %@: %@", source, err);
-            CDVPluginResult* result = [CDVPluginResult resultWithStatus:CDVCommandStatus_ERROR messageAsDictionary:[self createFileTransferError:NOT_FOUND_ERR AndSource:source AndTarget:server]];
-            [self.commandDelegate sendPluginResult:result callbackId:command.callbackId];
-        } else {
-            [self uploadData:fileData command:command];
         }
+        [self uploadData:fileData command:command];
     }
 }
 
@@ -364,6 +366,13 @@ static CFIndex WriteDataToStream(NSData* data, CFWriteStreamRef stream)
     NSString* objectId = [command.arguments objectAtIndex:3];
     NSDictionary* headers = [command.arguments objectAtIndex:4 withDefault:nil];
 
+    // return unsupported result for assets-library URLs
+    if ([target hasPrefix:kCDVAssetsLibraryPrefix]) {
+        CDVPluginResult* result = [CDVPluginResult resultWithStatus:CDVCommandStatus_MALFORMED_URL_EXCEPTION messageAsString:@"download not supported for assets-library URLs."];
+        [self.commandDelegate sendPluginResult:result callbackId:command.callbackId];
+        return;
+    }
+
     CDVPluginResult* result = nil;
     CDVFileTransferError errorCode = 0;
 
@@ -375,17 +384,14 @@ static CFIndex WriteDataToStream(NSData* data, CFWriteStreamRef stream)
         targetURL = [NSURL URLWithString:target];
     }
 
-    NSURL* sourceURL = [NSURL URLWithString:source];
+    NSURL* url = [NSURL URLWithString:source];
 
-    if (!sourceURL) {
+    if (!url) {
         errorCode = INVALID_URL_ERR;
         NSLog(@"File Transfer Error: Invalid server URL %@", source);
     } else if (![targetURL isFileURL]) {
-        CDVFilesystemURL *fsURL = [CDVFilesystemURL fileSystemURLWithString:target];
-        if (!fsURL) {
-           errorCode = FILE_NOT_FOUND_ERR;
-           NSLog(@"File Transfer Error: Invalid file path or URL %@", target);
-        }
+        errorCode = FILE_NOT_FOUND_ERR;
+        NSLog(@"File Transfer Error: Invalid file path or URL %@", target);
     }
 
     if (errorCode > 0) {
@@ -394,7 +400,7 @@ static CFIndex WriteDataToStream(NSData* data, CFWriteStreamRef stream)
         return;
     }
 
-    NSMutableURLRequest* req = [NSMutableURLRequest requestWithURL:sourceURL];
+    NSMutableURLRequest* req = [NSMutableURLRequest requestWithURL:url];
     [self applyRequestHeaders:headers toRequest:req];
 
     CDVFileTransferDelegate* delegate = [[CDVFileTransferDelegate alloc] init];
@@ -404,7 +410,6 @@ static CFIndex WriteDataToStream(NSData* data, CFWriteStreamRef stream)
     delegate.objectId = objectId;
     delegate.source = source;
     delegate.target = target;
-    delegate.targetURL = targetURL;
     delegate.trustAllHosts = trustAllHosts;
 
     delegate.connection = [NSURLConnection connectionWithRequest:req delegate:delegate];
@@ -517,6 +522,8 @@ static CFIndex WriteDataToStream(NSData* data, CFWriteStreamRef stream)
     NSString* downloadResponse = nil;
     NSMutableDictionary* uploadResult;
     CDVPluginResult* result = nil;
+    BOOL bDirRequest = NO;
+    CDVFile* filePlugin;
 
     NSLog(@"File Transfer Finished with response code %d", self.responseCode);
 
@@ -542,7 +549,8 @@ static CFIndex WriteDataToStream(NSData* data, CFWriteStreamRef stream)
             self.targetFileHandle = nil;
             DLog(@"File Transfer Download success");
 
-            result = [CDVPluginResult resultWithStatus:CDVCommandStatus_OK messageAsDictionary:[filePlugin makeEntryForURL:self.targetURL]];
+            filePlugin = [[CDVFile alloc] init];
+            result = [CDVPluginResult resultWithStatus:CDVCommandStatus_OK messageAsDictionary:[filePlugin getDirectoryEntry:target isDirectory:bDirRequest]];
         } else {
             downloadResponse = [[NSString alloc] initWithData:self.responseData encoding:NSUTF8StringEncoding];
             result = [CDVPluginResult resultWithStatus:CDVCommandStatus_ERROR messageAsDictionary:[command createFileTransferError:CONNECTION_ERR AndSource:source AndTarget:target AndHttpStatus:self.responseCode AndBody:downloadResponse]];
@@ -611,23 +619,7 @@ static CFIndex WriteDataToStream(NSData* data, CFWriteStreamRef stream)
     }
     if ((self.direction == CDV_TRANSFER_DOWNLOAD) && (self.responseCode >= 200) && (self.responseCode < 300)) {
         // Download response is okay; begin streaming output to file
-        NSString *filePath = nil;
-        CDVFilesystemURL *sourceURL = [CDVFilesystemURL fileSystemURLWithString:self.target];
-        if (sourceURL && sourceURL.fileSystemType != -1) {
-            // This requires talking to the current CDVFile plugin
-            NSObject<CDVFileSystem> *fs = [filePlugin.fileSystems objectAtIndex:sourceURL.fileSystemType];
-            filePath = [fs filesystemPathForURL:sourceURL];
-        } else {
-            // Extract the path part out of a file: URL.
-            NSString* filePath = [self.target hasPrefix:@"/"] ? [self.target copy] : [[NSURL URLWithString:self.target] path];
-            if (filePath == nil) {
-                // We couldn't find the asset.  Send the appropriate error.
-                [self cancelTransferWithError:connection errorMessage:[NSString stringWithFormat:@"Could not create target file"]];
-                return;
-            }
-        }
-
-        NSString* parentPath = [filePath stringByDeletingLastPathComponent];
+        NSString* parentPath = [self.target stringByDeletingLastPathComponent];
 
         // create parent directories if needed
         if ([[NSFileManager defaultManager] createDirectoryAtPath:parentPath withIntermediateDirectories:YES attributes:nil error:&error] == NO) {
@@ -639,12 +631,12 @@ static CFIndex WriteDataToStream(NSData* data, CFWriteStreamRef stream)
             return;
         }
         // create target file
-        if ([[NSFileManager defaultManager] createFileAtPath:filePath contents:nil attributes:nil] == NO) {
+        if ([[NSFileManager defaultManager] createFileAtPath:self.target contents:nil attributes:nil] == NO) {
             [self cancelTransferWithError:connection errorMessage:@"Could not create target file"];
             return;
         }
         // open target file for writing
-        self.targetFileHandle = [NSFileHandle fileHandleForWritingAtPath:filePath];
+        self.targetFileHandle = [NSFileHandle fileHandleForWritingAtPath:self.target];
         if (self.targetFileHandle == nil) {
             [self cancelTransferWithError:connection errorMessage:@"Could not open target file for writing"];
         }
