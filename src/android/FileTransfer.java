@@ -664,8 +664,16 @@ public class FileTransfer extends CordovaPlugin {
         final JSONObject headers = args.optJSONObject(4);
         
         final Uri sourceUri = resourceApi.remapUri(Uri.parse(source));
+        
+        Uri tmpTarget;
+        if (target == null || "null".equals(target) || "".equals(target)) {
+               // objectId is an integer from FileTransfer.js
+               File tmpFile = File.createTempFile ("org.apache.cordova.filetransfer."+objectId, null);
+               tmpTarget = tmpFile.toUri();
+        } else {
+               tmpTarget = Uri.parse(target);
+        }
         // Accept a path or a URI for the source.
-        Uri tmpTarget = Uri.parse(target);
         final Uri targetUri = resourceApi.remapUri(
             tmpTarget.getScheme() != null ? tmpTarget : Uri.fromFile(new File(target)));
 
