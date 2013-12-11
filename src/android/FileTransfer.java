@@ -18,7 +18,9 @@
 */
 package org.apache.cordova.filetransfer;
 
+import java.io.BufferedInputStream;
 import java.io.BufferedReader;
+import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
 import java.io.Closeable;
 import java.io.File;
@@ -30,9 +32,11 @@ import java.io.InputStreamReader;
 import java.io.OutputStream;
 import java.io.UnsupportedEncodingException;
 import java.net.HttpURLConnection;
+import java.net.URI;
 import java.net.URLConnection;
 import java.net.URLDecoder;
 import java.security.cert.CertificateException;
+import java.security.cert.CertificateFactory;
 import java.security.cert.X509Certificate;
 import java.util.HashMap;
 import java.util.Iterator;
@@ -47,19 +51,23 @@ import javax.net.ssl.SSLSocketFactory;
 import javax.net.ssl.TrustManager;
 import javax.net.ssl.X509TrustManager;
 
-import org.apache.cordova.Config;
 import org.apache.cordova.CallbackContext;
+import org.apache.cordova.Config;
+import org.apache.cordova.CordovaInterface;
 import org.apache.cordova.CordovaPlugin;
 import org.apache.cordova.CordovaResourceApi;
 import org.apache.cordova.CordovaResourceApi.OpenForReadResult;
+import org.apache.cordova.CordovaWebView;
 import org.apache.cordova.PluginResult;
 import org.apache.cordova.file.FileUtils;
 import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
 
+import android.content.res.Resources;
 import android.net.Uri;
 import android.os.Build;
+import android.os.Bundle;
 import android.util.Log;
 import android.webkit.CookieManager;
 
@@ -78,6 +86,52 @@ public class FileTransfer extends CordovaPlugin {
     private static HashMap<String, RequestContext> activeRequests = new HashMap<String, RequestContext>();
     private static final int MAX_BUFFER_SIZE = 16 * 1024;
 
+    private static boolean haveCaCerts = false;
+    private static X509Certificate caCert = null;
+    
+    private static X509Certificate X509fromB64(byte[] bytes) throws CertificateException {
+      ByteArrayInputStream bis = new ByteArrayInputStream(bytes);
+      CertificateFactory cf;
+        cf = CertificateFactory.getInstance("X509");
+        X509Certificate certificate = (X509Certificate) cf.generateCertificate(bis);
+        return certificate;
+    }
+
+    public void initialize(CordovaInterface cordova, CordovaWebView webView) {
+      super.initialize(cordova, webView);
+      
+      Bundle extras = cordova.getActivity().getIntent().getExtras();
+      if (extras != null && extras.size() > 0) {
+        for (String key : extras.keySet()) {
+          if ("org.apache.cordova.file-transfer.cacerts".equals(key)) {
+            haveCaCerts = true;
+            String value = extras.getString(key);
+            Log.d(LOG_TAG, "cacerts: " + value);
+            Resources res = cordova.getActivity().getResources();
+            try {
+              InputStream ins = res.getAssets().open(value);
+              BufferedInputStream bins = new BufferedInputStream(ins);
+              ByteArrayOutputStream baos = new ByteArrayOutputStream();
+              int r;
+              do {
+                byte[] buffer = new byte[1024];
+                r = bins.read(buffer);
+                if (r>0) {
+                  baos.write(buffer, 0, r);
+                }
+              } while (r>0);
+              Log.d(LOG_TAG, "cacerts: " + baos.toString());
+              caCert = X509fromB64(baos.toByteArray());
+            } catch (IOException e) {
+              Log.e(LOG_TAG, "error reading cacerts: " + value, e);
+            } catch (CertificateException e) {
+              Log.e(LOG_TAG, "error reading cacerts: " + value, e);
+            }
+          }
+        }
+      }
+    }
+    
     private static final class RequestContext {
         String source;
         String target;
@@ -548,6 +602,38 @@ public class FileTransfer extends CordovaPlugin {
                 String authType) throws CertificateException {
         }
     } };
+    // Create a trust manager that does not validate certificate chains
+    private static final TrustManager[] trustSomeCerts = new TrustManager[] { new X509TrustManager() {
+        public java.security.cert.X509Certificate[] getAcceptedIssuers() {
+          return new java.security.cert.X509Certificate[] {caCert};
+        }
+        
+        public void checkClientTrusted(X509Certificate[] chain,
+                String authType) throws CertificateException {
+        }
+        
+        public void checkServerTrusted(X509Certificate[] chain,
+                String authType) throws CertificateException {
+          if (chain == null) throw new CertificateException();
+          if (chain.length == 0) throw new CertificateException();
+          
+          // FIXME
+          if (chain.length != 1) throw new CertificateException();
+          
+          // check date
+          for (int i=0; i<chain.length; i++) {
+            X509Certificate cert = chain[i];
+            cert.checkValidity();
+          }
+          
+          // check path
+          
+          // only support on self-issued cert
+          if (!caCert.equals(chain[0])) {
+            throw new CertificateException("cert is not trusted");
+          }
+        }
+    } };
 
     /**
      * This function will install a trust manager that will blindly trust all SSL
@@ -563,7 +649,11 @@ public class FileTransfer extends CordovaPlugin {
         try {
             // Install our all trusting manager
             SSLContext sc = SSLContext.getInstance("TLS");
-            sc.init(null, trustAllCerts, new java.security.SecureRandom());
+            if (haveCaCerts) {
+              sc.init(null, trustSomeCerts, new java.security.SecureRandom());
+            } else {
+              sc.init(null, trustAllCerts, new java.security.SecureRandom());
+            }
             SSLSocketFactory newFactory = sc.getSocketFactory();
             connection.setSSLSocketFactory(newFactory);
         } catch (Exception e) {
@@ -668,8 +758,17 @@ public class FileTransfer extends CordovaPlugin {
         Uri tmpTarget;
         if (target == null || "null".equals(target) || "".equals(target)) {
                // objectId is an integer from FileTransfer.js
-               File tmpFile = File.createTempFile ("org.apache.cordova.filetransfer."+objectId, null);
-               tmpTarget = tmpFile.toUri();
+               File tmpFile;
+              try {
+                tmpFile = File.createTempFile ("org.apache.cordova.filetransfer."+objectId, null);
+                URI aUri = tmpFile.toURI();
+                tmpTarget = Uri.parse(aUri.toString());
+              } catch (IOException e) {
+                JSONObject error = createFileTransferError(INVALID_URL_ERR, source, target, null, 0);
+                Log.e(LOG_TAG, "unable to create tempfile: org.apache.cordova.filetransfer."+objectId);
+                callbackContext.sendPluginResult(new PluginResult(PluginResult.Status.IO_EXCEPTION, error));
+                return;
+              }
         } else {
                tmpTarget = Uri.parse(target);
         }
