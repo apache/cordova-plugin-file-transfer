@@ -10,7 +10,8 @@
     <repo>https://git-wip-us.apache.org/repos/asf/cordova-plugin-file-transfer.git</repo>
     <issue>https://issues.apache.org/jira/browse/CB/component/12320650</issue>
 
-    <dependency id="org.apache.cordova.file@1" />
+    <!-- dependency id="org.apache.cordova.file@1" /-->
+    <dependency id="org.apache.cordova.file" />
 
     <js-module src="www/FileTransferError.js" name="FileTransferError">
         <clobbers target="window.FileTransferError" />
