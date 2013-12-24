@@ -582,6 +582,20 @@ namespace WPCordovaClassLib.Cordova.Commands
                     // create the file if not exists
                     if (!isoFile.FileExists(reqState.options.FilePath))
                     {
+                        //create parent Directories if not exists
+                        string filePath = reqState.options.FilePath;
+                        filePath = filePath.Replace("\\","/");
+                        string[] pathParts = filePath.Split('/');
+                        string parentPath = pathParts[0];
+                        for (int n = 1; n < pathParts.Length - 1; n++)
+                        {
+                            parentPath += "/" + pathParts[n];
+                            if (!isoFile.DirectoryExists(parentPath))
+                            {
+                                isoFile.CreateDirectory(parentPath);
+                            }
+                        }
+
                         var file = isoFile.CreateFile(reqState.options.FilePath);
                         file.Close();
                     }
