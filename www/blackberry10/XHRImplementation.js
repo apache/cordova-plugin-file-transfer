@@ -118,7 +118,7 @@ module.exports = {
                 var start = 0;
                 var end = bytesPerChunk;
                 while (start < file.size) {
-                    var chunk = file.slice(start, end, mimeType);
+                    var chunk = file.nativeFile.slice(start, end, mimeType);
                     uploadFile(chunk);
                     start = end;
                     end = start + bytesPerChunk;
