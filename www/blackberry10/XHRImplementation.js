@@ -146,7 +146,7 @@ module.exports = {
         xhr = new XMLHttpRequest();
 
         function writeFile(entry) {
-            entry.createWriter(function (writer) {
+            entry.nativeEntry.createWriter(function (writer) {
                 fileWriter = writer;
                 fileWriter.onwriteend = function (evt) {
                     if (!evt.target.error) {
@@ -188,13 +188,13 @@ module.exports = {
         xhr.onprogress = function (evt) {
             win(evt);
         };
-
         xhr.open("GET", source, true);
         for (var header in headers) {
             if (headers.hasOwnProperty(header)) {
                 xhr.setRequestHeader(header, headers[header]);
             }
         }
+        xhr.responseType = "blob";
         xhr.send();
         return { "status" : cordova.callbackStatus.NO_RESULT, "message" : "async"};
     }
