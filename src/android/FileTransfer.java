@@ -760,8 +760,10 @@ public class FileTransfer extends CordovaPlugin {
                         if (connection.getContentEncoding() == null || connection.getContentEncoding().equalsIgnoreCase("gzip")) {
                             // Only trust content-length header if we understand
                             // the encoding -- identity or gzip
-                            progress.setLengthComputable(true);
-                            progress.setTotal(connection.getContentLength());
+                            if (connection.getContentLength() != -1) {
+                                progress.setLengthComputable(true);
+                                progress.setTotal(connection.getContentLength());
+                            }
                         }
                         inputStream = getInputStream(connection);
                     }
