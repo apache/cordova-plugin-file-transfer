@@ -29,6 +29,7 @@ module.exports = {
     upload:function(successCallback, error, options) {
         var filePath = options[0];
         var server = options[1];
+        var fileKey = options[2] || 'source';
         var headers = options[8] || {};
 
 
@@ -49,20 +50,13 @@ module.exports = {
             storageFile.openAsync(Windows.Storage.FileAccessMode.read).then(function (stream) {
                 var blob = MSApp.createBlobFromRandomAccessStream(storageFile.contentType, stream);
                 var formData = new FormData();
-                formData.append("source\";filename=\"" + storageFile.name + "\"", blob);
-                WinJS.xhr({ type: "POST", url: server, data: formData, headers: headers }).then(function (response) {
-                    var code = response.status;
-                    storageFile.getBasicPropertiesAsync().done(function (basicProperties) {
-
-                        Windows.Storage.FileIO.readBufferAsync(storageFile).done(function (buffer) {
-                            var dataReader = Windows.Storage.Streams.DataReader.fromBuffer(buffer);
-                            var fileContent = dataReader.readString(buffer.length);
-                            dataReader.close();
-                            win(new FileUploadResult(basicProperties.size, code, fileContent));
-
-                        });
-
-                    });
+                formData.append(fileKey, blob, storageFile.name);
+                WinJS.xhr({ type: "POST", url: server, data: formData, headers: headers }).then(function (request) {
+                    var result = new FileUploadResult();
+                    result.bytesSent = blob.size;
+                    result.responseCode = request.status;
+                    result.response = request.response;
+                    win(result);
                 }, function () {
                     error(FileTransferError.INVALID_URL_ERR);
                 });
@@ -75,7 +69,6 @@ module.exports = {
         var source = options[0];
         var target = options[1];
         var headers = options[4] || {};
-
 
         if (target === null || typeof target === undefined) {
             error(FileTransferError.FILE_NOT_FOUND_ERR);
