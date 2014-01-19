@@ -20,6 +20,8 @@
 #import <Foundation/Foundation.h>
 #import <Cordova/CDVPlugin.h>
 
+#import <AssetsLibrary/ALAssetRepresentation.h>
+
 enum CDVFileTransferError {
     FILE_NOT_FOUND_ERR = 1,
     INVALID_URL_ERR = 2,
@@ -80,3 +82,33 @@ extern NSString* const kOptionsKeyCookie;
 @property (nonatomic, strong) CDVFileTransferEntityLengthRequest* entityLengthRequest;
 
 @end;
+
+
+@interface CDVFileTransferSource : NSObject
+{
+    unsigned long long dataLength;
+}
+
+- (unsigned long long)length;
+- (NSData*)readBytes:(int)maxlength;
+
+@end
+
+@interface CDVFileTransferAssetSource : CDVFileTransferSource
+{
+    ALAssetRepresentation* asset;
+    NSUInteger offset;
+}
+
+- (id)initWithAsset:(ALAssetRepresentation*)assetSource;
+
+@end
+
+@interface CDVFileTransferFileSource : CDVFileTransferSource
+{
+    NSFileHandle* file;
+}
+
+- (id)initWithFile:(NSFileHandle*)fileSource;
+
+@end
