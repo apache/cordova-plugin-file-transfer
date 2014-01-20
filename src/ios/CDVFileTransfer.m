@@ -826,6 +826,7 @@ static CFIndex WriteDataToStream(NSData* data, CFWriteStreamRef stream)
     if (bytesCopied > 0)
         return [NSData dataWithBytesNoCopy:buffer length:bytesCopied freeWhenDone:YES];
 
+    free(buffer);
     return nil;
 }
 
