@@ -247,46 +247,44 @@ static CFIndex WriteDataToStream(NSData* data, CFWriteStreamRef stream)
         [req setHTTPBody:postBodyBeforeFile];
     }
     */
-    
-    @autoreleasepool {
-        CFReadStreamRef readStream = NULL;
-        CFWriteStreamRef writeStream = NULL;
-        CFStreamCreateBoundPair(NULL, &readStream, &writeStream, kStreamBufferSize);
-        [req setHTTPBodyStream:CFBridgingRelease(readStream)];
 
-        self.backgroundTaskID = [[UIApplication sharedApplication] beginBackgroundTaskWithExpirationHandler:^{
-                [[UIApplication sharedApplication] endBackgroundTask:self.backgroundTaskID];
-                self.backgroundTaskID = UIBackgroundTaskInvalid;
-                NSLog(@"Background task to upload media finished.");
-            }];
+    CFReadStreamRef readStream = NULL;
+    CFWriteStreamRef writeStream = NULL;
+    CFStreamCreateBoundPair(NULL, &readStream, &writeStream, kStreamBufferSize);
+    [req setHTTPBodyStream:CFBridgingRelease(readStream)];
 
-        [self.commandDelegate runInBackground:^{
-            if (CFWriteStreamOpen(writeStream)) {
+    self.backgroundTaskID = [[UIApplication sharedApplication] beginBackgroundTaskWithExpirationHandler:^{
+            [[UIApplication sharedApplication] endBackgroundTask:self.backgroundTaskID];
+            self.backgroundTaskID = UIBackgroundTaskInvalid;
+            NSLog(@"Background task to upload media finished.");
+        }];
 
-                CFIndex result = WriteDataToStream(postBodyBeforeFile, writeStream);
+    [self.commandDelegate runInBackground:^{
+        if (CFWriteStreamOpen(writeStream)) {
 
-                if (result > 0) {
-                    while (result > 0) {
-                        @autoreleasepool {
-                            NSData* chunk = [fileData readBytes:1024];
-                            
-                            if (chunk == nil)
-                                break;
+            CFIndex result = WriteDataToStream(postBodyBeforeFile, writeStream);
 
-                            result = WriteDataToStream(chunk, writeStream);
-                        }
+            if (result > 0) {
+                while (result > 0) {
+                    @autoreleasepool {
+                        NSData* chunk = [fileData readBytes:kStreamBufferSize];
+                        
+                        if (chunk == nil)
+                            break;
+
+                        result = WriteDataToStream(chunk, writeStream);
                     }
                 }
-
-                if (result > 0)
-                    WriteDataToStream(postBodyAfterFile, writeStream);
-            } else {
-                NSLog(@"FileTransfer: Failed to open writeStream");
             }
-            CFWriteStreamClose(writeStream);
-            CFRelease(writeStream);
-        }];
-    }
+
+            if (result > 0)
+                WriteDataToStream(postBodyAfterFile, writeStream);
+        } else {
+            NSLog(@"FileTransfer: Failed to open writeStream");
+        }
+        CFWriteStreamClose(writeStream);
+        CFRelease(writeStream);
+    }];
 
     return req;
 }
@@ -380,28 +378,24 @@ static CFIndex WriteDataToStream(NSData* data, CFWriteStreamRef stream)
 {
     // fileData and req are split into helper functions to ease the unit testing of delegateForUpload.
     // First, get the file data.  This method will call `uploadData:command`.
-    @autoreleasepool {
-        [self fileDataForUploadCommand:command];
-    }
+    [self fileDataForUploadCommand:command];
 }
 
 - (void)uploadData:(CDVFileTransferSource*)fileData command:(CDVInvokedUrlCommand*)command
 {
-    @autoreleasepool {
-        NSURLRequest* req = [self requestForUploadCommand:command fileData:fileData];
+    NSURLRequest* req = [self requestForUploadCommand:command fileData:fileData];
 
-        if (req == nil) {
-            return;
-        }
-        CDVFileTransferDelegate* delegate = [self delegateForUploadCommand:command];
-        [NSURLConnection connectionWithRequest:req delegate:delegate];
-
-        if (activeTransfers == nil) {
-            activeTransfers = [[NSMutableDictionary alloc] init];
-        }
-
-        [activeTransfers setObject:delegate forKey:delegate.objectId];
+    if (req == nil) {
+        return;
     }
+    CDVFileTransferDelegate* delegate = [self delegateForUploadCommand:command];
+    [NSURLConnection connectionWithRequest:req delegate:delegate];
+
+    if (activeTransfers == nil) {
+        activeTransfers = [[NSMutableDictionary alloc] init];
+    }
+
+    [activeTransfers setObject:delegate forKey:delegate.objectId];
 }
 
 - (void)abort:(CDVInvokedUrlCommand*)command
