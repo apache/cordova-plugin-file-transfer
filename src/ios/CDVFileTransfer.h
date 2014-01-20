@@ -20,6 +20,8 @@
 #import <Foundation/Foundation.h>
 #import <Cordova/CDVPlugin.h>
 
+#import <AssetsLibrary/ALAssetRepresentation.h>
+
 enum CDVFileTransferError {
     FILE_NOT_FOUND_ERR = 1,
     INVALID_URL_ERR = 2,
@@ -37,6 +39,37 @@ typedef int CDVFileTransferDirection;
 // Magic value within the options dict used to set a cookie.
 extern NSString* const kOptionsKeyCookie;
 
+
+@interface CDVFileTransferSource : NSObject
+{
+    unsigned long long dataLength;
+}
+
+- (unsigned long long)length;
+- (NSData*)readBytes:(int)maxlength;
+
+@end
+
+@interface CDVFileTransferAssetSource : CDVFileTransferSource
+{
+    ALAssetRepresentation* asset;
+    NSUInteger offset;
+}
+
+- (id)initWithAsset:(ALAssetRepresentation*)assetSource;
+
+@end
+
+@interface CDVFileTransferFileSource : CDVFileTransferSource
+{
+    NSFileHandle* file;
+}
+
+- (id)initWithFile:(NSFileHandle*)fileSource;
+
+@end
+
+
 @interface CDVFileTransfer : CDVPlugin {}
 
 - (void)upload:(CDVInvokedUrlCommand*)command;
@@ -44,7 +77,7 @@ extern NSString* const kOptionsKeyCookie;
 - (NSString*)escapePathComponentForUrlString:(NSString*)urlString;
 
 // Visible for testing.
-- (NSURLRequest*)requestForUploadCommand:(CDVInvokedUrlCommand*)command fileData:(NSData*)fileData;
+- (NSURLRequest*)requestForUploadCommand:(CDVInvokedUrlCommand*)command fileData:(CDVFileTransferSource*)fileData;
 - (NSMutableDictionary*)createFileTransferError:(int)code AndSource:(NSString*)source AndTarget:(NSString*)target;
 
 - (NSMutableDictionary*)createFileTransferError:(int)code
@@ -80,3 +113,4 @@ extern NSString* const kOptionsKeyCookie;
 @property (nonatomic, strong) CDVFileTransferEntityLengthRequest* entityLengthRequest;
 
 @end;
+
