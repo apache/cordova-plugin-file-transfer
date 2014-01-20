@@ -55,7 +55,7 @@ static CFIndex WriteDataToStream(NSData* data, CFWriteStreamRef stream)
     while (totalBytesWritten < bytesToWrite) {
         CFIndex result = CFWriteStreamWrite(stream,
                 bytes + totalBytesWritten,
-                bytesToWrite - totalBytesWritten);
+                (CFIndex)(bytesToWrite - totalBytesWritten));
         if (result < 0) {
             CFStreamError error = CFWriteStreamGetError(stream);
             NSLog(@"WriteStreamError domain: %ld error: %ld", error.domain, error.error);
@@ -66,7 +66,7 @@ static CFIndex WriteDataToStream(NSData* data, CFWriteStreamRef stream)
         totalBytesWritten += result;
     }
 
-    return totalBytesWritten;
+    return (CFIndex)totalBytesWritten;
 }
 
 @implementation CDVFileTransfer
@@ -135,7 +135,7 @@ static CFIndex WriteDataToStream(NSData* data, CFWriteStreamRef stream)
     NSString* mimeType = [command argumentAtIndex:4 withDefault:nil];
     NSDictionary* options = [command argumentAtIndex:5 withDefault:nil];
     //    BOOL trustAllHosts = [[arguments objectAtIndex:6 withDefault:[NSNumber numberWithBool:YES]] boolValue]; // allow self-signed certs
-    BOOL chunkedMode = [[command argumentAtIndex:7 withDefault:[NSNumber numberWithBool:YES]] boolValue];
+    //BOOL chunkedMode = [[command argumentAtIndex:7 withDefault:[NSNumber numberWithBool:YES]] boolValue]; // Chunked mode options is not used.
     NSDictionary* headers = [command argumentAtIndex:8 withDefault:nil];
     // Allow alternative http method, default to POST. JS side checks
     // for allowed methods, currently PUT or POST (forces POST for
@@ -203,7 +203,7 @@ static CFIndex WriteDataToStream(NSData* data, CFWriteStreamRef stream)
     if (mimeType != nil) {
         [postBodyBeforeFile appendData:[[NSString stringWithFormat:@"Content-Type: %@\r\n", mimeType] dataUsingEncoding:NSUTF8StringEncoding]];
     }
-    [postBodyBeforeFile appendData:[[NSString stringWithFormat:@"Content-Length: %d\r\n\r\n", [fileData length]] dataUsingEncoding:NSUTF8StringEncoding]];
+    [postBodyBeforeFile appendData:[[NSString stringWithFormat:@"Content-Length: %qd\r\n\r\n", [fileData length]] dataUsingEncoding:NSUTF8StringEncoding]];
 
     DLog(@"fileData length: %d", [fileData length]);
     NSData* postBodyAfterFile = [[NSString stringWithFormat:@"\r\n--%@--\r\n", kFormBoundary] dataUsingEncoding:NSUTF8StringEncoding];
@@ -315,7 +315,7 @@ static CFIndex WriteDataToStream(NSData* data, CFWriteStreamRef stream)
 {
     NSString* source = (NSString*)[command.arguments objectAtIndex:0];
     NSString* server = [command.arguments objectAtIndex:1];
-    NSError* __autoreleasing err = nil;
+    //NSError* __autoreleasing err = nil;
 
     // return unsupported result for assets-library URLs
     if ([source hasPrefix:kCDVAssetsLibraryPrefix]) {
@@ -798,6 +798,11 @@ static CFIndex WriteDataToStream(NSData* data, CFWriteStreamRef stream)
 - (unsigned long long)length
 {
     return dataLength;
+}
+
+- (NSData*)readBytes:(int)maxlength
+{
+    return nil;
 }
 
 @end
