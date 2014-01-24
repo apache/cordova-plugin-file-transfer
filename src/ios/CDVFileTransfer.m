@@ -617,9 +617,9 @@ static CFIndex WriteDataToStream(NSData* data, CFWriteStreamRef stream)
         // Download response is okay; begin streaming output to file
         NSString *filePath = nil;
         CDVFilesystemURL *sourceURL = [CDVFilesystemURL fileSystemURLWithString:self.target];
-        if (sourceURL && sourceURL.fileSystemType != -1) {
+        if (sourceURL && sourceURL.fileSystemName != nil) {
             // This requires talking to the current CDVFile plugin
-            NSObject<CDVFileSystem> *fs = [filePlugin.fileSystems objectAtIndex:sourceURL.fileSystemType];
+            NSObject<CDVFileSystem> *fs = [filePlugin filesystemForURL:sourceURL];
             filePath = [fs filesystemPathForURL:sourceURL];
         } else {
             // Extract the path part out of a file: URL.
