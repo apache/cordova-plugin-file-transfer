@@ -585,15 +585,19 @@ public class FileTransfer extends CordovaPlugin {
                     if(err != null)
                     {
                         BufferedReader reader = new BufferedReader(new InputStreamReader(err, "UTF-8"));
-                        String line = reader.readLine();
-                        while(line != null)
-                        {
-                            bodyBuilder.append(line);
-                            line = reader.readLine();
-                            if(line != null)
-                                bodyBuilder.append('\n');
+                        try {
+                            String line = reader.readLine();
+                            while(line != null) {
+                                bodyBuilder.append(line);
+                                line = reader.readLine();
+                                if(line != null) {
+                                    bodyBuilder.append('\n');
+                                }
+                            }
+                            body = bodyBuilder.toString();
+                        } finally {
+                            reader.close();
                         }
-                        body = bodyBuilder.toString();
                     }
                 }
             // IOException can leave connection object in a bad state, so catch all exceptions.
