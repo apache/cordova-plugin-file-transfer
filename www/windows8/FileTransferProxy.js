@@ -31,13 +31,8 @@ module.exports = {
         var server = options[1];
         var headers = options[8] || {};
 
-
-        var win = function (fileUploadResult) {
-            successCallback(fileUploadResult);
-        };
-
         if (filePath === null || typeof filePath === 'undefined') {
-            error(FileTransferError.FILE_NOT_FOUND_ERR);
+            error && error(FileTransferError.FILE_NOT_FOUND_ERR);
             return;
         }
 
@@ -58,27 +53,34 @@ module.exports = {
                             var dataReader = Windows.Storage.Streams.DataReader.fromBuffer(buffer);
                             var fileContent = dataReader.readString(buffer.length);
                             dataReader.close();
-                            win(new FileUploadResult(basicProperties.size, code, fileContent));
-
+                            var ftResult = new FileUploadResult(basicProperties.size, code, fileContent);
+                            // for now we explicitly write the bytesSent,responseCode,result 
+                            // in case cordova-plugin-file is not yet updated. -jm
+                            ftResult.bytesSent = basicProperties.size;
+                            ftResult.responseCode = code;
+                            ftResult.response = fileContent;
+                            successCallback && successCallback(ftResult);
                         });
 
                     });
                 }, function () {
-                    error(FileTransferError.INVALID_URL_ERR);
+                    error && error(FileTransferError.INVALID_URL_ERR);
                 });
             });
 
-        },function(){error(FileTransferError.FILE_NOT_FOUND_ERR);});
+        },function() {
+            error && error(FileTransferError.FILE_NOT_FOUND_ERR);
+        });
     },
 
-    download:function(win, error, options) {
+    download:function(successCallback, error, options) {
         var source = options[0];
         var target = options[1];
         var headers = options[4] || {};
 
 
         if (target === null || typeof target === undefined) {
-            error(FileTransferError.FILE_NOT_FOUND_ERR);
+            error && error(FileTransferError.FILE_NOT_FOUND_ERR);
             return;
         }
         if (String(target).substr(0, 8) == "file:///") {
@@ -87,7 +89,7 @@ module.exports = {
         var path = target.substr(0, String(target).lastIndexOf("\\"));
         var fileName = target.substr(String(target).lastIndexOf("\\") + 1);
         if (path === null || fileName === null) {
-            error(FileTransferError.FILE_NOT_FOUND_ERR);
+            error && error(FileTransferError.FILE_NOT_FOUND_ERR);
             return;
         }
 
@@ -106,9 +108,9 @@ module.exports = {
 
                 download = downloader.createDownload(uri, storageFile);
                 download.startAsync().then(function () {
-                    win(new FileEntry(storageFile.name, storageFile.path));
+                    successCallback && successCallback(new FileEntry(storageFile.name, storageFile.path));
                 }, function () {
-                    error(FileTransferError.INVALID_URL_ERR);
+                    error && error(FileTransferError.INVALID_URL_ERR);
                 });
             });
         });
