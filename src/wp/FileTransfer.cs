@@ -306,7 +306,7 @@ namespace WPCordovaClassLib.Cordova.Commands
 
                 webRequest.BeginGetRequestStream(uploadCallback, reqState);
             }
-            catch (Exception ex)
+            catch (Exception /*ex*/)
             {
 
                 DispatchCommandResult(new PluginResult(PluginResult.Status.ERROR, new FileTransferError(ConnectionError)),callbackId);
@@ -468,7 +468,7 @@ namespace WPCordovaClassLib.Cordova.Commands
                     webRequest = (HttpWebRequest)WebRequest.Create(downloadOptions.Url);
                 }
             }
-            catch (Exception ex)
+            catch (Exception /*ex*/)
             {
                 DispatchCommandResult(new PluginResult(PluginResult.Status.ERROR,
                                       new FileTransferError(InvalidUrlError, downloadOptions.Url, null, 0)));
@@ -794,7 +794,7 @@ namespace WPCordovaClassLib.Cordova.Commands
 
                 webRequest.BeginGetResponse(ReadCallback, reqState);
             }
-            catch (Exception ex)
+            catch (Exception /*ex*/)
             {
                 if (!reqState.isCancelled)
                 {
@@ -853,7 +853,7 @@ namespace WPCordovaClassLib.Cordova.Commands
                                           reqState.options.CallbackId);
                 }
             }
-            catch (Exception ex)
+            catch (Exception /*ex*/)
             {
                 FileTransferError transferError = new FileTransferError(ConnectionError, reqState.options.Server, reqState.options.FilePath, 403);
                 DispatchCommandResult(new PluginResult(PluginResult.Status.ERROR, transferError), reqState.options.CallbackId);
