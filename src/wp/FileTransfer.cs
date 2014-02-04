@@ -316,16 +316,13 @@ namespace WPCordovaClassLib.Cordova.Commands
         }
 
         // example : "{\"Authorization\":\"Basic Y29yZG92YV91c2VyOmNvcmRvdmFfcGFzc3dvcmQ=\"}"
+        // example : "{\"CustomHeader1\":\"CustomValue1\",\"CustomHeader2\":[\"CustomValue2\",\"CustomValue3\"]}"
         protected Dictionary<string,string> parseHeaders(string jsonHeaders)
         {
             try
             {
                 Dictionary<string, string> result = new Dictionary<string, string>();
-
-                string temp = jsonHeaders.StartsWith("{") ? jsonHeaders.Substring(1) : jsonHeaders;
-                temp = temp.EndsWith("}") ? temp.Substring(0, temp.Length - 1) : temp;
-
-                string[] strHeaders = temp.Split(',');
+                string[] strHeaders = parseHeadersToKeyValues(jsonHeaders);
                 for (int n = 0; n < strHeaders.Length; n++)
                 {
                     // we need to use indexOf in order to WP7 compatible
@@ -335,9 +332,8 @@ namespace WPCordovaClassLib.Cordova.Commands
                         string[] split = new string[2];
                         split[0] = strHeaders[n].Substring(0, splitIndex);
                         split[1] = strHeaders[n].Substring(splitIndex + 1);
-
                         split[0] = JSON.JsonHelper.Deserialize<string>(split[0]);
-                        split[1] = JSON.JsonHelper.Deserialize<string>(split[1]);
+                        //split[1] = JSON.JsonHelper.Deserialize<string>(split[1]);
                         result[split[0]] = split[1];
                     }
                 }
@@ -350,7 +346,51 @@ namespace WPCordovaClassLib.Cordova.Commands
             return null;
         }
 
+        // example : "{\"CustomHeader1\":\"CustomValue1\",\"CustomHeader2\":[\"CustomValue2\",\"CustomValue3\"]}"
+        protected string[] parseHeadersToKeyValues(string jsonHeaders)
+        {
+            string temp = jsonHeaders.StartsWith("{") ? jsonHeaders.Substring(1) : jsonHeaders;
+            temp = temp.EndsWith("}") ? temp.Substring(0, temp.Length - 1) : temp;
 
+            string[] key_Value = temp.Split(',');
+            int pairs = 0;
+            int leng = temp.Length;
+            bool flag = false;
+            int start = 0;
+            char[] chars = temp.ToCharArray();
+            for (int i = 0; i < leng; i++)
+            {
+                if (chars[i] == '{' || chars[i] == '[')
+                {
+                    flag = true;
+                    continue;
+                }
+                if (chars[i] == '}' || chars[i] == ']')
+                {
+                    flag = false;
+                }
+                if (chars[i] == ',')
+                {
+                    if (flag)
+                    {
+                        continue;//skip
+                    }
+                    key_Value[pairs] = temp.Substring(start, i);
+                    start = i + 1;//ignore','
+                    pairs++;
+                }
+
+                if (i == leng-1)//last range
+                {
+                    key_Value[pairs] = temp.Substring(start);
+                    pairs++;
+                }
+            }
+
+            string[] result = new string[pairs];
+            Array.Copy(key_Value, result, pairs);
+            return result;
+        }
 
         public void download(string options)
         {
