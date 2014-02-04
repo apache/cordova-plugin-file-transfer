@@ -160,7 +160,7 @@ public class FileTransfer extends CordovaPlugin {
 
         @Override
         public int read(byte[] buffer) throws IOException {
-            return updateBytesRead(super.read(buffer));
+            return super.read(buffer);
         }
 
         @Override
