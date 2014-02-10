@@ -64,6 +64,7 @@ extern NSString* const kOptionsKeyCookie;
 - (void)cancelTransfer:(NSURLConnection*)connection;
 
 @property (strong) NSMutableData* responseData; // atomic
+@property (nonatomic, strong) NSDictionary* responseHeaders;
 @property (nonatomic, strong) CDVFileTransfer* command;
 @property (nonatomic, assign) CDVFileTransferDirection direction;
 @property (nonatomic, strong) NSURLConnection* connection;

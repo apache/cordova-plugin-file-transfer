@@ -513,7 +513,7 @@ static CFIndex WriteDataToStream(NSData* data, CFWriteStreamRef stream)
 
 @implementation CDVFileTransferDelegate
 
-@synthesize callbackId, connection = _connection, source, target, responseData, command, bytesTransfered, bytesExpected, direction, responseCode, objectId, targetFileHandle;
+@synthesize callbackId, connection = _connection, source, target, responseData, responseHeaders, command, bytesTransfered, bytesExpected, direction, responseCode, objectId, targetFileHandle;
 
 - (void)connectionDidFinishLoading:(NSURLConnection*)connection
 {
@@ -532,6 +532,7 @@ static CFIndex WriteDataToStream(NSData* data, CFWriteStreamRef stream)
             uploadResult = [NSMutableDictionary dictionaryWithCapacity:3];
             if (uploadResponse != nil) {
                 [uploadResult setObject:uploadResponse forKey:@"response"];
+                [uploadResult setObject:self.responseHeaders forKey:@"headers"];
             }
             [uploadResult setObject:[NSNumber numberWithLongLong:self.bytesTransfered] forKey:@"bytesSent"];
             [uploadResult setObject:[NSNumber numberWithInt:self.responseCode] forKey:@"responseCode"];
@@ -600,6 +601,7 @@ static CFIndex WriteDataToStream(NSData* data, CFWriteStreamRef stream)
 
         self.responseCode = [httpResponse statusCode];
         self.bytesExpected = [response expectedContentLength];
+        self.responseHeaders = [httpResponse allHeaderFields];
         if ((self.direction == CDV_TRANSFER_DOWNLOAD) && (self.responseCode == 200) && (self.bytesExpected == NSURLResponseUnknownLength)) {
             // Kick off HEAD request to server to get real length
             // bytesExpected will be updated when that response is returned
