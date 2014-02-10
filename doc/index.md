@@ -154,6 +154,9 @@ A `FileUploadResult` object is passed to the success callback of the
 
 - __response__: The HTTP response returned by the server. (DOMString)
 
+- __headers__: The HTTP response headers by the server. (Object)
+  - Currently supported on iOS only.
+
 ### iOS Quirks
 
 - Does not support `responseCode` or `bytesSent`.
