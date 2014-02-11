@@ -285,7 +285,7 @@ namespace WPCordovaClassLib.Cordova.Commands
                     return;
                 }
                 webRequest = (HttpWebRequest)WebRequest.Create(serverUri);
-                webRequest.ContentType = "multipart/form-data;boundary=" + Boundary;
+                webRequest.ContentType = "multipart/form-data; boundary=" + Boundary;
                 webRequest.Method = uploadOptions.Method;
 
                 if (!string.IsNullOrEmpty(uploadOptions.Headers))
