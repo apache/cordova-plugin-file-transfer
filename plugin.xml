@@ -11,7 +11,7 @@
     <issue>https://issues.apache.org/jira/browse/CB/component/12320650</issue>
 
     <!-- dependency id="org.apache.cordova.file@1" /-->
-    <dependency id="org.apache.cordova.file" />
+    <dependency id="org.apache.cordova.file" version="1.0.1" />
 
     <js-module src="www/FileTransferError.js" name="FileTransferError">
         <clobbers target="window.FileTransferError" />

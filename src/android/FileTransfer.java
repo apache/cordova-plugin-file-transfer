@@ -797,9 +797,21 @@ public class FileTransfer extends CordovaPlugin {
                     Log.d(LOG_TAG, "Saved file: " + target);
     
                     // create FileEntry object
-                    JSONObject fileEntry = FileUtils.getEntry(file);
+                    FileUtils filePlugin = (FileUtils)webView.pluginManager.getPlugin("File");
+                    if (filePlugin != null) {
+                        JSONObject fileEntry = filePlugin.getEntryForFile(file);
+                        if (fileEntry != null) {
+                            result = new PluginResult(PluginResult.Status.OK, fileEntry);
+                        } else {
+                            JSONObject error = createFileTransferError(CONNECTION_ERR, source, target, connection);
+                            Log.e(LOG_TAG, "File plugin cannot represent download path");
+                            result = new PluginResult(PluginResult.Status.IO_EXCEPTION, error);
+                        }
+                    } else {
+                        Log.e(LOG_TAG, "File plugin not found; cannot save downloaded file");
+                        result = new PluginResult(PluginResult.Status.ERROR, "File plugin not found; cannot save downloaded file");
+                    }
                     
-                    result = new PluginResult(PluginResult.Status.OK, fileEntry);
                 } catch (FileNotFoundException e) {
                     JSONObject error = createFileTransferError(FILE_NOT_FOUND_ERR, source, target, connection);
                     Log.e(LOG_TAG, error.toString(), e);
