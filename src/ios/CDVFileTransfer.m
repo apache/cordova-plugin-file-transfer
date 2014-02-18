@@ -220,12 +220,6 @@ static CFIndex WriteDataToStream(NSData* data, CFWriteStreamRef stream)
         CFStreamCreateBoundPair(NULL, &readStream, &writeStream, kStreamBufferSize);
         [req setHTTPBodyStream:CFBridgingRelease(readStream)];
 
-        self.backgroundTaskID = [[UIApplication sharedApplication] beginBackgroundTaskWithExpirationHandler:^{
-                [[UIApplication sharedApplication] endBackgroundTask:self.backgroundTaskID];
-                self.backgroundTaskID = UIBackgroundTaskInvalid;
-                NSLog(@"Background task to upload media finished.");
-            }];
-
         [self.commandDelegate runInBackground:^{
             if (CFWriteStreamOpen(writeStream)) {
                 NSData* chunks[] = {postBodyBeforeFile, fileData, postBodyAfterFile};
@@ -334,6 +328,10 @@ static CFIndex WriteDataToStream(NSData* data, CFWriteStreamRef stream)
     }
     CDVFileTransferDelegate* delegate = [self delegateForUploadCommand:command];
     [NSURLConnection connectionWithRequest:req delegate:delegate];
+    // sets a background task ID for the transfer object.
+    delegate.backgroundTaskID = [[UIApplication sharedApplication] beginBackgroundTaskWithExpirationHandler:^{
+        [delegate cancelTransfer:delegate.connection];
+    }];
 
     if (activeTransfers == nil) {
         activeTransfers = [[NSMutableDictionary alloc] init];
@@ -410,6 +408,9 @@ static CFIndex WriteDataToStream(NSData* data, CFWriteStreamRef stream)
     delegate.target = [targetURL absoluteString];
     delegate.targetURL = targetURL;
     delegate.trustAllHosts = trustAllHosts;
+    delegate.backgroundTaskID = [[UIApplication sharedApplication] beginBackgroundTaskWithExpirationHandler:^{
+        [delegate cancelTransfer:delegate.connection];
+    }];
 
     delegate.connection = [NSURLConnection connectionWithRequest:req delegate:delegate];
 
@@ -560,8 +561,8 @@ static CFIndex WriteDataToStream(NSData* data, CFWriteStreamRef stream)
     [command.activeTransfers removeObjectForKey:objectId];
 
     // remove background id task in case our upload was done in the background
-    [[UIApplication sharedApplication] endBackgroundTask:self.command.backgroundTaskID];
-    self.command.backgroundTaskID = UIBackgroundTaskInvalid;
+    [[UIApplication sharedApplication] endBackgroundTask:self.backgroundTaskID];
+    self.backgroundTaskID = UIBackgroundTaskInvalid;
 }
 
 - (void)removeTargetFile
@@ -574,6 +575,11 @@ static CFIndex WriteDataToStream(NSData* data, CFWriteStreamRef stream)
 - (void)cancelTransfer:(NSURLConnection*)connection
 {
     [connection cancel];
+
+    CDVFileTransferDelegate* delegate = [self.command.activeTransfers objectForKey:self.objectId];
+    [[UIApplication sharedApplication] endBackgroundTask:delegate.backgroundTaskID];
+    delegate.backgroundTaskID = UIBackgroundTaskInvalid;
+
     [self.command.activeTransfers removeObjectForKey:self.objectId];
     [self removeTargetFile];
 }
