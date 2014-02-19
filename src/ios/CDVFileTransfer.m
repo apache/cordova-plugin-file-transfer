@@ -333,7 +333,7 @@ static CFIndex WriteDataToStream(NSData* data, CFWriteStreamRef stream)
         return;
     }
     CDVFileTransferDelegate* delegate = [self delegateForUploadCommand:command];
-    [NSURLConnection connectionWithRequest:req delegate:delegate];
+    delegate.connection = [NSURLConnection connectionWithRequest:req delegate:delegate];
 
     if (activeTransfers == nil) {
         activeTransfers = [[NSMutableDictionary alloc] init];
