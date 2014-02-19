@@ -412,13 +412,19 @@ static CFIndex WriteDataToStream(NSData* data, CFWriteStreamRef stream)
         [delegate cancelTransfer:delegate.connection];
     }];
 
-    delegate.connection = [NSURLConnection connectionWithRequest:req delegate:delegate];
+    delegate.connection = [[NSURLConnection alloc] initWithRequest:req delegate:delegate startImmediately:NO];
+
+    if (self.queue == nil) {
+        self.queue = [[NSOperationQueue alloc] init];
+    }
+    [delegate.connection setDelegateQueue:self.queue];
 
     if (activeTransfers == nil) {
         activeTransfers = [[NSMutableDictionary alloc] init];
     }
-
     [activeTransfers setObject:delegate forKey:delegate.objectId];
+
+    [delegate.connection start];
 }
 
 - (NSMutableDictionary*)createFileTransferError:(int)code AndSource:(NSString*)source AndTarget:(NSString*)target

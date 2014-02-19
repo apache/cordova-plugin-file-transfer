@@ -52,6 +52,7 @@ extern NSString* const kOptionsKeyCookie;
                                       AndTarget:(NSString*)target
                                   AndHttpStatus:(int)httpStatus
                                         AndBody:(NSString*)body;
+@property (nonatomic, strong) NSOperationQueue* queue;
 @property (readonly) NSMutableDictionary* activeTransfers;
 @end
 
