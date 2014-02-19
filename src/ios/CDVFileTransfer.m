@@ -75,6 +75,10 @@ static CFIndex WriteDataToStream(NSData* data, CFWriteStreamRef stream)
 @implementation CDVFileTransfer
 @synthesize activeTransfers;
 
+- (void)pluginInitialize {
+    activeTransfers = [[NSMutableDictionary alloc] init];
+}
+
 - (NSString*)escapePathComponentForUrlString:(NSString*)urlString
 {
     NSRange schemeAndHostRange = [urlString rangeOfString:@"://.*?/" options:NSRegularExpressionSearch];
@@ -327,29 +331,34 @@ static CFIndex WriteDataToStream(NSData* data, CFWriteStreamRef stream)
         return;
     }
     CDVFileTransferDelegate* delegate = [self delegateForUploadCommand:command];
-    [NSURLConnection connectionWithRequest:req delegate:delegate];
+    delegate.connection = [[NSURLConnection alloc] initWithRequest:req delegate:delegate startImmediately:NO];
+    if (self.queue == nil) {
+        self.queue = [[NSOperationQueue alloc] init];
+    }
+    [delegate.connection setDelegateQueue:self.queue];
+
     // sets a background task ID for the transfer object.
     delegate.backgroundTaskID = [[UIApplication sharedApplication] beginBackgroundTaskWithExpirationHandler:^{
         [delegate cancelTransfer:delegate.connection];
     }];
 
-    if (activeTransfers == nil) {
-        activeTransfers = [[NSMutableDictionary alloc] init];
+    @synchronized (activeTransfers) {
+        activeTransfers[delegate.objectId] = delegate;
     }
-
-    [activeTransfers setObject:delegate forKey:delegate.objectId];
+    [delegate.connection start];
 }
 
 - (void)abort:(CDVInvokedUrlCommand*)command
 {
     NSString* objectId = [command.arguments objectAtIndex:0];
 
-    CDVFileTransferDelegate* delegate = [activeTransfers objectForKey:objectId];
-
-    if (delegate != nil) {
-        [delegate cancelTransfer:delegate.connection];
-        CDVPluginResult* result = [CDVPluginResult resultWithStatus:CDVCommandStatus_ERROR messageAsDictionary:[self createFileTransferError:CONNECTION_ABORTED AndSource:delegate.source AndTarget:delegate.target]];
-        [self.commandDelegate sendPluginResult:result callbackId:delegate.callbackId];
+    @synchronized (activeTransfers) {
+        CDVFileTransferDelegate* delegate = activeTransfers[objectId];
+        if (delegate != nil) {
+            [delegate cancelTransfer:delegate.connection];
+            CDVPluginResult* result = [CDVPluginResult resultWithStatus:CDVCommandStatus_ERROR messageAsDictionary:[self createFileTransferError:CONNECTION_ABORTED AndSource:delegate.source AndTarget:delegate.target]];
+            [self.commandDelegate sendPluginResult:result callbackId:delegate.callbackId];
+        }
     }
 }
 
@@ -419,10 +428,9 @@ static CFIndex WriteDataToStream(NSData* data, CFWriteStreamRef stream)
     }
     [delegate.connection setDelegateQueue:self.queue];
 
-    if (activeTransfers == nil) {
-        activeTransfers = [[NSMutableDictionary alloc] init];
+    @synchronized (activeTransfers) {
+        activeTransfers[delegate.objectId] = delegate;
     }
-    [activeTransfers setObject:delegate forKey:delegate.objectId];
 
     [delegate.connection start];
 }
@@ -467,13 +475,13 @@ static CFIndex WriteDataToStream(NSData* data, CFWriteStreamRef stream)
     return result;
 }
 
-- (void)onReset
-{
-    for (CDVFileTransferDelegate* delegate in [activeTransfers allValues]) {
-        [delegate.connection cancel];
+- (void)onReset {
+    @synchronized (activeTransfers) {
+        while ([activeTransfers count] > 0) {
+            CDVFileTransferDelegate* delegate = [activeTransfers allValues][0];
+            [delegate cancelTransfer:delegate.connection];
+        }
     }
-
-    [activeTransfers removeAllObjects];
 }
 
 @end
@@ -564,11 +572,12 @@ static CFIndex WriteDataToStream(NSData* data, CFWriteStreamRef stream)
     [self.command.commandDelegate sendPluginResult:result callbackId:callbackId];
 
     // remove connection for activeTransfers
-    [command.activeTransfers removeObjectForKey:objectId];
-
-    // remove background id task in case our upload was done in the background
-    [[UIApplication sharedApplication] endBackgroundTask:self.backgroundTaskID];
-    self.backgroundTaskID = UIBackgroundTaskInvalid;
+    @synchronized (command.activeTransfers) {
+        [command.activeTransfers removeObjectForKey:objectId];
+        // remove background id task in case our upload was done in the background
+        [[UIApplication sharedApplication] endBackgroundTask:self.backgroundTaskID];
+        self.backgroundTaskID = UIBackgroundTaskInvalid;
+    }
 }
 
 - (void)removeTargetFile
@@ -581,12 +590,13 @@ static CFIndex WriteDataToStream(NSData* data, CFWriteStreamRef stream)
 - (void)cancelTransfer:(NSURLConnection*)connection
 {
     [connection cancel];
+    @synchronized (self.command.activeTransfers) {
+        CDVFileTransferDelegate* delegate = self.command.activeTransfers[self.objectId];
+        [self.command.activeTransfers removeObjectForKey:self.objectId];
+        [[UIApplication sharedApplication] endBackgroundTask:delegate.backgroundTaskID];
+        delegate.backgroundTaskID = UIBackgroundTaskInvalid;
+    }
 
-    CDVFileTransferDelegate* delegate = [self.command.activeTransfers objectForKey:self.objectId];
-    [[UIApplication sharedApplication] endBackgroundTask:delegate.backgroundTaskID];
-    delegate.backgroundTaskID = UIBackgroundTaskInvalid;
-
-    [self.command.activeTransfers removeObjectForKey:self.objectId];
     [self removeTargetFile];
 }
 
