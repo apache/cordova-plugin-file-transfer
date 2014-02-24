@@ -184,7 +184,7 @@ FileTransfer.prototype.download = function(source, target, successCallback, erro
             entry.isFile = result.isFile;
             entry.name = result.name;
             entry.fullPath = result.fullPath;
-            entry.filesystem = new FileSystem(result.filesystem == window.PERSISTENT ? 'persistent' : 'temporary');
+            entry.filesystem = new FileSystem(result.filesystemName || (result.filesystem == window.PERSISTENT ? 'persistent' : 'temporary'));
             successCallback(entry);
         }
     };
