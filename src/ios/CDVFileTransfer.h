@@ -19,6 +19,7 @@
 
 #import <Foundation/Foundation.h>
 #import <Cordova/CDVPlugin.h>
+#import "CDVFile.h"
 
 enum CDVFileTransferError {
     FILE_NOT_FOUND_ERR = 1,
@@ -81,5 +82,6 @@ extern NSString* const kOptionsKeyCookie;
 @property (nonatomic, assign) BOOL trustAllHosts;
 @property (strong) NSFileHandle* targetFileHandle;
 @property (nonatomic, strong) CDVFileTransferEntityLengthRequest* entityLengthRequest;
+@property (nonatomic, strong) CDVFile *filePlugin;
 
 @end;
