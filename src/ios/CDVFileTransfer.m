@@ -19,15 +19,12 @@
 
 #import <Cordova/CDV.h>
 #import "CDVFileTransfer.h"
-#import "CDVFile.h"
 #import "CDVLocalFilesystem.h"
 
 #import <AssetsLibrary/ALAsset.h>
 #import <AssetsLibrary/ALAssetRepresentation.h>
 #import <AssetsLibrary/ALAssetsLibrary.h>
 #import <CFNetwork/CFNetwork.h>
-
-extern CDVFile *filePlugin;
 
 @interface CDVFileTransfer ()
 // Sets the requests headers for the request.
@@ -265,6 +262,7 @@ static CFIndex WriteDataToStream(NSData* data, CFWriteStreamRef stream)
     delegate.source = source;
     delegate.target = server;
     delegate.trustAllHosts = trustAllHosts;
+    delegate.filePlugin = [self.commandDelegate getCommandInstance:@"File"];
 
     return delegate;
 }
@@ -280,7 +278,7 @@ static CFIndex WriteDataToStream(NSData* data, CFWriteStreamRef stream)
     if (sourceURL) {
         // Try to get a CDVFileSystem which will handle this file.
         // This requires talking to the current CDVFile plugin.
-        fs = [filePlugin filesystemForURL:sourceURL];
+        fs = [[self.commandDelegate getCommandInstance:@"File"] filesystemForURL:sourceURL];
     }
     if (fs) {
         [fs readFileAtURL:sourceURL start:0 end:-1 callback:^(NSData *fileData, NSString *mimeType, CDVFileError err) {
@@ -381,7 +379,7 @@ static CFIndex WriteDataToStream(NSData* data, CFWriteStreamRef stream)
          * Check here to see if it looks like the user passed in a raw filesystem path. (Perhaps they had the path saved, and were previously using it with the old version of File). If so, normalize it by removing empty path segments, and check with File to see if any of the installed filesystems will handle it. If so, then we will end up with a filesystem url to use for the remainder of this operation.
          */
         target = [target stringByReplacingOccurrencesOfString:@"//" withString:@"/"];
-        targetURL = [filePlugin fileSystemURLforLocalPath:target].url;
+        targetURL = [[self.commandDelegate getCommandInstance:@"File"] fileSystemURLforLocalPath:target].url;
     } else {
         targetURL = [NSURL URLWithString:target];
     }
@@ -417,6 +415,7 @@ static CFIndex WriteDataToStream(NSData* data, CFWriteStreamRef stream)
     delegate.target = [targetURL absoluteString];
     delegate.targetURL = targetURL;
     delegate.trustAllHosts = trustAllHosts;
+    delegate.filePlugin = [self.commandDelegate getCommandInstance:@"File"];
     delegate.backgroundTaskID = [[UIApplication sharedApplication] beginBackgroundTaskWithExpirationHandler:^{
         [delegate cancelTransfer:delegate.connection];
     }];
@@ -528,7 +527,7 @@ static CFIndex WriteDataToStream(NSData* data, CFWriteStreamRef stream)
 
 @implementation CDVFileTransferDelegate
 
-@synthesize callbackId, connection = _connection, source, target, responseData, responseHeaders, command, bytesTransfered, bytesExpected, direction, responseCode, objectId, targetFileHandle;
+@synthesize callbackId, connection = _connection, source, target, responseData, responseHeaders, command, bytesTransfered, bytesExpected, direction, responseCode, objectId, targetFileHandle, filePlugin;
 
 - (void)connectionDidFinishLoading:(NSURLConnection*)connection
 {
@@ -562,7 +561,7 @@ static CFIndex WriteDataToStream(NSData* data, CFWriteStreamRef stream)
             self.targetFileHandle = nil;
             DLog(@"File Transfer Download success");
 
-            result = [CDVPluginResult resultWithStatus:CDVCommandStatus_OK messageAsDictionary:[filePlugin makeEntryForURL:self.targetURL]];
+            result = [CDVPluginResult resultWithStatus:CDVCommandStatus_OK messageAsDictionary:[self.filePlugin makeEntryForURL:self.targetURL]];
         } else {
             downloadResponse = [[NSString alloc] initWithData:self.responseData encoding:NSUTF8StringEncoding];
             result = [CDVPluginResult resultWithStatus:CDVCommandStatus_ERROR messageAsDictionary:[command createFileTransferError:CONNECTION_ERR AndSource:source AndTarget:target AndHttpStatus:self.responseCode AndBody:downloadResponse]];
@@ -643,7 +642,7 @@ static CFIndex WriteDataToStream(NSData* data, CFWriteStreamRef stream)
         CDVFilesystemURL *sourceURL = [CDVFilesystemURL fileSystemURLWithString:self.target];
         if (sourceURL && sourceURL.fileSystemName != nil) {
             // This requires talking to the current CDVFile plugin
-            NSObject<CDVFileSystem> *fs = [filePlugin filesystemForURL:sourceURL];
+            NSObject<CDVFileSystem> *fs = [self.filePlugin filesystemForURL:sourceURL];
             filePath = [fs filesystemPathForURL:sourceURL];
         } else {
             // Extract the path part out of a file: URL.
