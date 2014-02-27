@@ -57,3 +57,14 @@
 * CB-5658 Delete stale snapshot of plugin docs
 * Remove @1 designation from file plugin dependency until pushed to npm
 * CB-5466: Update to work with filesystem URLs
+
+### 0.4.2 (Feb 28, 2014)
+* CB-6106 Ensure that nativeURL is used by file transfer download
+* iOS: Fix default value for trustAllHosts on iOS (YES->NO)
+* CB-6059 iOS: Stop FileTransfer.download doing IO on the UI thread.
+* CB-5588 iOS: Add response headers to upload result
+* CB-2190 iOS: Make backgroundTaskId apply to downloads as well. Move backgroundTaskId to the delegate.
+* CB-6050 Android: Use instance method on actual file plugin object to get FileEntry to return on download
+* CB-6000 Android: Nginx rejects Content-Type without a space before "boundary".
+* CB-4907 Android: Close stream when we're finished with it
+* CB-6022 Add backwards-compatibility notes to doc
