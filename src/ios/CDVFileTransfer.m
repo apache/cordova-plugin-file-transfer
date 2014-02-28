@@ -19,15 +19,12 @@
 
 #import <Cordova/CDV.h>
 #import "CDVFileTransfer.h"
-#import "CDVFile.h"
 #import "CDVLocalFilesystem.h"
 
 #import <AssetsLibrary/ALAsset.h>
 #import <AssetsLibrary/ALAssetRepresentation.h>
 #import <AssetsLibrary/ALAssetsLibrary.h>
 #import <CFNetwork/CFNetwork.h>
-
-extern CDVFile *filePlugin;
 
 @interface CDVFileTransfer ()
 // Sets the requests headers for the request.
@@ -74,6 +71,10 @@ static CFIndex WriteDataToStream(NSData* data, CFWriteStreamRef stream)
 
 @implementation CDVFileTransfer
 @synthesize activeTransfers;
+
+- (void)pluginInitialize {
+    activeTransfers = [[NSMutableDictionary alloc] init];
+}
 
 - (NSString*)escapePathComponentForUrlString:(NSString*)urlString
 {
@@ -220,12 +221,6 @@ static CFIndex WriteDataToStream(NSData* data, CFWriteStreamRef stream)
         CFStreamCreateBoundPair(NULL, &readStream, &writeStream, kStreamBufferSize);
         [req setHTTPBodyStream:CFBridgingRelease(readStream)];
 
-        self.backgroundTaskID = [[UIApplication sharedApplication] beginBackgroundTaskWithExpirationHandler:^{
-                [[UIApplication sharedApplication] endBackgroundTask:self.backgroundTaskID];
-                self.backgroundTaskID = UIBackgroundTaskInvalid;
-                NSLog(@"Background task to upload media finished.");
-            }];
-
         [self.commandDelegate runInBackground:^{
             if (CFWriteStreamOpen(writeStream)) {
                 NSData* chunks[] = {postBodyBeforeFile, fileData, postBodyAfterFile};
@@ -255,7 +250,7 @@ static CFIndex WriteDataToStream(NSData* data, CFWriteStreamRef stream)
 {
     NSString* source = [command.arguments objectAtIndex:0];
     NSString* server = [command.arguments objectAtIndex:1];
-    BOOL trustAllHosts = [[command.arguments objectAtIndex:6 withDefault:[NSNumber numberWithBool:YES]] boolValue]; // allow self-signed certs
+    BOOL trustAllHosts = [[command.arguments objectAtIndex:6 withDefault:[NSNumber numberWithBool:NO]] boolValue]; // allow self-signed certs
     NSString* objectId = [command.arguments objectAtIndex:9];
 
     CDVFileTransferDelegate* delegate = [[CDVFileTransferDelegate alloc] init];
@@ -267,6 +262,7 @@ static CFIndex WriteDataToStream(NSData* data, CFWriteStreamRef stream)
     delegate.source = source;
     delegate.target = server;
     delegate.trustAllHosts = trustAllHosts;
+    delegate.filePlugin = [self.commandDelegate getCommandInstance:@"File"];
 
     return delegate;
 }
@@ -282,7 +278,7 @@ static CFIndex WriteDataToStream(NSData* data, CFWriteStreamRef stream)
     if (sourceURL) {
         // Try to get a CDVFileSystem which will handle this file.
         // This requires talking to the current CDVFile plugin.
-        fs = [filePlugin filesystemForURL:sourceURL];
+        fs = [[self.commandDelegate getCommandInstance:@"File"] filesystemForURL:sourceURL];
     }
     if (fs) {
         [fs readFileAtURL:sourceURL start:0 end:-1 callback:^(NSData *fileData, NSString *mimeType, CDVFileError err) {
@@ -333,25 +329,34 @@ static CFIndex WriteDataToStream(NSData* data, CFWriteStreamRef stream)
         return;
     }
     CDVFileTransferDelegate* delegate = [self delegateForUploadCommand:command];
-    [NSURLConnection connectionWithRequest:req delegate:delegate];
-
-    if (activeTransfers == nil) {
-        activeTransfers = [[NSMutableDictionary alloc] init];
+    delegate.connection = [[NSURLConnection alloc] initWithRequest:req delegate:delegate startImmediately:NO];
+    if (self.queue == nil) {
+        self.queue = [[NSOperationQueue alloc] init];
     }
+    [delegate.connection setDelegateQueue:self.queue];
 
-    [activeTransfers setObject:delegate forKey:delegate.objectId];
+    // sets a background task ID for the transfer object.
+    delegate.backgroundTaskID = [[UIApplication sharedApplication] beginBackgroundTaskWithExpirationHandler:^{
+        [delegate cancelTransfer:delegate.connection];
+    }];
+
+    @synchronized (activeTransfers) {
+        activeTransfers[delegate.objectId] = delegate;
+    }
+    [delegate.connection start];
 }
 
 - (void)abort:(CDVInvokedUrlCommand*)command
 {
     NSString* objectId = [command.arguments objectAtIndex:0];
 
-    CDVFileTransferDelegate* delegate = [activeTransfers objectForKey:objectId];
-
-    if (delegate != nil) {
-        [delegate cancelTransfer:delegate.connection];
-        CDVPluginResult* result = [CDVPluginResult resultWithStatus:CDVCommandStatus_ERROR messageAsDictionary:[self createFileTransferError:CONNECTION_ABORTED AndSource:delegate.source AndTarget:delegate.target]];
-        [self.commandDelegate sendPluginResult:result callbackId:delegate.callbackId];
+    @synchronized (activeTransfers) {
+        CDVFileTransferDelegate* delegate = activeTransfers[objectId];
+        if (delegate != nil) {
+            [delegate cancelTransfer:delegate.connection];
+            CDVPluginResult* result = [CDVPluginResult resultWithStatus:CDVCommandStatus_ERROR messageAsDictionary:[self createFileTransferError:CONNECTION_ABORTED AndSource:delegate.source AndTarget:delegate.target]];
+            [self.commandDelegate sendPluginResult:result callbackId:delegate.callbackId];
+        }
     }
 }
 
@@ -360,7 +365,7 @@ static CFIndex WriteDataToStream(NSData* data, CFWriteStreamRef stream)
     DLog(@"File Transfer downloading file...");
     NSString* source = [command.arguments objectAtIndex:0];
     NSString* target = [command.arguments objectAtIndex:1];
-    BOOL trustAllHosts = [[command.arguments objectAtIndex:2 withDefault:[NSNumber numberWithBool:YES]] boolValue]; // allow self-signed certs
+    BOOL trustAllHosts = [[command.arguments objectAtIndex:2 withDefault:[NSNumber numberWithBool:NO]] boolValue]; // allow self-signed certs
     NSString* objectId = [command.arguments objectAtIndex:3];
     NSDictionary* headers = [command.arguments objectAtIndex:4 withDefault:nil];
 
@@ -374,7 +379,7 @@ static CFIndex WriteDataToStream(NSData* data, CFWriteStreamRef stream)
          * Check here to see if it looks like the user passed in a raw filesystem path. (Perhaps they had the path saved, and were previously using it with the old version of File). If so, normalize it by removing empty path segments, and check with File to see if any of the installed filesystems will handle it. If so, then we will end up with a filesystem url to use for the remainder of this operation.
          */
         target = [target stringByReplacingOccurrencesOfString:@"//" withString:@"/"];
-        targetURL = [filePlugin fileSystemURLforLocalPath:target].url;
+        targetURL = [[self.commandDelegate getCommandInstance:@"File"] fileSystemURLforLocalPath:target].url;
     } else {
         targetURL = [NSURL URLWithString:target];
     }
@@ -410,14 +415,23 @@ static CFIndex WriteDataToStream(NSData* data, CFWriteStreamRef stream)
     delegate.target = [targetURL absoluteString];
     delegate.targetURL = targetURL;
     delegate.trustAllHosts = trustAllHosts;
+    delegate.filePlugin = [self.commandDelegate getCommandInstance:@"File"];
+    delegate.backgroundTaskID = [[UIApplication sharedApplication] beginBackgroundTaskWithExpirationHandler:^{
+        [delegate cancelTransfer:delegate.connection];
+    }];
 
-    delegate.connection = [NSURLConnection connectionWithRequest:req delegate:delegate];
+    delegate.connection = [[NSURLConnection alloc] initWithRequest:req delegate:delegate startImmediately:NO];
 
-    if (activeTransfers == nil) {
-        activeTransfers = [[NSMutableDictionary alloc] init];
+    if (self.queue == nil) {
+        self.queue = [[NSOperationQueue alloc] init];
+    }
+    [delegate.connection setDelegateQueue:self.queue];
+
+    @synchronized (activeTransfers) {
+        activeTransfers[delegate.objectId] = delegate;
     }
 
-    [activeTransfers setObject:delegate forKey:delegate.objectId];
+    [delegate.connection start];
 }
 
 - (NSMutableDictionary*)createFileTransferError:(int)code AndSource:(NSString*)source AndTarget:(NSString*)target
@@ -460,13 +474,13 @@ static CFIndex WriteDataToStream(NSData* data, CFWriteStreamRef stream)
     return result;
 }
 
-- (void)onReset
-{
-    for (CDVFileTransferDelegate* delegate in [activeTransfers allValues]) {
-        [delegate.connection cancel];
+- (void)onReset {
+    @synchronized (activeTransfers) {
+        while ([activeTransfers count] > 0) {
+            CDVFileTransferDelegate* delegate = [activeTransfers allValues][0];
+            [delegate cancelTransfer:delegate.connection];
+        }
     }
-
-    [activeTransfers removeAllObjects];
 }
 
 @end
@@ -513,7 +527,7 @@ static CFIndex WriteDataToStream(NSData* data, CFWriteStreamRef stream)
 
 @implementation CDVFileTransferDelegate
 
-@synthesize callbackId, connection = _connection, source, target, responseData, command, bytesTransfered, bytesExpected, direction, responseCode, objectId, targetFileHandle;
+@synthesize callbackId, connection = _connection, source, target, responseData, responseHeaders, command, bytesTransfered, bytesExpected, direction, responseCode, objectId, targetFileHandle, filePlugin;
 
 - (void)connectionDidFinishLoading:(NSURLConnection*)connection
 {
@@ -532,6 +546,7 @@ static CFIndex WriteDataToStream(NSData* data, CFWriteStreamRef stream)
             uploadResult = [NSMutableDictionary dictionaryWithCapacity:3];
             if (uploadResponse != nil) {
                 [uploadResult setObject:uploadResponse forKey:@"response"];
+                [uploadResult setObject:self.responseHeaders forKey:@"headers"];
             }
             [uploadResult setObject:[NSNumber numberWithLongLong:self.bytesTransfered] forKey:@"bytesSent"];
             [uploadResult setObject:[NSNumber numberWithInt:self.responseCode] forKey:@"responseCode"];
@@ -546,7 +561,7 @@ static CFIndex WriteDataToStream(NSData* data, CFWriteStreamRef stream)
             self.targetFileHandle = nil;
             DLog(@"File Transfer Download success");
 
-            result = [CDVPluginResult resultWithStatus:CDVCommandStatus_OK messageAsDictionary:[filePlugin makeEntryForURL:self.targetURL]];
+            result = [CDVPluginResult resultWithStatus:CDVCommandStatus_OK messageAsDictionary:[self.filePlugin makeEntryForURL:self.targetURL]];
         } else {
             downloadResponse = [[NSString alloc] initWithData:self.responseData encoding:NSUTF8StringEncoding];
             result = [CDVPluginResult resultWithStatus:CDVCommandStatus_ERROR messageAsDictionary:[command createFileTransferError:CONNECTION_ERR AndSource:source AndTarget:target AndHttpStatus:self.responseCode AndBody:downloadResponse]];
@@ -556,11 +571,12 @@ static CFIndex WriteDataToStream(NSData* data, CFWriteStreamRef stream)
     [self.command.commandDelegate sendPluginResult:result callbackId:callbackId];
 
     // remove connection for activeTransfers
-    [command.activeTransfers removeObjectForKey:objectId];
-
-    // remove background id task in case our upload was done in the background
-    [[UIApplication sharedApplication] endBackgroundTask:self.command.backgroundTaskID];
-    self.command.backgroundTaskID = UIBackgroundTaskInvalid;
+    @synchronized (command.activeTransfers) {
+        [command.activeTransfers removeObjectForKey:objectId];
+        // remove background id task in case our upload was done in the background
+        [[UIApplication sharedApplication] endBackgroundTask:self.backgroundTaskID];
+        self.backgroundTaskID = UIBackgroundTaskInvalid;
+    }
 }
 
 - (void)removeTargetFile
@@ -573,7 +589,13 @@ static CFIndex WriteDataToStream(NSData* data, CFWriteStreamRef stream)
 - (void)cancelTransfer:(NSURLConnection*)connection
 {
     [connection cancel];
-    [self.command.activeTransfers removeObjectForKey:self.objectId];
+    @synchronized (self.command.activeTransfers) {
+        CDVFileTransferDelegate* delegate = self.command.activeTransfers[self.objectId];
+        [self.command.activeTransfers removeObjectForKey:self.objectId];
+        [[UIApplication sharedApplication] endBackgroundTask:delegate.backgroundTaskID];
+        delegate.backgroundTaskID = UIBackgroundTaskInvalid;
+    }
+
     [self removeTargetFile];
 }
 
@@ -600,6 +622,7 @@ static CFIndex WriteDataToStream(NSData* data, CFWriteStreamRef stream)
 
         self.responseCode = [httpResponse statusCode];
         self.bytesExpected = [response expectedContentLength];
+        self.responseHeaders = [httpResponse allHeaderFields];
         if ((self.direction == CDV_TRANSFER_DOWNLOAD) && (self.responseCode == 200) && (self.bytesExpected == NSURLResponseUnknownLength)) {
             // Kick off HEAD request to server to get real length
             // bytesExpected will be updated when that response is returned
@@ -619,7 +642,7 @@ static CFIndex WriteDataToStream(NSData* data, CFWriteStreamRef stream)
         CDVFilesystemURL *sourceURL = [CDVFilesystemURL fileSystemURLWithString:self.target];
         if (sourceURL && sourceURL.fileSystemName != nil) {
             // This requires talking to the current CDVFile plugin
-            NSObject<CDVFileSystem> *fs = [filePlugin filesystemForURL:sourceURL];
+            NSObject<CDVFileSystem> *fs = [self.filePlugin filesystemForURL:sourceURL];
             filePath = [fs filesystemPathForURL:sourceURL];
         } else {
             // Extract the path part out of a file: URL.
