@@ -293,7 +293,13 @@ static CFIndex WriteDataToStream(NSData* data, CFWriteStreamRef stream)
         return;
     } else {
         // Extract the path part out of a file: URL.
-        NSString* filePath = [source hasPrefix:@"/"] ? [source copy] : [[NSURL URLWithString:source] path];
+        NSString* filePath;
+        if ([target hasPrefix:@"/"]) {
+            filePath = [target copy];
+        } else {
+            filePath = [(NSURL *)[NSURL URLWithString:target] path];
+        }
+        
         if (filePath == nil) {
             // We couldn't find the asset.  Send the appropriate error.
             CDVPluginResult* result = [CDVPluginResult resultWithStatus:CDVCommandStatus_ERROR messageAsDictionary:[self createFileTransferError:NOT_FOUND_ERR AndSource:source AndTarget:server]];
