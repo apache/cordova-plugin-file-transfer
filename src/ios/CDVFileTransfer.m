@@ -293,7 +293,7 @@ static CFIndex WriteDataToStream(NSData* data, CFWriteStreamRef stream)
         return;
     } else {
         // Extract the path part out of a file: URL.
-        NSString* filePath = [source hasPrefix:@"/"] ? [source copy] : [[NSURL URLWithString:source] path];
+        NSString* filePath = [source hasPrefix:@"/"] ? [source copy] : [(NSURL *)[NSURL URLWithString:source] path];
         if (filePath == nil) {
             // We couldn't find the asset.  Send the appropriate error.
             CDVPluginResult* result = [CDVPluginResult resultWithStatus:CDVCommandStatus_ERROR messageAsDictionary:[self createFileTransferError:NOT_FOUND_ERR AndSource:source AndTarget:server]];
@@ -646,7 +646,7 @@ static CFIndex WriteDataToStream(NSData* data, CFWriteStreamRef stream)
             filePath = [fs filesystemPathForURL:sourceURL];
         } else {
             // Extract the path part out of a file: URL.
-            NSString* filePath = [self.target hasPrefix:@"/"] ? [self.target copy] : [[NSURL URLWithString:self.target] path];
+            NSString* filePath = [self.target hasPrefix:@"/"] ? [self.target copy] : [(NSURL *)[NSURL URLWithString:self.target] path];
             if (filePath == nil) {
                 // We couldn't find the asset.  Send the appropriate error.
                 [self cancelTransferWithError:connection errorMessage:[NSString stringWithFormat:@"Could not create target file"]];
