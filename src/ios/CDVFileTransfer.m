@@ -492,9 +492,9 @@ static CFIndex WriteDataToStream(NSData* data, CFWriteStreamRef stream)
 
 - (CDVFileTransferEntityLengthRequest*)initWithOriginalRequest:(NSURLRequest*)originalRequest andDelegate:(CDVFileTransferDelegate*)originalDelegate;
 
-@end;
+@end
 
-@implementation CDVFileTransferEntityLengthRequest;
+@implementation CDVFileTransferEntityLengthRequest
 
 - (CDVFileTransferEntityLengthRequest*)initWithOriginalRequest:(NSURLRequest*)originalRequest andDelegate:(CDVFileTransferDelegate*)originalDelegate
 {
@@ -765,4 +765,4 @@ static CFIndex WriteDataToStream(NSData* data, CFWriteStreamRef stream)
     return self;
 }
 
-@end;
+@end
