@@ -362,6 +362,16 @@ static CFIndex WriteDataToStream(NSData* data, CFWriteStreamRef stream)
 
 - (void)download:(CDVInvokedUrlCommand*)command
 {
+    // Downloads can take time
+    // sending this to a new thread calling the download_async method
+    dispatch_async(
+        dispatch_get_global_queue(DISPATCH_QUEUE_PRIORITY_DEFAULT, (unsigned long)NULL), 
+        ^(void) { [self download_async:command];}
+    );
+}
+
+- (void)download_async:(CDVInvokedUrlCommand*)command
+{
     DLog(@"File Transfer downloading file...");
     NSString* source = [command.arguments objectAtIndex:0];
     NSString* target = [command.arguments objectAtIndex:1];
