@@ -430,8 +430,12 @@ static CFIndex WriteDataToStream(NSData* data, CFWriteStreamRef stream)
     @synchronized (activeTransfers) {
         activeTransfers[delegate.objectId] = delegate;
     }
-
-    [delegate.connection start];
+    // Downloads can take time
+    // sending this to a new thread calling the download_async method
+    dispatch_async(
+                   dispatch_get_global_queue(DISPATCH_QUEUE_PRIORITY_DEFAULT, (unsigned long)NULL),
+                   ^(void) { [delegate.connection start];}
+                   );
 }
 
 - (NSMutableDictionary*)createFileTransferError:(int)code AndSource:(NSString*)source AndTarget:(NSString*)target
