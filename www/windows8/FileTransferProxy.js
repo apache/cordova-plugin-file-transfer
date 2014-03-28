@@ -30,6 +30,7 @@ module.exports = {
         var filePath = options[0];
         var server = options[1];
         var headers = options[8] || {};
+        var httpMethod = options[10] || "POST";
 
         if (filePath === null || typeof filePath === 'undefined') {
             error && error(FileTransferError.FILE_NOT_FOUND_ERR);
@@ -41,33 +42,53 @@ module.exports = {
         }
 
         Windows.Storage.StorageFile.getFileFromPathAsync(filePath).then(function (storageFile) {
-            storageFile.openAsync(Windows.Storage.FileAccessMode.read).then(function (stream) {
-                var blob = MSApp.createBlobFromRandomAccessStream(storageFile.contentType, stream);
-                var formData = new FormData();
-                formData.append("source\";filename=\"" + storageFile.name + "\"", blob);
-                WinJS.xhr({ type: "POST", url: server, data: formData, headers: headers }).then(function (response) {
-                    var code = response.status;
-                    storageFile.getBasicPropertiesAsync().done(function (basicProperties) {
+            var ftResult = new FileUploadResult();
+            var sc = function () {
+                successCallback && successCallback(ftResult);
+            };
 
-                        Windows.Storage.FileIO.readBufferAsync(storageFile).done(function (buffer) {
-                            var dataReader = Windows.Storage.Streams.DataReader.fromBuffer(buffer);
-                            var fileContent = dataReader.readString(buffer.length);
-                            dataReader.close();
-                            var ftResult = new FileUploadResult(basicProperties.size, code, fileContent);
-                            // for now we explicitly write the bytesSent,responseCode,result 
-                            // in case cordova-plugin-file is not yet updated. -jm
-                            ftResult.bytesSent = basicProperties.size;
-                            ftResult.responseCode = code;
-                            ftResult.response = fileContent;
-                            successCallback && successCallback(ftResult);
-                        });
+            var uri = Windows.Foundation.Uri(server);
+            var uploader = new Windows.Networking.BackgroundTransfer.BackgroundUploader();
+            uploader.method = httpMethod;
+            for (var header in headers) {
+                uploader.setRequestHeader(header, headers[header]);
+            }
+            var upload = uploader.createUpload(uri, storageFile);
 
+            upload.startAsync().then(function (res) {
+                var total = res.progress.totalBytesToSend;
+                var size = res.progress.totalBytesToReceive;
+                var info = res.getResponseInformation();
+                var ftResult = new FileUploadResult(total, info.statusCode, size.toString());
+
+                var sc = function () {
+                    successCallback && successCallback(ftResult);
+                };
+
+                var istream = upload.getResultStreamAt(0);
+                var buffer =  new Windows.Storage.Streams.Buffer(size);
+                istream.readAsync(buffer, size, Windows.Storage.Streams.InputStreamOptions.none).done(
+                    function(f){
+                        var dataReader = Windows.Storage.Streams.DataReader.fromBuffer(f);
+                        ftResult.response = dataReader.readString(dataReader.unconsumedBufferLength);
+                        sc();
+                    },
+                    function(e){
+                        sc();
                     });
-                }, function () {
-                    error && error(FileTransferError.INVALID_URL_ERR);
+            }, function (e) {
+                error && error(FileTransferError.INVALID_URL_ERR);
+            }, function (v) {
+                successCallback({
+                    lengthComputable: (upload.progress.totalBytesToSend != 0),
+                    total: upload.progress.totalBytesToSend,
+                    loaded: upload.progress.bytesSent,
+                },
+                {
+                    status:cordova.callbackStatus.OK,
+                    keepCallback: true,
                 });
             });
-
         },function() {
             error && error(FileTransferError.FILE_NOT_FOUND_ERR);
         });
@@ -111,6 +132,16 @@ module.exports = {
                     successCallback && successCallback(new FileEntry(storageFile.name, storageFile.path));
                 }, function () {
                     error && error(FileTransferError.INVALID_URL_ERR);
+                }, function (v) {
+                    successCallback({
+                        lengthComputable: (download.progress.totalBytesToReceive != 0),
+                        total: download.progress.totalBytesToReceive,
+                        loaded: download.progress.bytesReceived,
+                    },
+                    {
+                        status:cordova.callbackStatus.OK,
+                        keepCallback: true,
+                    });
                 });
             });
         });
