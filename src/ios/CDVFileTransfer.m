@@ -587,7 +587,7 @@ static CFIndex WriteDataToStream(NSData* data, CFWriteStreamRef stream)
 {
     NSFileManager* fileMgr = [NSFileManager defaultManager];
 
-    [fileMgr removeItemAtPath:self.target error:nil];
+    [fileMgr removeItemAtPath:[self targetFilePath] error:nil];
 }
 
 - (void)cancelTransfer:(NSURLConnection*)connection
@@ -610,6 +610,21 @@ static CFIndex WriteDataToStream(NSData* data, CFWriteStreamRef stream)
     NSLog(@"File Transfer Error: %@", errorMessage);
     [self cancelTransfer:connection];
     [self.command.commandDelegate sendPluginResult:result callbackId:callbackId];
+}
+
+- (NSString *)targetFilePath
+{
+    NSString *path = nil;
+    CDVFilesystemURL *sourceURL = [CDVFilesystemURL fileSystemURLWithString:self.target];
+    if (sourceURL && sourceURL.fileSystemName != nil) {
+        // This requires talking to the current CDVFile plugin
+        NSObject<CDVFileSystem> *fs = [self.filePlugin filesystemForURL:sourceURL];
+        path = [fs filesystemPathForURL:sourceURL];
+    } else {
+        // Extract the path part out of a file: URL.
+        path = [self.target hasPrefix:@"/"] ? [self.target copy] : [(NSURL *)[NSURL URLWithString:self.target] path];
+    }
+    return path;
 }
 
 - (void)connection:(NSURLConnection*)connection didReceiveResponse:(NSURLResponse*)response
@@ -642,20 +657,11 @@ static CFIndex WriteDataToStream(NSData* data, CFWriteStreamRef stream)
     }
     if ((self.direction == CDV_TRANSFER_DOWNLOAD) && (self.responseCode >= 200) && (self.responseCode < 300)) {
         // Download response is okay; begin streaming output to file
-        NSString *filePath = nil;
-        CDVFilesystemURL *sourceURL = [CDVFilesystemURL fileSystemURLWithString:self.target];
-        if (sourceURL && sourceURL.fileSystemName != nil) {
-            // This requires talking to the current CDVFile plugin
-            NSObject<CDVFileSystem> *fs = [self.filePlugin filesystemForURL:sourceURL];
-            filePath = [fs filesystemPathForURL:sourceURL];
-        } else {
-            // Extract the path part out of a file: URL.
-            NSString* filePath = [self.target hasPrefix:@"/"] ? [self.target copy] : [(NSURL *)[NSURL URLWithString:self.target] path];
-            if (filePath == nil) {
-                // We couldn't find the asset.  Send the appropriate error.
-                [self cancelTransferWithError:connection errorMessage:[NSString stringWithFormat:@"Could not create target file"]];
-                return;
-            }
+        NSString *filePath = [self targetFilePath];
+        if (filePath == nil) {
+            // We couldn't find the asset.  Send the appropriate error.
+            [self cancelTransferWithError:connection errorMessage:[NSString stringWithFormat:@"Could not create target file"]];
+            return;
         }
 
         NSString* parentPath = [filePath stringByDeletingLastPathComponent];
