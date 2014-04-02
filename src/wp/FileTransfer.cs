@@ -397,7 +397,7 @@ namespace WPCordovaClassLib.Cordova.Commands
                         else
                         {
                             // need to unpack resource from the dll
-                            string cleanUrl = downloadOptions.Url.Replace("x-wmapp0:", "").Replace("file:", "");
+                            string cleanUrl = downloadOptions.Url.Replace("x-wmapp0:", "").Replace("file:", "").Replace("///","").Replace("//","");
                             Uri uri = new Uri(cleanUrl, UriKind.Relative);
                             var resource = Application.GetResourceStream(uri);
 
