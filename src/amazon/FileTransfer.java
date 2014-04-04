@@ -315,8 +315,12 @@ public class FileTransfer extends CordovaPlugin {
 
                     // Use a post method.
                     conn.setRequestMethod(httpMethod);
-                    conn.setRequestProperty("Content-Type", "multipart/form-data; boundary=" + BOUNDARY);
 
+                    // if we specified a Content-Type header, don't do multipart form upload
+                    boolean multipartFormUpload = !headers.has("Content-Type");
+                    if (multipartFormUpload) {
+                        conn.setRequestProperty("Content-Type", "multipart/form-data; boundary=" + BOUNDARY);
+                    }
                     // Set the cookies on the response
                     String cookie = AmazonCookieManager.getInstance().getCookie(target);
                     if (cookie != null) {
@@ -362,7 +366,9 @@ public class FileTransfer extends CordovaPlugin {
                     
                     int stringLength = beforeDataBytes.length + tailParamsBytes.length;
                     if (readResult.length >= 0) {
-                        fixedLength = (int)readResult.length + stringLength;
+                        fixedLength = (int)readResult.length;
+                        if (multipartFormUpload)
+                            fixedLength += stringLength;
                         progress.setLengthComputable(true);
                         progress.setTotal(fixedLength);
                     }
@@ -393,10 +399,12 @@ public class FileTransfer extends CordovaPlugin {
                             }
                             context.currentOutputStream = sendStream;
                         }
-                        //We don't want to change encoding, we just want this to write for all Unicode.
-                        sendStream.write(beforeDataBytes);
-                        totalBytes += beforeDataBytes.length;
-    
+                        
+                        if (multipartFormUpload) {
+                            //We don't want to change encoding, we just want this to write for all Unicode.
+                            sendStream.write(beforeDataBytes);
+                            totalBytes += beforeDataBytes.length;
+                        }
                         // create a buffer of maximum size
                         int bytesAvailable = readResult.inputStream.available();
                         int bufferSize = Math.min(bytesAvailable, MAX_BUFFER_SIZE);
@@ -425,9 +433,11 @@ public class FileTransfer extends CordovaPlugin {
                             context.sendPluginResult(progressResult);
                         }
     
-                        // send multipart form data necessary after file data...
-                        sendStream.write(tailParamsBytes);
-                        totalBytes += tailParamsBytes.length;
+                        if (multipartFormUpload) {
+                            // send multipart form data necessary after file data...
+                            sendStream.write(tailParamsBytes);
+                            totalBytes += tailParamsBytes.length;
+                        }
                         sendStream.flush();
                     } finally {
                         safeClose(readResult.inputStream);
