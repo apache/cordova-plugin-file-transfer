@@ -75,7 +75,7 @@ __Parameters__:
   - __params__: A set of optional key/value pairs to pass in the HTTP request. (Object)
   - __chunkedMode__: Whether to upload the data in chunked streaming mode. Defaults to `true`. (Boolean)
   - __headers__: A map of header name/header values. Use an array to specify more than one value.  If a header named Content-Type is present, multipart form data will NOT be used.(Object)
-  - __httpMethod__: The HTTP method to use e.g. POST or PUT.  Defaults to POST. (DOMString)
+  - __httpMethod__: The HTTP method to use e.g. POST or PUT.  Defaults to `POST`. (DOMString)
 
 ### Example
 
