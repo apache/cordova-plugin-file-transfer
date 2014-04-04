@@ -183,8 +183,12 @@ static CFIndex WriteDataToStream(NSData* data, CFWriteStreamRef stream)
         [req setHTTPShouldHandleCookies:NO];
     }
 
-    NSString* contentType = [NSString stringWithFormat:@"multipart/form-data; boundary=%@", kFormBoundary];
-    [req setValue:contentType forHTTPHeaderField:@"Content-Type"];
+    // if we specified a Content-Type header, don't do multipart form upload
+    BOOL multipartFormUpload = [headers objectForKey:@"Content-Type"] == nil;
+    if (multipartFormUpload) {
+        NSString* contentType = [NSString stringWithFormat:@"multipart/form-data; boundary=%@", kFormBoundary];
+        [req setValue:contentType forHTTPHeaderField:@"Content-Type"];
+    }
     [self applyRequestHeaders:headers toRequest:req];
 
     NSData* formBoundaryData = [[NSString stringWithFormat:@"--%@\r\n", kFormBoundary] dataUsingEncoding:NSUTF8StringEncoding];
@@ -220,7 +224,11 @@ static CFIndex WriteDataToStream(NSData* data, CFWriteStreamRef stream)
     DLog(@"fileData length: %d", [fileData length]);
     NSData* postBodyAfterFile = [[NSString stringWithFormat:@"\r\n--%@--\r\n", kFormBoundary] dataUsingEncoding:NSUTF8StringEncoding];
 
-    long long totalPayloadLength = [postBodyBeforeFile length] + [fileData length] + [postBodyAfterFile length];
+    long long totalPayloadLength = [fileData length];
+    if (multipartFormUpload) {
+        totalPayloadLength += [postBodyBeforeFile length] + [postBodyAfterFile length];
+    }
+
     [req setValue:[[NSNumber numberWithLongLong:totalPayloadLength] stringValue] forHTTPHeaderField:@"Content-Length"];
 
     if (chunkedMode) {
@@ -231,14 +239,18 @@ static CFIndex WriteDataToStream(NSData* data, CFWriteStreamRef stream)
 
         [self.commandDelegate runInBackground:^{
             if (CFWriteStreamOpen(writeStream)) {
-                NSData* chunks[] = {postBodyBeforeFile, fileData, postBodyAfterFile};
-                int numChunks = sizeof(chunks) / sizeof(chunks[0]);
+                if (multipartFormUpload) {
+                    NSData* chunks[] = { postBodyBeforeFile, fileData, postBodyAfterFile };
+                    int numChunks = sizeof(chunks) / sizeof(chunks[0]);
 
-                for (int i = 0; i < numChunks; ++i) {
-                    CFIndex result = WriteDataToStream(chunks[i], writeStream);
-                    if (result <= 0) {
-                        break;
+                    for (int i = 0; i < numChunks; ++i) {
+                        CFIndex result = WriteDataToStream(chunks[i], writeStream);
+                        if (result <= 0) {
+                            break;
+                        }
                     }
+                } else {
+                    WriteDataToStream(fileData, writeStream);
                 }
             } else {
                 NSLog(@"FileTransfer: Failed to open writeStream");
@@ -247,9 +259,13 @@ static CFIndex WriteDataToStream(NSData* data, CFWriteStreamRef stream)
             CFRelease(writeStream);
         }];
     } else {
-        [postBodyBeforeFile appendData:fileData];
-        [postBodyBeforeFile appendData:postBodyAfterFile];
-        [req setHTTPBody:postBodyBeforeFile];
+        if (multipartFormUpload) {
+            [postBodyBeforeFile appendData:fileData];
+            [postBodyBeforeFile appendData:postBodyAfterFile];
+            [req setHTTPBody:postBodyBeforeFile];
+        } else {
+            [req setHTTPBody:fileData];
+        }
     }
     return req;
 }
