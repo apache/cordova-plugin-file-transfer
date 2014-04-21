@@ -20,6 +20,8 @@
 #include "file-transfer.h"
 #include <cassert>
 
+#define FILE_PREFIX "file://localhost"
+
 void FileTransfer::download(int scId, int ecId, const QString& url, const QString &target, bool /*trustAllHost*/, int id, const QVariantMap &/*headers*/) {
     QSharedPointer<FileTransferRequest> request(new FileTransferRequest(_manager, scId, ecId, id, this));
 
@@ -97,9 +99,8 @@ void FileTransferRequest::download(const QString& uri, const QString &target) {
         if (!_scId || _reply->error() != QNetworkReply::NoError)
             return;
 
-        QFile res(target);
-        qCritical() << target;
-        if (target[0] != '/' || !res.open(QIODevice::WriteOnly)) {
+        QFile res(target.mid(QString(FILE_PREFIX).size()));
+        if (target.indexOf(FILE_PREFIX) != 0 || !res.open(QIODevice::WriteOnly)) {
             QVariantMap map;
             map.insert("code", INVALID_URL_ERR);
             map.insert("source", uri);
@@ -110,7 +111,7 @@ void FileTransferRequest::download(const QString& uri, const QString &target) {
         }
         res.write(_reply->readAll());
 
-        QFileInfo info(target);
+        QFileInfo info(target.mid(QString(FILE_PREFIX).size()));
         QVariantMap map;
         map.insert("isFile", true);
         map.insert("isDirectory", false);
@@ -139,8 +140,8 @@ void FileTransferRequest::upload(const QString& _url, const QString& filePath, Q
         return;
     }
 
-    QFile file(filePath);
-    if (filePath[0] != '/' || !file.open(QIODevice::ReadOnly)) {
+    QFile file(filePath.mid(QString(FILE_PREFIX).size()));
+    if (filePath.indexOf(FILE_PREFIX) != 0 || !file.open(QIODevice::ReadOnly)) {
         QVariantMap map;
         map.insert("code", FILE_NOT_FOUND_ERR);
         map.insert("source", filePath);
@@ -223,7 +224,6 @@ void FileTransferRequest::error(QNetworkReply::NetworkError code) {
 
     int status = 404;
     QVariant statusCode = _reply->attribute(QNetworkRequest::HttpStatusCodeAttribute);
-
     if (statusCode.isValid()) {
         status = statusCode.toInt();
     }
