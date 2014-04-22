@@ -20,7 +20,25 @@
 #include "file-transfer.h"
 #include <cassert>
 
-void FileTransfer::download(int scId, int ecId, const QString& url, const QString &target, bool /*trustAllHost*/, int id, const QVariantMap &/*headers*/) {
+#define FILE_PREFIX "file://localhost"
+
+static void SetHeaders(QNetworkRequest &request, const QVariantMap &headers) {
+    for (const QString &key: headers.keys()) {
+        QVariant val = *headers.find(key);
+        QString value = val.toString();
+        if (val.userType() == QMetaType::QVariantList || val.userType() == QMetaType::QStringList) {
+            QList<QVariant> list = val.toList();
+            for (QVariant v: list) {
+                if (value.size())
+                    value += ", ";
+                value += v.toString();
+            }
+        }
+        request.setRawHeader(key.toUtf8(), value.toUtf8());
+    }
+}
+
+void FileTransfer::download(int scId, int ecId, const QString& url, const QString &target, bool /*trustAllHost*/, int id, const QVariantMap &headers) {
     QSharedPointer<FileTransferRequest> request(new FileTransferRequest(_manager, scId, ecId, id, this));
 
     assert(_id2request.find(id) == _id2request.end());
@@ -37,11 +55,11 @@ void FileTransfer::download(int scId, int ecId, const QString& url, const QStrin
             it++;
         }
     });
-    request->download(url, target);
+    request->download(url, target, headers);
 }
 
 void FileTransfer::upload(int scId, int ecId, const QString &filePath, const QString& url, const QString& fileKey, const QString& fileName, const QString& mimeType,
-                          const QVariantMap & params, bool /*trustAllHosts*/, bool /*chunkedMode*/, const QVariantMap &headers, int id, const QString &httpMethod) {
+                          const QVariantMap & params, bool /*trustAllHosts*/, bool /*chunkedMode*/, const QVariantMap &headers, int id, const QString &/*httpMethod*/) {
     QSharedPointer<FileTransferRequest> request(new FileTransferRequest(_manager, scId, ecId, id, this));
 
     assert(_id2request.find(id) == _id2request.end());
@@ -72,7 +90,7 @@ void FileTransfer::abort(int scId, int ecId, int id) {
     }
 }
 
-void FileTransferRequest::download(const QString& uri, const QString &target) {
+void FileTransferRequest::download(const QString& uri, const QString &target, const QVariantMap &headers) {
     QUrl url(uri);
     QNetworkRequest request;
 
@@ -91,15 +109,15 @@ void FileTransferRequest::download(const QString& uri, const QString &target) {
         QString headerData = "Basic " + (url.userName() + ":" + url.password()).toLocal8Bit().toBase64();
         request.setRawHeader("Authorization", headerData.toLocal8Bit());
     }
+    SetHeaders(request, headers);
     _reply = QSharedPointer<QNetworkReply>(_manager.get(request));
 
     _reply->connect(_reply.data(), &QNetworkReply::finished, [this, target, uri]() {
         if (!_scId || _reply->error() != QNetworkReply::NoError)
             return;
 
-        QFile res(target);
-        qCritical() << target;
-        if (target[0] != '/' || !res.open(QIODevice::WriteOnly)) {
+        QFile res(target.mid(QString(FILE_PREFIX).size()));
+        if (target.indexOf(FILE_PREFIX) != 0 || !res.open(QIODevice::WriteOnly)) {
             QVariantMap map;
             map.insert("code", INVALID_URL_ERR);
             map.insert("source", uri);
@@ -110,7 +128,7 @@ void FileTransferRequest::download(const QString& uri, const QString &target) {
         }
         res.write(_reply->readAll());
 
-        QFileInfo info(target);
+        QFileInfo info(target.mid(QString(FILE_PREFIX).size()));
         QVariantMap map;
         map.insert("isFile", true);
         map.insert("isDirectory", false);
@@ -139,8 +157,8 @@ void FileTransferRequest::upload(const QString& _url, const QString& filePath, Q
         return;
     }
 
-    QFile file(filePath);
-    if (filePath[0] != '/' || !file.open(QIODevice::ReadOnly)) {
+    QFile file(filePath.mid(QString(FILE_PREFIX).size()));
+    if (filePath.indexOf(FILE_PREFIX) != 0 || !file.open(QIODevice::ReadOnly)) {
         QVariantMap map;
         map.insert("code", FILE_NOT_FOUND_ERR);
         map.insert("source", filePath);
@@ -156,11 +174,7 @@ void FileTransferRequest::upload(const QString& _url, const QString& filePath, Q
         QString headerData = "Basic " + (url.userName() + ":" + url.password()).toLocal8Bit().toBase64();
         request.setRawHeader("Authorization", headerData.toLocal8Bit());
     }
-
-    for (const QString &key: headers.keys()) {
-        const QString &value = headers.find(key)->toString();
-        request.setRawHeader(key.toUtf8(), value.toUtf8());
-    }
+    SetHeaders(request, headers);
 
     QString boundary = QString("CORDOVA-QT-%1A").arg(qrand());
     while (content.contains(boundary)) {
@@ -223,7 +237,6 @@ void FileTransferRequest::error(QNetworkReply::NetworkError code) {
 
     int status = 404;
     QVariant statusCode = _reply->attribute(QNetworkRequest::HttpStatusCodeAttribute);
-
     if (statusCode.isValid()) {
         status = statusCode.toInt();
     }

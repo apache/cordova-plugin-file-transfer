@@ -49,7 +49,7 @@ public:
         _plugin(plugin) {
     }
 
-    void download(const QString& url, const QString &target);
+    void download(const QString& url, const QString &target, const QVariantMap &headers);
     void upload(const QString& _url, const QString& filePath, QString fileKey, QString fileName, QString mimeType, const QVariantMap &params, const QVariantMap &headers);
     void abort();
 
