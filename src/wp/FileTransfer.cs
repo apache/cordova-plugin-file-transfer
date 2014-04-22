@@ -41,7 +41,6 @@ namespace WPCordovaClassLib.Cordova.Commands
             }
         }
 
-
         public class TransferOptions
         {
             /// File path to upload  OR File path to download to
@@ -86,7 +85,6 @@ namespace WPCordovaClassLib.Cordova.Commands
         public const int AbortError = 4; // not really an error, but whatevs
 
         private static Dictionary<string, DownloadRequestState> InProcDownloads = new Dictionary<string,DownloadRequestState>();
-
 
         /// <summary>
         /// Uploading response info
@@ -209,8 +207,6 @@ namespace WPCordovaClassLib.Cordova.Commands
                 BytesLoaded = bLoaded;
                 BytesTotal = bTotal;
             }
-
-
         }
 
         /// <summary>
@@ -248,7 +244,6 @@ namespace WPCordovaClassLib.Cordova.Commands
                     uploadOptions.FileName = args[3];
                     uploadOptions.MimeType = args[4];
                     uploadOptions.Params = args[5];
-
 
                     bool trustAll = false;
                     bool.TryParse(args[6],out trustAll);
@@ -303,15 +298,11 @@ namespace WPCordovaClassLib.Cordova.Commands
 
                 InProcDownloads[uploadOptions.Id] = reqState;
 
-
                 webRequest.BeginGetRequestStream(uploadCallback, reqState);
             }
             catch (Exception /*ex*/)
             {
-
                 DispatchCommandResult(new PluginResult(PluginResult.Status.ERROR, new FileTransferError(ConnectionError)),callbackId);
-
-
             }
         }
 
@@ -350,8 +341,6 @@ namespace WPCordovaClassLib.Cordova.Commands
             return null;
         }
 
-
-
         public void download(string options)
         {
             TransferOptions downloadOptions = null;
@@ -374,7 +363,6 @@ namespace WPCordovaClassLib.Cordova.Commands
                 downloadOptions.Id = optionStrings[3];
                 downloadOptions.Headers = optionStrings[4];
                 downloadOptions.CallbackId = callbackId = optionStrings[5];
-
             }
             catch (Exception)
             {
@@ -389,6 +377,15 @@ namespace WPCordovaClassLib.Cordova.Commands
                 {
                     using (IsolatedStorageFile isoFile = IsolatedStorageFile.GetUserStoreForApplication())
                     {
+                        string cleanUrl = downloadOptions.Url.Replace("x-wmapp0:", "").Replace("file:", "");
+
+                        // pre-emptively create any directories in the FilePath that do not exist
+                        string directoryName = getDirectoryName(downloadOptions.FilePath);
+                        if (!string.IsNullOrEmpty(directoryName) && !isoFile.DirectoryExists(directoryName))
+                        {
+                            isoFile.CreateDirectory(directoryName);
+                        }
+
                         // just copy from one area of iso-store to another ...
                         if (isoFile.FileExists(downloadOptions.Url))
                         {
@@ -397,7 +394,6 @@ namespace WPCordovaClassLib.Cordova.Commands
                         else
                         {
                             // need to unpack resource from the dll
-                            string cleanUrl = downloadOptions.Url.Replace("x-wmapp0:", "").Replace("file:", "");
                             Uri uri = new Uri(cleanUrl, UriKind.Relative);
                             var resource = Application.GetResourceStream(uri);
 
@@ -440,12 +436,10 @@ namespace WPCordovaClassLib.Cordova.Commands
                                                 }
                                             }
                                         }
-
                                     }
                                 }
                             }
                         }
-
                     }
 
                     File.FileEntry entry = File.FileEntry.GetEntry(downloadOptions.FilePath);
@@ -459,7 +453,6 @@ namespace WPCordovaClassLib.Cordova.Commands
                     }
 
                     return;
-
                 }
                 else
                 {
@@ -511,7 +504,6 @@ namespace WPCordovaClassLib.Cordova.Commands
                     }
                 }
             }
-
         }
 
         public void abort(string options)
@@ -523,22 +515,21 @@ namespace WPCordovaClassLib.Cordova.Commands
 
             if (InProcDownloads.ContainsKey(id))
             {
-                 DownloadRequestState state = InProcDownloads[id];
-                 if (!state.isCancelled)
-                 { // prevent multiple callbacks for the same abort
-                     state.isCancelled = true;
-                     if (!state.request.HaveResponse)
-                     {
-                         state.request.Abort();
-                         InProcDownloads.Remove(id);
-                         //callbackId = state.options.CallbackId;
-                         //state = null;
-                         DispatchCommandResult(new PluginResult(PluginResult.Status.ERROR,
-                                                                new FileTransferError(FileTransfer.AbortError)),
-                                                                state.options.CallbackId);
-                     }
-                 }
-
+                DownloadRequestState state = InProcDownloads[id];
+                if (!state.isCancelled)
+                { // prevent multiple callbacks for the same abort
+                    state.isCancelled = true;
+                    if (!state.request.HaveResponse)
+                    {
+                        state.request.Abort();
+                        InProcDownloads.Remove(id);
+                        //callbackId = state.options.CallbackId;
+                        //state = null;
+                        DispatchCommandResult(new PluginResult(PluginResult.Status.ERROR,
+                                                               new FileTransferError(FileTransfer.AbortError)),
+                                                               state.options.CallbackId);
+                    }
+                }
             }
             else
             {
@@ -564,8 +555,6 @@ namespace WPCordovaClassLib.Cordova.Commands
         /// <param name="asynchronousResult"></param>
         private void downloadCallback(IAsyncResult asynchronousResult)
         {
-
-
             DownloadRequestState reqState = (DownloadRequestState)asynchronousResult.AsyncState;
             HttpWebRequest request = reqState.request;
 
@@ -579,6 +568,13 @@ namespace WPCordovaClassLib.Cordova.Commands
 
                 using (IsolatedStorageFile isoFile = IsolatedStorageFile.GetUserStoreForApplication())
                 {
+                    // create any directories in the path that do not exist
+                    string directoryName = getDirectoryName(reqState.options.FilePath);
+                    if (!string.IsNullOrEmpty(directoryName) && !isoFile.DirectoryExists(directoryName))
+                    {
+                        isoFile.CreateDirectory(directoryName);
+                    }
+
                     // create the file if not exists
                     if (!isoFile.FileExists(reqState.options.FilePath))
                     {
@@ -617,21 +613,18 @@ namespace WPCordovaClassLib.Cordova.Commands
                                     System.Threading.Thread.Sleep(1);
                                 }
                             }
-
                         }
                     }
                     if (reqState.isCancelled)
                     {
                         isoFile.DeleteFile(reqState.options.FilePath);
                     }
-
                 }
 
                 if (reqState.isCancelled)
                 {
                     DispatchCommandResult(new PluginResult(PluginResult.Status.ERROR, new FileTransferError(AbortError)),
                   callbackId);
-
                 }
                 else
                 {
@@ -659,7 +652,6 @@ namespace WPCordovaClassLib.Cordova.Commands
                 if ((webex.Status == WebExceptionStatus.ProtocolError && response.StatusCode == HttpStatusCode.NotFound)
                     || webex.Status == WebExceptionStatus.UnknownError)
                 {
-
                     // Weird MSFT detection of 404... seriously... just give us the f(*&#$@ status code as a number ffs!!!
                     // "Numbers for HTTP status codes? Nah.... let's create our own set of enums/structs to abstract that stuff away."
                     // FACEPALM
@@ -707,10 +699,7 @@ namespace WPCordovaClassLib.Cordova.Commands
             {
                 InProcDownloads.Remove(reqState.options.Id);
             }
-
         }
-
-
 
         /// <summary>
         /// Read file from Isolated Storage and sends it to server
@@ -730,8 +719,6 @@ namespace WPCordovaClassLib.Cordova.Commands
                     string lineEnd = Environment.NewLine;
                     byte[] boundaryBytes = System.Text.Encoding.UTF8.GetBytes(lineStart + Boundary + lineEnd);
                     string formdataTemplate = "Content-Disposition: form-data; name=\"{0}\"" + lineEnd + lineEnd + "{1}" + lineEnd;
-
-
 
                     if (!string.IsNullOrEmpty(reqState.options.Params))
                     {
@@ -758,7 +745,6 @@ namespace WPCordovaClassLib.Cordova.Commands
 
                         using (FileStream fileStream = new IsolatedStorageFileStream(reqState.options.FilePath, FileMode.Open, isoFile))
                         {
-
                             string headerTemplate = "Content-Disposition: form-data; name=\"{0}\"; filename=\"{1}\"" + lineEnd + "Content-Type: {2}" + lineEnd + lineEnd;
                             string header = string.Format(headerTemplate, reqState.options.FileKey, reqState.options.FileName, reqState.options.MimeType);
                             byte[] headerBytes = System.Text.Encoding.UTF8.GetBytes(header);
@@ -857,8 +843,22 @@ namespace WPCordovaClassLib.Cordova.Commands
             {
                 FileTransferError transferError = new FileTransferError(ConnectionError, reqState.options.Server, reqState.options.FilePath, 403);
                 DispatchCommandResult(new PluginResult(PluginResult.Status.ERROR, transferError), reqState.options.CallbackId);
-
             }
+        }
+
+        // Gets the full path without the filename
+        private string getDirectoryName(String filePath)
+        {
+            string directoryName;
+            try
+            {
+                directoryName = filePath.Substring(0, filePath.LastIndexOf('/'));
+            }
+            catch
+            {
+                directoryName = "";
+            }
+            return directoryName;
         }
     }
 }
