@@ -368,12 +368,12 @@ static CFIndex WriteDataToStream(NSData* data, CFWriteStreamRef stream)
     BOOL trustAllHosts = [[command.arguments objectAtIndex:2 withDefault:[NSNumber numberWithBool:NO]] boolValue]; // allow self-signed certs
     NSString* objectId = [command.arguments objectAtIndex:3];
     NSDictionary* headers = [command.arguments objectAtIndex:4 withDefault:nil];
-
+    
     CDVPluginResult* result = nil;
     CDVFileTransferError errorCode = 0;
-
+    
     NSURL* targetURL;
-
+    
     if ([target hasPrefix:@"/"]) {
         /* Backwards-compatibility:
          * Check here to see if it looks like the user passed in a raw filesystem path. (Perhaps they had the path saved, and were previously using it with the old version of File). If so, normalize it by removing empty path segments, and check with File to see if any of the installed filesystems will handle it. If so, then we will end up with a filesystem url to use for the remainder of this operation.
@@ -383,29 +383,29 @@ static CFIndex WriteDataToStream(NSData* data, CFWriteStreamRef stream)
     } else {
         targetURL = [NSURL URLWithString:target];
     }
-
+    
     NSURL* sourceURL = [NSURL URLWithString:source];
-
+    
     if (!sourceURL) {
         errorCode = INVALID_URL_ERR;
         NSLog(@"File Transfer Error: Invalid server URL %@", source);
     } else if (![targetURL isFileURL]) {
         CDVFilesystemURL *fsURL = [CDVFilesystemURL fileSystemURLWithString:target];
         if (!fsURL) {
-           errorCode = FILE_NOT_FOUND_ERR;
-           NSLog(@"File Transfer Error: Invalid file path or URL %@", target);
+            errorCode = FILE_NOT_FOUND_ERR;
+            NSLog(@"File Transfer Error: Invalid file path or URL %@", target);
         }
     }
-
+    
     if (errorCode > 0) {
         result = [CDVPluginResult resultWithStatus:CDVCommandStatus_ERROR messageAsDictionary:[self createFileTransferError:errorCode AndSource:source AndTarget:target]];
         [self.commandDelegate sendPluginResult:result callbackId:command.callbackId];
         return;
     }
-
+    
     NSMutableURLRequest* req = [NSMutableURLRequest requestWithURL:sourceURL];
     [self applyRequestHeaders:headers toRequest:req];
-
+    
     CDVFileTransferDelegate* delegate = [[CDVFileTransferDelegate alloc] init];
     delegate.command = self;
     delegate.direction = CDV_TRANSFER_DOWNLOAD;
@@ -419,14 +419,14 @@ static CFIndex WriteDataToStream(NSData* data, CFWriteStreamRef stream)
     delegate.backgroundTaskID = [[UIApplication sharedApplication] beginBackgroundTaskWithExpirationHandler:^{
         [delegate cancelTransfer:delegate.connection];
     }];
-
+    
     delegate.connection = [[NSURLConnection alloc] initWithRequest:req delegate:delegate startImmediately:NO];
-
+    
     if (self.queue == nil) {
         self.queue = [[NSOperationQueue alloc] init];
     }
     [delegate.connection setDelegateQueue:self.queue];
-
+    
     @synchronized (activeTransfers) {
         activeTransfers[delegate.objectId] = delegate;
     }
