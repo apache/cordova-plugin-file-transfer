@@ -58,7 +58,7 @@ static CFIndex WriteDataToStream(NSData* data, CFWriteStreamRef stream)
                 bytesToWrite - totalBytesWritten);
         if (result < 0) {
             CFStreamError error = CFWriteStreamGetError(stream);
-            NSLog(@"WriteStreamError domain: %ld error: %ld", error.domain, error.error);
+            NSLog(@"WriteStreamError domain: %ld error: %ld", error.domain, (long)error.error);
             return result;
         } else if (result == 0) {
             return result;
@@ -207,7 +207,7 @@ static CFIndex WriteDataToStream(NSData* data, CFWriteStreamRef stream)
     if (mimeType != nil) {
         [postBodyBeforeFile appendData:[[NSString stringWithFormat:@"Content-Type: %@\r\n", mimeType] dataUsingEncoding:NSUTF8StringEncoding]];
     }
-    [postBodyBeforeFile appendData:[[NSString stringWithFormat:@"Content-Length: %d\r\n\r\n", [fileData length]] dataUsingEncoding:NSUTF8StringEncoding]];
+    [postBodyBeforeFile appendData:[[NSString stringWithFormat:@"Content-Length: %ld\r\n\r\n", (long)[fileData length]] dataUsingEncoding:NSUTF8StringEncoding]];
 
     DLog(@"fileData length: %d", [fileData length]);
     NSData* postBodyAfterFile = [[NSString stringWithFormat:@"\r\n--%@--\r\n", kFormBoundary] dataUsingEncoding:NSUTF8StringEncoding];
@@ -293,7 +293,7 @@ static CFIndex WriteDataToStream(NSData* data, CFWriteStreamRef stream)
         return;
     } else {
         // Extract the path part out of a file: URL.
-        NSString* filePath = [source hasPrefix:@"/"] ? [source copy] : [[NSURL URLWithString:source] path];
+        NSString* filePath = [source hasPrefix:@"/"] ? [source copy] : [(NSURL *)[NSURL URLWithString:source] path];
         if (filePath == nil) {
             // We couldn't find the asset.  Send the appropriate error.
             CDVPluginResult* result = [CDVPluginResult resultWithStatus:CDVCommandStatus_ERROR messageAsDictionary:[self createFileTransferError:NOT_FOUND_ERR AndSource:source AndTarget:server]];
@@ -430,8 +430,12 @@ static CFIndex WriteDataToStream(NSData* data, CFWriteStreamRef stream)
     @synchronized (activeTransfers) {
         activeTransfers[delegate.objectId] = delegate;
     }
-
-    [delegate.connection start];
+    // Downloads can take time
+    // sending this to a new thread calling the download_async method
+    dispatch_async(
+                   dispatch_get_global_queue(DISPATCH_QUEUE_PRIORITY_DEFAULT, (unsigned long)NULL),
+                   ^(void) { [delegate.connection start];}
+                   );
 }
 
 - (NSMutableDictionary*)createFileTransferError:(int)code AndSource:(NSString*)source AndTarget:(NSString*)target
@@ -492,9 +496,9 @@ static CFIndex WriteDataToStream(NSData* data, CFWriteStreamRef stream)
 
 - (CDVFileTransferEntityLengthRequest*)initWithOriginalRequest:(NSURLRequest*)originalRequest andDelegate:(CDVFileTransferDelegate*)originalDelegate;
 
-@end;
+@end
 
-@implementation CDVFileTransferEntityLengthRequest;
+@implementation CDVFileTransferEntityLengthRequest
 
 - (CDVFileTransferEntityLengthRequest*)initWithOriginalRequest:(NSURLRequest*)originalRequest andDelegate:(CDVFileTransferDelegate*)originalDelegate
 {
@@ -583,7 +587,7 @@ static CFIndex WriteDataToStream(NSData* data, CFWriteStreamRef stream)
 {
     NSFileManager* fileMgr = [NSFileManager defaultManager];
 
-    [fileMgr removeItemAtPath:self.target error:nil];
+    [fileMgr removeItemAtPath:[self targetFilePath] error:nil];
 }
 
 - (void)cancelTransfer:(NSURLConnection*)connection
@@ -606,6 +610,21 @@ static CFIndex WriteDataToStream(NSData* data, CFWriteStreamRef stream)
     NSLog(@"File Transfer Error: %@", errorMessage);
     [self cancelTransfer:connection];
     [self.command.commandDelegate sendPluginResult:result callbackId:callbackId];
+}
+
+- (NSString *)targetFilePath
+{
+    NSString *path = nil;
+    CDVFilesystemURL *sourceURL = [CDVFilesystemURL fileSystemURLWithString:self.target];
+    if (sourceURL && sourceURL.fileSystemName != nil) {
+        // This requires talking to the current CDVFile plugin
+        NSObject<CDVFileSystem> *fs = [self.filePlugin filesystemForURL:sourceURL];
+        path = [fs filesystemPathForURL:sourceURL];
+    } else {
+        // Extract the path part out of a file: URL.
+        path = [self.target hasPrefix:@"/"] ? [self.target copy] : [(NSURL *)[NSURL URLWithString:self.target] path];
+    }
+    return path;
 }
 
 - (void)connection:(NSURLConnection*)connection didReceiveResponse:(NSURLResponse*)response
@@ -638,20 +657,11 @@ static CFIndex WriteDataToStream(NSData* data, CFWriteStreamRef stream)
     }
     if ((self.direction == CDV_TRANSFER_DOWNLOAD) && (self.responseCode >= 200) && (self.responseCode < 300)) {
         // Download response is okay; begin streaming output to file
-        NSString *filePath = nil;
-        CDVFilesystemURL *sourceURL = [CDVFilesystemURL fileSystemURLWithString:self.target];
-        if (sourceURL && sourceURL.fileSystemName != nil) {
-            // This requires talking to the current CDVFile plugin
-            NSObject<CDVFileSystem> *fs = [self.filePlugin filesystemForURL:sourceURL];
-            filePath = [fs filesystemPathForURL:sourceURL];
-        } else {
-            // Extract the path part out of a file: URL.
-            NSString* filePath = [self.target hasPrefix:@"/"] ? [self.target copy] : [[NSURL URLWithString:self.target] path];
-            if (filePath == nil) {
-                // We couldn't find the asset.  Send the appropriate error.
-                [self cancelTransferWithError:connection errorMessage:[NSString stringWithFormat:@"Could not create target file"]];
-                return;
-            }
+        NSString *filePath = [self targetFilePath];
+        if (filePath == nil) {
+            // We couldn't find the asset.  Send the appropriate error.
+            [self cancelTransferWithError:connection errorMessage:[NSString stringWithFormat:@"Could not create target file"]];
+            return;
         }
 
         NSString* parentPath = [filePath stringByDeletingLastPathComponent];
@@ -765,4 +775,4 @@ static CFIndex WriteDataToStream(NSData* data, CFWriteStreamRef stream)
     return self;
 }
 
-@end;
+@end
