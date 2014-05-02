@@ -25,6 +25,8 @@
 
 #include <cplugin.h>
 
+class FileTransfer;
+
 class FileTransferRequest: public QObject {
     Q_OBJECT
 
@@ -41,7 +43,7 @@ class FileTransferRequest: public QObject {
     };
 
 public:
-    FileTransferRequest(QNetworkAccessManager &manager, int scId, int ecId, int id, CPlugin *plugin):
+    FileTransferRequest(QNetworkAccessManager &manager, int scId, int ecId, int id, FileTransfer *plugin):
         _manager(manager),
         _scId(scId),
         _ecId(ecId),
@@ -49,8 +51,8 @@ public:
         _plugin(plugin) {
     }
 
-    void download(const QString& url, const QString &target);
-    void upload(const QString& _url, const QString& filePath, QString fileKey, QString fileName, QString mimeType, const QVariantMap &params, const QVariantMap &headers);
+    void download(const QString& url, const QString &targetURI, const QVariantMap &headers);
+    void upload(const QString& _url, const QString& fileURI, QString fileKey, QString fileName, QString mimeType, const QVariantMap &params, const QVariantMap &headers);
     void abort();
 
 signals:
@@ -60,7 +62,7 @@ private slots:
     void progress(qint64 bytesReceived, qint64 bytesTotal);
     void error(QNetworkReply::NetworkError code);
 private:
-    CPlugin *_plugin;
+    FileTransfer *_plugin;
     Q_DISABLE_COPY(FileTransferRequest);
 };
 
@@ -68,6 +70,10 @@ class FileTransfer : public CPlugin {
     Q_OBJECT
 public:
     explicit FileTransfer(Cordova *cordova): CPlugin(cordova) {
+    }
+
+    Cordova* cordova() {
+        return m_cordova;
     }
 
     virtual const QString fullName() override {
