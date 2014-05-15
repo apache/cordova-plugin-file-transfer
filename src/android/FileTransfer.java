@@ -795,7 +795,7 @@ public class FileTransfer extends CordovaPlugin {
                     Log.d(LOG_TAG, "Saved file: " + target);
     
                     // create FileEntry object
-                    FileUtils filePlugin = (FileUtils)webView.pluginManager.getPlugin("File");
+                    FileUtils filePlugin = (FileUtils)webView.getPluginManager().getPlugin("File");
                     if (filePlugin != null) {
                         JSONObject fileEntry = filePlugin.getEntryForFile(file);
                         if (fileEntry != null) {
