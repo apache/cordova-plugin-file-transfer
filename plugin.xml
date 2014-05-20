@@ -30,7 +30,7 @@
     <issue>https://issues.apache.org/jira/browse/CB/component/12320650</issue>
 
     <!-- dependency id="org.apache.cordova.file@1" /-->
-    <dependency id="org.apache.cordova.file" version="1.0.1" />
+    <dependency id="org.apache.cordova.file" version=">=1.0.1" />
 
     <js-module src="www/FileTransferError.js" name="FileTransferError">
         <clobbers target="window.FileTransferError" />
@@ -80,14 +80,20 @@
         <source-file src="src/ubuntu/file-transfer.cpp" />
     </platform>
 
+    <!-- blackberry10 -->
     <platform name="blackberry10">
         <config-file target="www/config.xml" parent="/widget">
             <feature name="FileTransfer" value="FileTransfer"></feature>
         </config-file>
-        <js-module src="www/blackberry10/FileTransfer.js" name="BB10FileTransfer">
-            <clobbers target="window.FileTransfer"></clobbers>
+        <js-module src="www/blackberry10/FileTransferProxy.js" name="FileTransferProxy" >
+            <runs />
         </js-module>
-        <js-module src="www/blackberry10/XHRImplementation.js" name="BB10XHRImplementation"></js-module>
+        <js-module src="www/blackberry10/xhrFileTransfer.js" name="xhrFileTransfer" />
+        <!--
+        <js-module src="www/blackberry10/abort.js" name="abortProxy" />
+        <js-module src="www/blackberry10/download.js" name="downloadProxy" />
+        <js-module src="www/blackberry10/upload.js" name="uploadProxy" />
+        -->
     </platform>
 
     <!-- ios -->
