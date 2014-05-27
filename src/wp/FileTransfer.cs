@@ -751,6 +751,8 @@ namespace WPCordovaClassLib.Cordova.Commands
 
                             byte[] buffer = new byte[4096];
                             int bytesRead = 0;
+                            //sent bytes needs to be reseted before new upload
+                            bytesSent = 0;
                             totalBytesToSend = fileStream.Length;
 
                             requestStream.Write(boundaryBytes, 0, boundaryBytes.Length);
