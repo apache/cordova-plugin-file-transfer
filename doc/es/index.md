@@ -57,7 +57,7 @@ El `FileTransfer` objeto proporciona una manera de subir archivos mediante una s
 
 **Parámetros**:
 
-*   **ruta**: ruta de acceso completa del archivo en el dispositivo.
+*   **fileURL**: URL de Filesystem que representa el archivo en el dispositivo. Para atrás compatibilidad, esto también puede ser la ruta de acceso completa del archivo en el dispositivo. (Ver [hacia atrás compatibilidad notas] debajo)
 
 *   **servidor**: dirección URL del servidor para recibir el archivo, como codificada por`encodeURI()`.
 
@@ -78,7 +78,8 @@ El `FileTransfer` objeto proporciona una manera de subir archivos mediante una s
 
 ### Ejemplo
 
-    // !! Assumes variable fileURI contains a valid URI to a text file on the device
+    // !! Assumes variable fileURL contains a valid URL to a text file on the device,
+    //    for example, cdvfile://localhost/persistent/path/to/file.txt
     
     var win = function (r) {
         console.log("Code = " + r.responseCode);
@@ -94,7 +95,7 @@ El `FileTransfer` objeto proporciona una manera de subir archivos mediante una s
     
     var options = new FileUploadOptions();
     options.fileKey = "file";
-    options.fileName = fileURI.substr(fileURI.lastIndexOf('/') + 1);
+    options.fileName = fileURL.substr(fileURL.lastIndexOf('/') + 1);
     options.mimeType = "text/plain";
     
     var params = {};
@@ -104,7 +105,7 @@ El `FileTransfer` objeto proporciona una manera de subir archivos mediante una s
     options.params = params;
     
     var ft = new FileTransfer();
-    ft.upload(fileURI, encodeURI("http://some.server.com/upload.php"), win, fail, options);
+    ft.upload(fileURL, encodeURI("http://some.server.com/upload.php"), win, fail, options);
     
 
 ### Ejemplo con cabeceras de subir y eventos de progreso (Android y iOS solamente)
@@ -125,7 +126,7 @@ El `FileTransfer` objeto proporciona una manera de subir archivos mediante una s
     
     var options = new FileUploadOptions();
     options.fileKey="file";
-    options.fileName=fileURI.substr(fileURI.lastIndexOf('/')+1);
+    options.fileName=fileURL.substr(fileURL.lastIndexOf('/')+1);
     options.mimeType="text/plain";
     
     var headers={'headerParam':'headerValue'};
@@ -140,7 +141,7 @@ El `FileTransfer` objeto proporciona una manera de subir archivos mediante una s
           loadingStatus.increment();
         }
     };
-    ft.upload(fileURI, uri, win, fail, options);
+    ft.upload(fileURL, uri, win, fail, options);
     
 
 ## FileUploadResult
@@ -155,6 +156,10 @@ A `FileUploadResult` objeto se pasa a la devolución del éxito de la `FileTrans
 
 *   **respuesta**: respuesta el HTTP devuelto por el servidor. (DOMString)
 
+*   **cabeceras**: cabeceras de respuesta HTTP el por el servidor. (Objeto)
+    
+    *   Actualmente compatible con iOS solamente.
+
 ### iOS rarezas
 
 *   No es compatible con `responseCode` o`bytesSent`.
@@ -165,7 +170,7 @@ A `FileUploadResult` objeto se pasa a la devolución del éxito de la `FileTrans
 
 *   **fuente**: dirección URL del servidor para descargar el archivo, como codificada por`encodeURI()`.
 
-*   **objetivo**: ruta de acceso completa del archivo en el dispositivo.
+*   **objetivo**: Filesystem url que representa el archivo en el dispositivo. Para atrás compatibilidad, esto también puede ser la ruta de acceso completa del archivo en el dispositivo. (Ver [hacia atrás compatibilidad notas] debajo)
 
 *   **successCallback**: una devolución de llamada que se pasa un `FileEntry` objeto. *(Función)*
 
@@ -177,14 +182,15 @@ A `FileUploadResult` objeto se pasa a la devolución del éxito de la `FileTrans
 
 ### Ejemplo
 
-    // !! Assumes filePath is a valid path on the device
+    // !! Assumes variable fileURL contains a valid URL to a path on the device,
+    //    for example, cdvfile://localhost/persistent/path/to/downloads/
     
     var fileTransfer = new FileTransfer();
     var uri = encodeURI("http://some.server.com/download.php");
     
     fileTransfer.download(
         uri,
-        filePath,
+        fileURL,
         function(entry) {
             console.log("download complete: " + entry.fullPath);
         },
@@ -208,7 +214,8 @@ Aborta a una transferencia en curso. El callback onerror se pasa un objeto FileT
 
 ### Ejemplo
 
-    // !! Assumes variable fileURI contains a valid URI to a text file on the device
+    // !! Assumes variable fileURL contains a valid URL to a text file on the device,
+    //    for example, cdvfile://localhost/persistent/path/to/file.txt
     
     var win = function(r) {
         console.log("Should not be called.");
@@ -227,7 +234,7 @@ Aborta a una transferencia en curso. El callback onerror se pasa un objeto FileT
     options.mimeType="image/jpeg";
     
     var ft = new FileTransfer();
-    ft.upload(fileURI, encodeURI("http://some.server.com/upload.php"), win, fail, options);
+    ft.upload(fileURL, encodeURI("http://some.server.com/upload.php"), win, fail, options);
     ft.abort();
     
 
@@ -239,9 +246,9 @@ A `FileTransferError` objeto se pasa a un callback de error cuando se produce un
 
 *   **código**: uno de los códigos de error predefinido enumerados a continuación. (Número)
 
-*   **fuente**: URI a la fuente. (String)
+*   **fuente**: URL a la fuente. (String)
 
-*   **objetivo**: URI a la meta. (String)
+*   **objetivo**: URL a la meta. (String)
 
 *   **HTTP_STATUS**: código de estado HTTP. Este atributo sólo está disponible cuando se recibe un código de respuesta de la conexión HTTP. (Número)
 
@@ -251,3 +258,24 @@ A `FileTransferError` objeto se pasa a un callback de error cuando se produce un
 *   `FileTransferError.INVALID_URL_ERR`
 *   `FileTransferError.CONNECTION_ERR`
 *   `FileTransferError.ABORT_ERR`
+
+## Al revés notas de compatibilidad
+
+Versiones anteriores de este plugin sólo aceptaría dispositivo-absoluto-archivo-rutas como la fuente de carga, o como destino para las descargas. Estos caminos normalmente sería de la forma
+
+    /var/mobile/Applications/<application UUID>/Documents/path/to/file  (iOS)
+    /storage/emulated/0/path/to/file                                    (Android)
+    
+
+Para atrás compatibilidad, estos caminos son aceptados todavía, y si su solicitud ha grabado caminos como éstos en almacenamiento persistente, entonces pueden seguir utilizarse.
+
+Estos caminos fueron expuestos anteriormente en el `fullPath` propiedad de `FileEntry` y `DirectoryEntry` objetos devueltos por el plugin de archivo. Las nuevas versiones del archivo plugin, sin embargo, ya no exponen estos caminos a JavaScript.
+
+Si va a actualizar a una nueva (1.0.0 o más reciente) versión del archivo y previamente han estado utilizando `entry.fullPath` como argumentos para `download()` o `upload()` , entonces tendrá que cambiar su código para usar URLs de sistema de archivos en su lugar.
+
+`FileEntry.toURL()`y `DirectoryEntry.toURL()` devolver un filesystem dirección URL de la forma
+
+    cdvfile://localhost/persistent/path/to/file
+    
+
+que puede ser utilizado en lugar de la ruta del archivo absoluta tanto en `download()` y `upload()` los métodos.

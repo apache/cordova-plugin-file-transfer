@@ -39,7 +39,7 @@ Ce plugin vous permet de télécharger des fichiers.
 
 # Transfert de fichiers
 
-Le `FileTransfer` objet fournit un moyen de télécharger des fichiers à l'aide d'une requête HTTP de la poste plusieurs partie et pour télécharger des fichiers aussi bien.
+L'objet `FileTransfer` fournit un moyen de tranférer des fichiers sur un serveur HTTP avec une requête multi-part POST, et aussi pour télécharger des fichiers.
 
 ## Propriétés
 
@@ -57,7 +57,7 @@ Le `FileTransfer` objet fournit un moyen de télécharger des fichiers à l'aide
 
 **Paramètres**:
 
-*   **filePath** : chemin d'accès complet au fichier sur l'appareil.
+*   **fileURL** : système de fichiers URL représentant le fichier sur le périphérique. Pour la compatibilité ascendante, cela peut aussi être le chemin complet du fichier sur le périphérique. (Voir [Backwards Compatibility Notes] ci-dessous)
 
 *   **server** : l'URL du serveur destiné à recevoir le fichier, encodée via `encodeURI()`.
 
@@ -78,7 +78,8 @@ Le `FileTransfer` objet fournit un moyen de télécharger des fichiers à l'aide
 
 ### Exemple
 
-    // !! Assumes variable fileURI contains a valid URI to a text file on the device
+    // !! Assumes variable fileURL contains a valid URL to a text file on the device,
+    //    for example, cdvfile://localhost/persistent/path/to/file.txt
     
     var win = function (r) {
         console.log("Code = " + r.responseCode);
@@ -94,7 +95,7 @@ Le `FileTransfer` objet fournit un moyen de télécharger des fichiers à l'aide
     
     var options = new FileUploadOptions();
     options.fileKey = "file";
-    options.fileName = fileURI.substr(fileURI.lastIndexOf('/') + 1);
+    options.fileName = fileURL.substr(fileURL.lastIndexOf('/') + 1);
     options.mimeType = "text/plain";
     
     var params = {};
@@ -104,10 +105,10 @@ Le `FileTransfer` objet fournit un moyen de télécharger des fichiers à l'aide
     options.params = params;
     
     var ft = new FileTransfer();
-    ft.upload(fileURI, encodeURI("http://some.server.com/upload.php"), win, fail, options);
+    ft.upload(fileURL, encodeURI("http://some.server.com/upload.php"), win, fail, options);
     
 
-### Exemple avec télécharger des en-têtes et des événements de progression (Android et iOS uniquement)
+### Exemple avec téléchargement du Header et des Progress Events (Android et iOS uniquement)
 
     function win(r) {
         console.log("Code = " + r.responseCode);
@@ -125,7 +126,7 @@ Le `FileTransfer` objet fournit un moyen de télécharger des fichiers à l'aide
     
     var options = new FileUploadOptions();
     options.fileKey="file";
-    options.fileName=fileURI.substr(fileURI.lastIndexOf('/')+1);
+    options.fileName=fileURL.substr(fileURL.lastIndexOf('/')+1);
     options.mimeType="text/plain";
     
     var headers={'headerParam':'headerValue'};
@@ -140,7 +141,7 @@ Le `FileTransfer` objet fournit un moyen de télécharger des fichiers à l'aide
           loadingStatus.increment();
         }
     };
-    ft.upload(fileURI, uri, win, fail, options);
+    ft.upload(fileURL, uri, win, fail, options);
     
 
 ## FileUploadResult
@@ -155,7 +156,11 @@ Un objet `FileUploadResult` est passé à la callback de succès de la méthode 
 
 *   **response** : la réponse HTTP renvoyée par le serveur. (DOMString)
 
-### iOS Quirks
+*   **en-têtes** : en-têtes de réponse HTTP par le serveur. (Objet)
+    
+    *   Actuellement pris en charge sur iOS seulement.
+
+### iOS Remarques
 
 *   Ne prend pas en charge les propriétés `responseCode` et `bytesSent`.
 
@@ -165,33 +170,34 @@ Un objet `FileUploadResult` est passé à la callback de succès de la méthode 
 
 *   **source** : l'URL du serveur depuis lequel télécharger le fichier, encodée via `encodeURI()`.
 
-*   **target** : chemin d'accès complet au fichier sur l'appareil.
+*   **target** : système de fichiers url représentant le fichier sur le périphérique. Pour vers l'arrière la compatibilité, cela peut aussi être le chemin d'accès complet du fichier sur le périphérique. (Voir [vers l'arrière compatibilité note] ci-dessous)
 
 *   **successCallback** : une callback de succès à laquelle est passée un objet `FileEntry`. *(Function)*
 
 *   **errorCallback** : une callback d'erreur s'exécutant si une erreur se produit lors de la récupération de l'objet `Metadata`. Appelée avec un objet `FileTransferError`. *(Function)*
 
-*   **trustAllHosts**: paramètre facultatif, valeur par défaut est `false` . Si la valeur `true` , il accepte tous les certificats de sécurité. Ceci est utile parce que Android rejette des certificats auto-signés. Non recommandé pour une utilisation de production. Supporté sur Android et iOS. *(boolean)*
+*   **trustAllHosts**: paramètre facultatif, valeur par défaut est `false` . Si la valeur est `true` , il accepte tous les certificats de sécurité. Ceci peut être utile car Android rejette les certificats auto-signés. N'est pas recommandé pour une utilisation en production. Supporté sur Android et iOS. *(booléen)*
 
 *   **options** : paramètres facultatifs, seules les en-têtes sont actuellement supportées (par exemple l'autorisation (authentification basique), etc.).
 
 ### Exemple
 
-    // !! Suppose que filePath est un chemin valide sur l'appareil
+    // !! Assumes variable fileURL contains a valid URL to a path on the device,
+    //    for example, cdvfile://localhost/persistent/path/to/downloads/
     
     var fileTransfer = new FileTransfer();
     var uri = encodeURI("http://some.server.com/download.php");
     
     fileTransfer.download(
         uri,
-        filePath,
+        fileURL,
         function(entry) {
-            console.log("Téléchargement terminé : " + entry.fullPath);
+            console.log("download complete: " + entry.fullPath);
         },
         function(error) {
-            console.log("Source pour l'erreur de téléchargement : " + error.source);
-            console.log("Destination pour l'erreur de téléchargement : " + error.target);
-            console.log("Code de l'erreur de téléchargement : " + error.code);
+            console.log("download error source " + error.source);
+            console.log("download error target " + error.target);
+            console.log("upload error code" + error.code);
         },
         false,
         {
@@ -208,17 +214,18 @@ Abandonne un transfert en cours. Un objet FileTransferError avec un code d'erreu
 
 ### Exemple
 
-    // !! Suppose que la variable fileURI contient l'URI valide d'un fichier texte sur l'appareil
+    // !! Assumes variable fileURL contains a valid URL to a text file on the device,
+    //    for example, cdvfile://localhost/persistent/path/to/file.txt
     
     var win = function(r) {
-        console.log("Ne devrait pas être appelée.");
+        console.log("Should not be called.");
     }
     
     var fail = function(error) {
         // error.code == FileTransferError.ABORT_ERR
-        alert("Une erreur est survenue : code = " + error.code);
-        console.log("Source pour l'erreur de téléchargement : " + error.source);
-        console.log("Destination pour l'erreur de téléchargement : " + error.target);
+        alert("An error has occurred: Code = " + error.code);
+        console.log("upload error source " + error.source);
+        console.log("upload error target " + error.target);
     }
     
     var options = new FileUploadOptions();
@@ -227,7 +234,7 @@ Abandonne un transfert en cours. Un objet FileTransferError avec un code d'erreu
     options.mimeType="image/jpeg";
     
     var ft = new FileTransfer();
-    ft.upload(fileURI, encodeURI("http://some.server.com/upload.php"), win, fail, options);
+    ft.upload(fileURL, encodeURI("http://some.server.com/upload.php"), win, fail, options);
     ft.abort();
     
 
@@ -251,3 +258,24 @@ Un objet `FileTransferError` est passé à une callback d'erreur lorsqu'une erre
 *   `FileTransferError.INVALID_URL_ERR`
 *   `FileTransferError.CONNECTION_ERR`
 *   `FileTransferError.ABORT_ERR`
+
+## Backwards Compatibility Notes
+
+Les versions précédentes de ce plugin accepte seulement les chemins de fichiers périphérique absolus comme source pour les chargement, ou comme cible pour les téléchargements. Ces chemins sont généralement de la forme
+
+    /var/mobile/Applications/<application UUID>/Documents/path/to/file  (iOS)
+    /storage/emulated/0/path/to/file                                    (Android)
+    
+
+Pour la compatibilité ascendante, ces chemins sont toujours acceptés, et si votre application a enregistré des chemins comme ceux-ci dans un stockage persistant, alors ils peuvent continuer à être utilisé.
+
+Ces chemins ont été précédemment exposés dans la propriété `fullPath` de `FileEntry` et objets `DirectoryEntry` retournés par le fichier plugin. Nouvelles versions du fichier plugin, cependant, ne plus exposer ces chemins à JavaScript.
+
+Si vous migrez vers une nouvelle version du fichier (1.0.0 ou plus récent) et que vous utilisiez précédemment `entry.fullPath` en tant qu'arguments à `download()` ou `upload()`, alors vous aurez besoin de modifier votre code pour utiliser le système de fichiers URL à la place.
+
+`FileEntry.toURL()` et `DirectoryEntry.toURL()` retournent une URL de système de fichier de formulaire
+
+    cdvfile://localhost/persistent/path/to/file
+    
+
+qui peut être utilisé à la place du chemin d'accès absolu au fichier dans les méthodes `download()` et `upload()`.
