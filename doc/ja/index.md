@@ -19,7 +19,7 @@
 
 # org.apache.cordova.file-transfer
 
-This plugin allows you to upload and download files.
+このプラグインは、アップロードし、ファイルをダウンロードすることができます。
 
 ## インストール
 
@@ -30,16 +30,16 @@ This plugin allows you to upload and download files.
 
 *   アマゾン火 OS
 *   アンドロイド
-*   BlackBerry 10*
+*   ブラックベリー 10 *
 *   iOS
-*   Windows Phone 7 and 8*
-*   Windows 8*
+*   Windows Phone 7 と 8 *
+*   Windows 8 *
 
-* *Do not support `onprogress` nor `abort()`*
+**サポートしていない `onprogress` も `abort()` *
 
 # ファイル転送
 
-The `FileTransfer` object provides a way to upload files using an HTTP multi-part POST request, and to download files as well.
+`FileTransfer`オブジェクトはマルチパートのポスト、HTTP 要求を使用してファイルをアップロードして同様にファイルをダウンロードする方法を提供します。
 
 ## プロパティ
 
@@ -57,7 +57,7 @@ The `FileTransfer` object provides a way to upload files using an HTTP multi-par
 
 **パラメーター**:
 
-*   **fileURL**: Filesystem URL representing the file on the device. For backwards compatibility, this can also be the full path of the file on the device. （参照してください [後方互換性メモ] の下)
+*   **fileURL**: デバイス上のファイルを表すファイルシステム URL。 下位互換性は、このことも、デバイス上のファイルの完全パスであります。 （参照してください [後方互換性メモ] の下)
 
 *   **サーバー**: によって符号化されるように、ファイルを受信するサーバーの URL`encodeURI()`.
 
@@ -67,7 +67,7 @@ The `FileTransfer` object provides a way to upload files using an HTTP multi-par
 
 *   **trustAllHosts**: 省略可能なパラメーターは、デフォルト `false` 。 場合設定 `true` 、セキュリティ証明書をすべて受け付けます。 これは Android の自己署名入りセキュリティ証明書を拒否するので便利です。 運用環境で使用しないでください。 Android と iOS でサポートされています。 *(ブール値)*
 
-*   **options**: Optional parameters *(Object)*. Valid keys:
+*   **オプション**: 省略可能なパラメーター *(オブジェクト)*。有効なキー:
     
     *   **fileKey**: フォーム要素の名前。既定値は `file` です。（，）
     *   **ファイル名**： ファイル名、サーバー上のファイルを保存するときに使用します。既定値は `image.jpg` です。（，）
@@ -108,7 +108,7 @@ The `FileTransfer` object provides a way to upload files using an HTTP multi-par
     ft.upload(fileURL, encodeURI("http://some.server.com/upload.php"), win, fail, options);
     
 
-### Example with Upload Headers and Progress Events (Android and iOS only)
+### サンプルのアップロード ヘッダーと進行状況のイベント （Android と iOS のみ）
 
     function win(r) {
         console.log("Code = " + r.responseCode);
