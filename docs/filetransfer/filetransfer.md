@@ -222,7 +222,7 @@ __Quick Example__
         uri,
         filePath,
         function(entry) {
-            console.log("download complete: " + entry.fullPath);
+            console.log("download complete: " + entry.toURL());
         },
         function(error) {
             console.log("download error source " + error.source);
