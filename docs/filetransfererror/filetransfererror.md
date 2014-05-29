@@ -29,6 +29,7 @@ Properties
 - __source__: URI to the source. (String)
 - __target__: URI to the target. (String)
 - __http_status__: HTTP status code.  This attribute is only available when a response code is received from the HTTP connection. (Number)
+- __exception__: Either e.getMessage or e.toString (String)
 
 Constants
 ---------
