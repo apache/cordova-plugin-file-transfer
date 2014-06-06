@@ -28,6 +28,9 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.io.OutputStream;
+import java.lang.reflect.InvocationTargetException;
+import java.lang.reflect.Field;
+import java.lang.reflect.Method;
 import java.net.HttpURLConnection;
 import java.net.URLConnection;
 import java.security.cert.CertificateException;
@@ -50,6 +53,7 @@ import org.apache.cordova.CallbackContext;
 import org.apache.cordova.CordovaPlugin;
 import org.apache.cordova.CordovaResourceApi;
 import org.apache.cordova.CordovaResourceApi.OpenForReadResult;
+import org.apache.cordova.PluginManager;
 import org.apache.cordova.PluginResult;
 import org.apache.cordova.file.FileUtils;
 import org.json.JSONArray;
@@ -795,7 +799,24 @@ public class FileTransfer extends CordovaPlugin {
                     Log.d(LOG_TAG, "Saved file: " + target);
     
                     // create FileEntry object
-                    FileUtils filePlugin = (FileUtils)webView.pluginManager.getPlugin("File");
+                    Class webViewClass = webView.getClass();
+                    PluginManager pm = null;
+                    try {
+                        Method gpm = webViewClass.getMethod("getPluginManager");
+                        pm = (PluginManager) gpm.invoke(webView);
+                    } catch (NoSuchMethodException e) {
+                    } catch (IllegalAccessException e) {
+                    } catch (InvocationTargetException e) {
+                    }
+                    if (pm == null) {
+                        try {
+                            Field pmf = webViewClass.getField("pluginManager");
+                            pm = (PluginManager)pmf.get(webView);
+                        } catch (NoSuchFieldException e) {
+                        } catch (IllegalAccessException e) {
+                        }
+                    }
+                    FileUtils filePlugin = (FileUtils) pm.getPlugin("File");
                     if (filePlugin != null) {
                         JSONObject fileEntry = filePlugin.getEntryForFile(file);
                         if (fileEntry != null) {
