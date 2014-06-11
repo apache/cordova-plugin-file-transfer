@@ -829,7 +829,7 @@ public class FileTransfer extends CordovaPlugin {
                         if (fileEntry != null) {
                             result = new PluginResult(PluginResult.Status.OK, fileEntry);
                         } else {
-                            JSONObject error = createFileTransferError(CONNECTION_ERR, source, target, connection);
+                            JSONObject error = createFileTransferError(CONNECTION_ERR, source, target, connection, null);
                             Log.e(LOG_TAG, "File plugin cannot represent download path");
                             result = new PluginResult(PluginResult.Status.IO_EXCEPTION, error);
                         }
