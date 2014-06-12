@@ -712,6 +712,7 @@ public class FileTransfer extends CordovaPlugin {
                 File file = null;
                 PluginResult result = null;
                 TrackingInputStream inputStream = null;
+                boolean cached = false;
 
                 OutputStream outputStream = null;
                 try {
@@ -763,48 +764,55 @@ public class FileTransfer extends CordovaPlugin {
                         }
         
                         connection.connect();
-    
-                        if (connection.getContentEncoding() == null || connection.getContentEncoding().equalsIgnoreCase("gzip")) {
-                            // Only trust content-length header if we understand
-                            // the encoding -- identity or gzip
-                            if (connection.getContentLength() != -1) {
-                                progress.setLengthComputable(true);
-                                progress.setTotal(connection.getContentLength());
+                        if (connection.getResponseCode() == HttpURLConnection.HTTP_NOT_MODIFIED) {
+                            cached = true;
+                            connection.disconnect();
+                        } else {
+                            if (connection.getContentEncoding() == null || connection.getContentEncoding().equalsIgnoreCase("gzip")) {
+                                // Only trust content-length header if we understand
+                                // the encoding -- identity or gzip
+                                if (connection.getContentLength() != -1) {
+                                    progress.setLengthComputable(true);
+                                    progress.setTotal(connection.getContentLength());
+                                }
                             }
+                            inputStream = getInputStream(connection);
                         }
-                        inputStream = getInputStream(connection);
                     }
-                    
-                    try {
-                        synchronized (context) {
-                            if (context.aborted) {
-                                return;
+
+                    if (!cached) {
+                        try {
+                            synchronized (context) {
+                                if (context.aborted) {
+                                    return;
+                                }
+                                context.connection = connection;
                             }
-                            context.connection = connection;
+
+                            // write bytes to file
+                            byte[] buffer = new byte[MAX_BUFFER_SIZE];
+                            int bytesRead = 0;
+                            outputStream = resourceApi.openOutputStream(targetUri);
+                            while ((bytesRead = inputStream.read(buffer)) > 0) {
+                                outputStream.write(buffer, 0, bytesRead);
+                                // Send a progress event.
+                                progress.setLoaded(inputStream.getTotalRawBytesRead());
+                                PluginResult progressResult = new PluginResult(PluginResult.Status.OK, progress.toJSONObject());
+                                progressResult.setKeepCallback(true);
+                                context.sendPluginResult(progressResult);
+                            }
+                        } finally {
+                            synchronized (context) {
+                                context.connection = null;
+                            }
+                            safeClose(inputStream);
+                            safeClose(outputStream);
                         }
-                        
-                        // write bytes to file
-                        byte[] buffer = new byte[MAX_BUFFER_SIZE];
-                        int bytesRead = 0;
-                        outputStream = resourceApi.openOutputStream(targetUri);
-                        while ((bytesRead = inputStream.read(buffer)) > 0) {
-                            outputStream.write(buffer, 0, bytesRead);
-                            // Send a progress event.
-                            progress.setLoaded(inputStream.getTotalRawBytesRead());
-                            PluginResult progressResult = new PluginResult(PluginResult.Status.OK, progress.toJSONObject());
-                            progressResult.setKeepCallback(true);
-                            context.sendPluginResult(progressResult);
-                        }
-                    } finally {
-                        synchronized (context) {
-                            context.connection = null;
-                        }
-                        safeClose(inputStream);
-                        safeClose(outputStream);
+                        Log.d(LOG_TAG, "Saved file: " + target);
+                    } else {
+                        Log.d(LOG_TAG, "File cached: " + target);
                     }
-    
-                    Log.d(LOG_TAG, "Saved file: " + target);
-    
+
                     // create FileEntry object
                     Class webViewClass = webView.getClass();
                     PluginManager pm = null;
