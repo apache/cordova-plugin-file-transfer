@@ -716,7 +716,6 @@ public class FileTransfer extends CordovaPlugin {
                 OutputStream outputStream = null;
                 try {
                     OpenForReadResult readResult = null;
-                    outputStream = resourceApi.openOutputStream(targetUri);
 
                     file = resourceApi.mapUriToFile(targetUri);
                     context.targetFile = file;
@@ -787,6 +786,7 @@ public class FileTransfer extends CordovaPlugin {
                         // write bytes to file
                         byte[] buffer = new byte[MAX_BUFFER_SIZE];
                         int bytesRead = 0;
+                        outputStream = resourceApi.openOutputStream(targetUri);
                         while ((bytesRead = inputStream.read(buffer)) > 0) {
                             outputStream.write(buffer, 0, bytesRead);
                             // Send a progress event.
@@ -854,7 +854,6 @@ public class FileTransfer extends CordovaPlugin {
                     Log.e(LOG_TAG, error.toString(), e);
                     result = new PluginResult(PluginResult.Status.IO_EXCEPTION, error);
                 } finally {
-                    safeClose(outputStream);
                     synchronized (activeRequests) {
                         activeRequests.remove(objectId);
                     }
