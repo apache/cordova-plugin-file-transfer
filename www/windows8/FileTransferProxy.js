@@ -67,7 +67,7 @@ exec(win, fail, 'FileTransfer', 'upload',
                 var blob = MSApp.createBlobFromRandomAccessStream(mimeType, stream);
 
                 var formData = new FormData();
-                formData.append(fileKey, blob, storageFile.name);
+                formData.append(fileKey, blob, fileName);
                 // add params
                 for(var key in params) {
                     formData.append(key,params[key]);
