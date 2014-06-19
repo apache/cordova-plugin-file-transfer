@@ -35,5 +35,6 @@ FileTransferError.FILE_NOT_FOUND_ERR = 1;
 FileTransferError.INVALID_URL_ERR = 2;
 FileTransferError.CONNECTION_ERR = 3;
 FileTransferError.ABORT_ERR = 4;
+FileTransferError.NOT_MODIFIED_ERR = 5;
 
 module.exports = FileTransferError;
