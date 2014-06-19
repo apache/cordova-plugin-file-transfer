@@ -258,6 +258,7 @@ Un objet `FileTransferError` est passé à une callback d'erreur lorsqu'une erre
 *   `FileTransferError.INVALID_URL_ERR`
 *   `FileTransferError.CONNECTION_ERR`
 *   `FileTransferError.ABORT_ERR`
+*   `FileTransferError.NOT_MODIFIED_ERR`
 
 ## Backwards Compatibility Notes
 

@@ -76,6 +76,7 @@ public class FileTransfer extends CordovaPlugin {
     public static int INVALID_URL_ERR = 2;
     public static int CONNECTION_ERR = 3;
     public static int ABORTED_ERR = 4;
+    public static int NOT_MODIFIED_ERR = 5;
 
     private static HashMap<String, RequestContext> activeRequests = new HashMap<String, RequestContext>();
     private static final int MAX_BUFFER_SIZE = 16 * 1024;
@@ -712,11 +713,11 @@ public class FileTransfer extends CordovaPlugin {
                 File file = null;
                 PluginResult result = null;
                 TrackingInputStream inputStream = null;
+                boolean cached = false;
 
                 OutputStream outputStream = null;
                 try {
                     OpenForReadResult readResult = null;
-                    outputStream = resourceApi.openOutputStream(targetUri);
 
                     file = resourceApi.mapUriToFile(targetUri);
                     context.targetFile = file;
@@ -764,78 +765,91 @@ public class FileTransfer extends CordovaPlugin {
                         }
         
                         connection.connect();
-    
-                        if (connection.getContentEncoding() == null || connection.getContentEncoding().equalsIgnoreCase("gzip")) {
-                            // Only trust content-length header if we understand
-                            // the encoding -- identity or gzip
-                            if (connection.getContentLength() != -1) {
-                                progress.setLengthComputable(true);
-                                progress.setTotal(connection.getContentLength());
-                            }
-                        }
-                        inputStream = getInputStream(connection);
-                    }
-                    
-                    try {
-                        synchronized (context) {
-                            if (context.aborted) {
-                                return;
-                            }
-                            context.connection = connection;
-                        }
-                        
-                        // write bytes to file
-                        byte[] buffer = new byte[MAX_BUFFER_SIZE];
-                        int bytesRead = 0;
-                        while ((bytesRead = inputStream.read(buffer)) > 0) {
-                            outputStream.write(buffer, 0, bytesRead);
-                            // Send a progress event.
-                            progress.setLoaded(inputStream.getTotalRawBytesRead());
-                            PluginResult progressResult = new PluginResult(PluginResult.Status.OK, progress.toJSONObject());
-                            progressResult.setKeepCallback(true);
-                            context.sendPluginResult(progressResult);
-                        }
-                    } finally {
-                        synchronized (context) {
-                            context.connection = null;
-                        }
-                        safeClose(inputStream);
-                        safeClose(outputStream);
-                    }
-    
-                    Log.d(LOG_TAG, "Saved file: " + target);
-    
-                    // create FileEntry object
-                    Class webViewClass = webView.getClass();
-                    PluginManager pm = null;
-                    try {
-                        Method gpm = webViewClass.getMethod("getPluginManager");
-                        pm = (PluginManager) gpm.invoke(webView);
-                    } catch (NoSuchMethodException e) {
-                    } catch (IllegalAccessException e) {
-                    } catch (InvocationTargetException e) {
-                    }
-                    if (pm == null) {
-                        try {
-                            Field pmf = webViewClass.getField("pluginManager");
-                            pm = (PluginManager)pmf.get(webView);
-                        } catch (NoSuchFieldException e) {
-                        } catch (IllegalAccessException e) {
-                        }
-                    }
-                    FileUtils filePlugin = (FileUtils) pm.getPlugin("File");
-                    if (filePlugin != null) {
-                        JSONObject fileEntry = filePlugin.getEntryForFile(file);
-                        if (fileEntry != null) {
-                            result = new PluginResult(PluginResult.Status.OK, fileEntry);
+                        if (connection.getResponseCode() == HttpURLConnection.HTTP_NOT_MODIFIED) {
+                            cached = true;
+                            connection.disconnect();
+                            Log.d(LOG_TAG, "Resource not modified: " + source);
+                            JSONObject error = createFileTransferError(NOT_MODIFIED_ERR, source, target, connection, null);
+                            result = new PluginResult(PluginResult.Status.ERROR, error);
                         } else {
-                            JSONObject error = createFileTransferError(CONNECTION_ERR, source, target, connection, null);
-                            Log.e(LOG_TAG, "File plugin cannot represent download path");
-                            result = new PluginResult(PluginResult.Status.IO_EXCEPTION, error);
+                            if (connection.getContentEncoding() == null || connection.getContentEncoding().equalsIgnoreCase("gzip")) {
+                                // Only trust content-length header if we understand
+                                // the encoding -- identity or gzip
+                                if (connection.getContentLength() != -1) {
+                                    progress.setLengthComputable(true);
+                                    progress.setTotal(connection.getContentLength());
+                                }
+                            }
+                            inputStream = getInputStream(connection);
                         }
-                    } else {
-                        Log.e(LOG_TAG, "File plugin not found; cannot save downloaded file");
-                        result = new PluginResult(PluginResult.Status.ERROR, "File plugin not found; cannot save downloaded file");
+                    }
+
+                    if (!cached) {
+                        try {
+                            synchronized (context) {
+                                if (context.aborted) {
+                                    return;
+                                }
+                                context.connection = connection;
+                            }
+
+                            // write bytes to file
+                            byte[] buffer = new byte[MAX_BUFFER_SIZE];
+                            int bytesRead = 0;
+                            outputStream = resourceApi.openOutputStream(targetUri);
+                            while ((bytesRead = inputStream.read(buffer)) > 0) {
+                                outputStream.write(buffer, 0, bytesRead);
+                                // Send a progress event.
+                                progress.setLoaded(inputStream.getTotalRawBytesRead());
+                                PluginResult progressResult = new PluginResult(PluginResult.Status.OK, progress.toJSONObject());
+                                progressResult.setKeepCallback(true);
+                                context.sendPluginResult(progressResult);
+                            }
+                        } finally {
+                            synchronized (context) {
+                                context.connection = null;
+                            }
+                            safeClose(inputStream);
+                            safeClose(outputStream);
+                        }
+
+                        Log.d(LOG_TAG, "Saved file: " + target);
+
+
+                        // create FileEntry object
+                        Class webViewClass = webView.getClass();
+                        PluginManager pm = null;
+                        try {
+                            Method gpm = webViewClass.getMethod("getPluginManager");
+                            pm = (PluginManager) gpm.invoke(webView);
+                        } catch (NoSuchMethodException e) {
+                        } catch (IllegalAccessException e) {
+                        } catch (InvocationTargetException e) {
+                        }
+                        if (pm == null) {
+                            try {
+                                Field pmf = webViewClass.getField("pluginManager");
+                                pm = (PluginManager)pmf.get(webView);
+                            } catch (NoSuchFieldException e) {
+                            } catch (IllegalAccessException e) {
+                            }
+                        }
+                        file = resourceApi.mapUriToFile(targetUri);
+                        context.targetFile = file;
+                        FileUtils filePlugin = (FileUtils) pm.getPlugin("File");
+                        if (filePlugin != null) {
+                            JSONObject fileEntry = filePlugin.getEntryForFile(file);
+                            if (fileEntry != null) {
+                                result = new PluginResult(PluginResult.Status.OK, fileEntry);
+                            } else {
+                                JSONObject error = createFileTransferError(CONNECTION_ERR, source, target, connection, null);
+                                Log.e(LOG_TAG, "File plugin cannot represent download path");
+                                result = new PluginResult(PluginResult.Status.IO_EXCEPTION, error);
+                            }
+                        } else {
+                            Log.e(LOG_TAG, "File plugin not found; cannot save downloaded file");
+                            result = new PluginResult(PluginResult.Status.ERROR, "File plugin not found; cannot save downloaded file");
+                        }
                     }
                     
                 } catch (FileNotFoundException e) {
@@ -854,7 +868,6 @@ public class FileTransfer extends CordovaPlugin {
                     Log.e(LOG_TAG, error.toString(), e);
                     result = new PluginResult(PluginResult.Status.IO_EXCEPTION, error);
                 } finally {
-                    safeClose(outputStream);
                     synchronized (activeRequests) {
                         activeRequests.remove(objectId);
                     }
@@ -872,7 +885,7 @@ public class FileTransfer extends CordovaPlugin {
                         result = new PluginResult(PluginResult.Status.ERROR, createFileTransferError(CONNECTION_ERR, source, target, connection, null));
                     }
                     // Remove incomplete download.
-                    if (result.getStatus() != PluginResult.Status.OK.ordinal() && file != null) {
+                    if (!cached && result.getStatus() != PluginResult.Status.OK.ordinal() && file != null) {
                         file.delete();
                     }
                     context.sendPluginResult(result);

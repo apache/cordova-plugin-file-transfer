@@ -258,6 +258,7 @@ A `FileTransferError` 오류가 발생 하면 오류 콜백 개체 전달 됩니
 *   `FileTransferError.INVALID_URL_ERR`
 *   `FileTransferError.CONNECTION_ERR`
 *   `FileTransferError.ABORT_ERR`
+*   `FileTransferError.NOT_MODIFIED_ERR`
 
 ## 이전 버전과 호환성 노트
 
