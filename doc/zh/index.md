@@ -258,6 +258,7 @@ A `FileTransferError` 物件傳遞到錯誤回檔時出現錯誤。
 *   `FileTransferError.INVALID_URL_ERR`
 *   `FileTransferError.CONNECTION_ERR`
 *   `FileTransferError.ABORT_ERR`
+*   `FileTransferError.NOT_MODIFIED_ERR`
 
 ## 向後相容性注意到
 
