@@ -253,10 +253,10 @@ A `FileTransferError` object is passed to an error callback when an error occurs
 
 ### Constants
 
-- `FileTransferError.FILE_NOT_FOUND_ERR`
-- `FileTransferError.INVALID_URL_ERR`
-- `FileTransferError.CONNECTION_ERR`
-- `FileTransferError.ABORT_ERR`
+- 1 = `FileTransferError.FILE_NOT_FOUND_ERR`
+- 2 = `FileTransferError.INVALID_URL_ERR`
+- 3 = `FileTransferError.CONNECTION_ERR`
+- 4 = `FileTransferError.ABORT_ERR`
 
 ## Backwards Compatibility Notes
 
