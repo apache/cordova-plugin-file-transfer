@@ -63,7 +63,6 @@ import org.json.JSONObject;
 import android.net.Uri;
 import android.os.Build;
 import android.util.Log;
-import android.webkit.CookieManager;
 
 public class FileTransfer extends CordovaPlugin {
 
@@ -312,12 +311,6 @@ public class FileTransfer extends CordovaPlugin {
                     // Use a post method.
                     conn.setRequestMethod(httpMethod);
                     conn.setRequestProperty("Content-Type", "multipart/form-data; boundary=" + BOUNDARY);
-
-                    // Set the cookies on the response
-                    String cookie = CookieManager.getInstance().getCookie(target);
-                    if (cookie != null) {
-                        conn.setRequestProperty("Cookie", cookie);
-                    }
 
                     // Handle the other headers
                     if (headers != null) {
@@ -748,13 +741,6 @@ public class FileTransfer extends CordovaPlugin {
         
                         connection.setRequestMethod("GET");
         
-                        // TODO: Make OkHttp use this CookieManager by default.
-                        String cookie = CookieManager.getInstance().getCookie(sourceUri.toString());
-                        if(cookie != null)
-                        {
-                            connection.setRequestProperty("cookie", cookie);
-                        }
-                        
                         // This must be explicitly set for gzip progress tracking to work.
                         connection.setRequestProperty("Accept-Encoding", "gzip");
     
