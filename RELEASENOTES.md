@@ -95,3 +95,5 @@
 * CB-6494 android: Fix upload of KitKat content URIs
 * Upleveled from android port with following commits: 3c1ff16 Andrew Grieve - CB-5762 android: Fix lengthComputable set wrong for gzip downloads 8374b3d Colin Mahoney - CB-5631 Removed SimpleTrackingInputStream.read(byte[] buffer) 6f91ac3 Bas Bosman - CB-4907 Close stream when we're finished with it 651460f Christoph Neumann - CB-6000 Nginx rejects Content-Type without a space before "boundary". 35f80e4 Ian Clelland - CB-6050: Use instance method on actual file plugin object to get FileEntry to return on download
 * CB-5980 Updated version and RELEASENOTES.md for release 0.4.1
+
+### 0.4.5
