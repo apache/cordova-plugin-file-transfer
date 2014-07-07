@@ -192,7 +192,7 @@ Un objet `FileUploadResult` est passé à la callback de succès de la méthode 
         uri,
         fileURL,
         function(entry) {
-            console.log("download complete: " + entry.fullPath);
+            console.log("download complete: " + entry.toURL());
         },
         function(error) {
             console.log("download error source " + error.source);
@@ -252,12 +252,14 @@ Un objet `FileTransferError` est passé à une callback d'erreur lorsqu'une erre
 
 *   **http_status** : code d'état HTTP. Cet attribut n'est disponible que lorsqu'un code de réponse est fourni via la connexion HTTP. (Number)
 
+*   **exception**: soit e.getMessage ou e.toString (String)
+
 ### Constantes
 
-*   `FileTransferError.FILE_NOT_FOUND_ERR`
-*   `FileTransferError.INVALID_URL_ERR`
-*   `FileTransferError.CONNECTION_ERR`
-*   `FileTransferError.ABORT_ERR`
+*   1 = `FileTransferError.FILE_NOT_FOUND_ERR`
+*   2 = `FileTransferError.INVALID_URL_ERR`
+*   3 = `FileTransferError.CONNECTION_ERR`
+*   4 = `FileTransferError.ABORT_ERR`
 
 ## Backwards Compatibility Notes
 

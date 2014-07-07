@@ -192,7 +192,7 @@ A `FileUploadResult` 物件傳遞給成功回檔的 `FileTransfer` 物件的 `up
         uri,
         fileURL,
         function(entry) {
-            console.log("download complete: " + entry.fullPath);
+            console.log("download complete: " + entry.toURL());
         },
         function(error) {
             console.log("download error source " + error.source);
@@ -252,12 +252,14 @@ A `FileTransferError` 物件傳遞到錯誤回檔時出現錯誤。
 
 *   **HTTP_status**： HTTP 狀態碼。從 HTTP 連接收到一個回應代碼時，此屬性才可用。（人數）
 
+*   **例外**： 要麼 e.getMessage 或 e.toString （字串）
+
 ### 常量
 
-*   `FileTransferError.FILE_NOT_FOUND_ERR`
-*   `FileTransferError.INVALID_URL_ERR`
-*   `FileTransferError.CONNECTION_ERR`
-*   `FileTransferError.ABORT_ERR`
+*   1 = `FileTransferError.FILE_NOT_FOUND_ERR`
+*   2 = `FileTransferError.INVALID_URL_ERR`
+*   3 = `FileTransferError.CONNECTION_ERR`
+*   4 = `FileTransferError.ABORT_ERR`
 
 ## 向後相容性注意到
 

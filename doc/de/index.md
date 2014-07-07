@@ -192,7 +192,7 @@ A `FileUploadResult` -Objekt wird an den Erfolg-Rückruf des übergeben die `Fil
         uri,
         fileURL,
         function(entry) {
-            console.log("download complete: " + entry.fullPath);
+            console.log("download complete: " + entry.toURL());
         },
         function(error) {
             console.log("download error source " + error.source);
@@ -252,12 +252,14 @@ A `FileTransferError` Objekt wird an eine Fehler-Callback übergeben, wenn ein F
 
 *   **HTTP_STATUS**: HTTP-Statuscode. Dieses Attribut ist nur verfügbar, wenn ein Response-Code aus der HTTP-Verbindung eingeht. (Anzahl)
 
+*   **Ausnahme**: entweder e.getMessage oder e.toString (String)
+
 ### Konstanten
 
-*   `FileTransferError.FILE_NOT_FOUND_ERR`
-*   `FileTransferError.INVALID_URL_ERR`
-*   `FileTransferError.CONNECTION_ERR`
-*   `FileTransferError.ABORT_ERR`
+*   1 = `FileTransferError.FILE_NOT_FOUND_ERR`
+*   2 = `FileTransferError.INVALID_URL_ERR`
+*   3 = `FileTransferError.CONNECTION_ERR`
+*   4 = `FileTransferError.ABORT_ERR`
 
 ## Hinweise rückwärts Kompatibilität
 

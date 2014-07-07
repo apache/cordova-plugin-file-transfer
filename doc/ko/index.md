@@ -192,7 +192,7 @@ A `FileUploadResult` 개체의 성공 콜백에 전달 되는 `FileTransfer` 개
         uri,
         fileURL,
         function(entry) {
-            console.log("download complete: " + entry.fullPath);
+            console.log("download complete: " + entry.toURL());
         },
         function(error) {
             console.log("download error source " + error.source);
@@ -252,12 +252,14 @@ A `FileTransferError` 오류가 발생 하면 오류 콜백 개체 전달 됩니
 
 *   **http_status**: HTTP 상태 코드. 이 특성은 응답 코드를 HTTP 연결에서 수신에 사용할 수 있습니다. (수)
 
+*   **예외**: 어느 e.getMessage 또는 e.toString (문자열)
+
 ### 상수
 
-*   `FileTransferError.FILE_NOT_FOUND_ERR`
-*   `FileTransferError.INVALID_URL_ERR`
-*   `FileTransferError.CONNECTION_ERR`
-*   `FileTransferError.ABORT_ERR`
+*   1 = `FileTransferError.FILE_NOT_FOUND_ERR`
+*   2 = `FileTransferError.INVALID_URL_ERR`
+*   3 = `FileTransferError.CONNECTION_ERR`
+*   4 = `FileTransferError.ABORT_ERR`
 
 ## 이전 버전과 호환성 노트
 
