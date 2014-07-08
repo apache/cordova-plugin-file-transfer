@@ -258,6 +258,7 @@ A `FileTransferError` obiekt jest przekazywany do wywołania zwrotnego błąd, g
 *   `FileTransferError.INVALID_URL_ERR`
 *   `FileTransferError.CONNECTION_ERR`
 *   `FileTransferError.ABORT_ERR`
+*   `FileTransferError.NOT_MODIFIED_ERR`
 
 ## Do tyłu zgodności stwierdza
 

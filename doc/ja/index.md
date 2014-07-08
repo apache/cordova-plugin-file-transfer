@@ -260,6 +260,7 @@ A `FileTransferError` オブジェクトは、エラーが発生エラー コー
 *   2 = `FileTransferError.INVALID_URL_ERR`
 *   3 = `FileTransferError.CONNECTION_ERR`
 *   4 = `FileTransferError.ABORT_ERR`
+*   5 = `FileTransferError.NOT_MODIFIED_ERR`
 
 ## 後方互換性をノートします。
 
