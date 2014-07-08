@@ -343,7 +343,7 @@ public class FileTransfer extends CordovaPlugin {
                     conn.setRequestMethod(httpMethod);
                     
                     // if we specified a Content-Type header, don't do multipart form upload
-                    boolean multipartFormUpload = !headers.has("Content-Type");
+                    boolean multipartFormUpload = (headers == null) || !headers.has("Content-Type");
                     if (multipartFormUpload) {
                         conn.setRequestProperty("Content-Type", "multipart/form-data; boundary=" + BOUNDARY);
                     }
