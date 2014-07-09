@@ -30,7 +30,7 @@
 
 *   亞馬遜火 OS
 *   Android 系統
-*   黑莓 10 *
+*   黑莓 10
 *   iOS
 *   Windows Phone 7 和 8 *
 *   Windows 8 *

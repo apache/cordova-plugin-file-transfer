@@ -30,7 +30,7 @@ Dieses Plugin ermöglicht Ihnen zum Hochladen und Herunterladen von Dateien.
 
 *   Amazon Fire OS
 *   Android
-*   BlackBerry 10 *
+*   BlackBerry 10
 *   iOS
 *   Windows Phone 7 und 8 *
 *   Windows 8 *
@@ -260,6 +260,7 @@ A `FileTransferError` Objekt wird an eine Fehler-Callback übergeben, wenn ein F
 *   2 = `FileTransferError.INVALID_URL_ERR`
 *   3 = `FileTransferError.CONNECTION_ERR`
 *   4 = `FileTransferError.ABORT_ERR`
+*   5 = `FileTransferError.NOT_MODIFIED_ERR`
 
 ## Hinweise rückwärts Kompatibilität
 

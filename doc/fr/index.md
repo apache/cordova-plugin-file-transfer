@@ -30,7 +30,7 @@ Ce plugin vous permet de télécharger des fichiers.
 
 *   Amazon Fire OS
 *   Android
-*   BlackBerry 10 *
+*   BlackBerry 10
 *   iOS
 *   Windows Phone 7 et 8 *
 *   Windows 8 *

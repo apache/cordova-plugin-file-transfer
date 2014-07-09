@@ -30,7 +30,7 @@
 
 *   Amazon Fire ОС
 *   Android
-*   BlackBerry 10 *
+*   BlackBerry 10
 *   iOS
 *   Windows Phone 7 и 8 *
 *   Windows 8 *
@@ -260,6 +260,7 @@ A `FileTransferError` объект передается при ошибке об
 *   2 = `FileTransferError.INVALID_URL_ERR`
 *   3 = `FileTransferError.CONNECTION_ERR`
 *   4 = `FileTransferError.ABORT_ERR`
+*   5 = `FileTransferError.NOT_MODIFIED_ERR`
 
 ## Обратной совместимости отмечает
 

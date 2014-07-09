@@ -30,7 +30,7 @@ Este plugin te permite cargar y descargar archivos.
 
 *   Amazon fuego OS
 *   Android
-*   BlackBerry 10 *
+*   BlackBerry 10
 *   iOS
 *   Windows Phone 7 y 8 *
 *   Windows 8 *
