@@ -23,12 +23,13 @@
  * FileTransferError
  * @constructor
  */
-var FileTransferError = function(code, source, target, status, body) {
+var FileTransferError = function(code, source, target, status, body, exception) {
     this.code = code || null;
     this.source = source || null;
     this.target = target || null;
     this.http_status = status || null;
     this.body = body || null;
+    this.exception = exception || null;
 };
 
 FileTransferError.FILE_NOT_FOUND_ERR = 1;
