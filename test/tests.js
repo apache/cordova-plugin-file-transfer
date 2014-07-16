@@ -889,22 +889,18 @@ exports.defineManualTests = function (contentEl, createActionButton) {
     var videoURL = "http://techslides.com/demos/sample-videos/small.mp4";
 
     function clearLog() {
-        var content = document.getElementById("log--content");
+        var content = document.getElementById("info");
         content.innerHTML = "";
     }
 
     function logMessage(message, color) {
-        var content = document.getElementById("log--content");
+        var content = document.getElementById("info");
         var logLine = document.createElement('div');
         if (color) {
             logLine.style.color = color;
         }
         logLine.innerHTML = message;
         content.appendChild(logLine);
-        var log = document.getElementById("log");
-        if (!log.classList.contains("expanded")) {
-            log.classList.add("expanded");
-        }
     }
 
     function logError(serviceName) {
@@ -951,7 +947,7 @@ exports.defineManualTests = function (contentEl, createActionButton) {
                 element.src = urlFn(entry)
                 logMessage("Src URL is " + element.src, "green");
                 logMessage("Inserting element");
-                document.getElementById("log--content").appendChild(element);
+                document.getElementById("info").appendChild(element);
             }, logError("ft.download"));
         }
         clearLog();
@@ -971,23 +967,26 @@ exports.defineManualTests = function (contentEl, createActionButton) {
 
     /******************************************************************************/
 
+    contentEl.innerHTML = '<div id="info"></div>' +
+        '<div id="actions"></div>';
+
     createActionButton('Download and display img (cdvfile)', function () {
         downloadImg(imageURL, function (entry) { return entry.toURL(); }, new Image());
-    });
+    }, 'actions');
 
     createActionButton('Download and display img (native)', function () {
         downloadImg(imageURL, function (entry) { return entry.toNativeURL(); }, new Image);
-    });
+    }, 'actions');
 
     createActionButton('Download and play video (cdvfile)', function () {
         var videoElement = document.createElement('video');
         videoElement.controls = "controls";
         downloadImg(videoURL, function (entry) { return entry.toURL(); }, videoElement);
-    });
+    }, 'actions');
 
     createActionButton('Download and play video (native)', function () {
         var videoElement = document.createElement('video');
         videoElement.controls = "controls";
         downloadImg(videoURL, function (entry) { return entry.toNativeURL(); }, videoElement)
-    });
+    }, 'actions');
 };
