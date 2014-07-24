@@ -951,26 +951,35 @@ exports.defineManualTests = function (contentEl, createActionButton) {
 
     /******************************************************************************/
 
+    var file_transfer_tests = '<h2>Image File Transfer Tests</h2>' +
+        '<h3>The following tests should display an image of the Apache feather in the status box</h3>' +
+        '<div id="cdv_image"></div>' +
+        '<div id="native_image"></div>' +
+        '<h2>Video File Transfer Tests</h2>' +
+        '<h3>The following tests should display a video in the status box. The video should play when play is pressed</h3>' +
+        '<div id="cdv_video"></div>' +
+        '<div id="native_video"></div>';
+
     contentEl.innerHTML = '<div id="info"></div>' +
-        '<div id="actions"></div>';
+        file_transfer_tests;
 
     createActionButton('Download and display img (cdvfile)', function () {
         downloadImg(imageURL, function (entry) { return entry.toURL(); }, new Image());
-    }, 'actions');
+    }, 'cdv_image');
 
     createActionButton('Download and display img (native)', function () {
         downloadImg(imageURL, function (entry) { return entry.toNativeURL(); }, new Image);
-    }, 'actions');
+    }, 'native_image');
 
     createActionButton('Download and play video (cdvfile)', function () {
         var videoElement = document.createElement('video');
         videoElement.controls = "controls";
         downloadImg(videoURL, function (entry) { return entry.toURL(); }, videoElement);
-    }, 'actions');
+    }, 'cdv_video');
 
     createActionButton('Download and play video (native)', function () {
         var videoElement = document.createElement('video');
         videoElement.controls = "controls";
         downloadImg(videoURL, function (entry) { return entry.toNativeURL(); }, videoElement)
-    }, 'actions');
+    }, 'native_video');
 };
