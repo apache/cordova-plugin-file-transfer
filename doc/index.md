@@ -42,7 +42,7 @@ This plugin allows you to upload and download files.
 # FileTransfer
 
 The `FileTransfer` object provides a way to upload files using an HTTP
-multi-part POST request, and to download files as well.
+multi-part POST or PUT request, and to download files as well.
 
 ## Properties
 
@@ -77,7 +77,8 @@ __Parameters__:
   - __mimeType__: The mime type of the data to upload.  Defaults to `image/jpeg`. (DOMString)
   - __params__: A set of optional key/value pairs to pass in the HTTP request. (Object)
   - __chunkedMode__: Whether to upload the data in chunked streaming mode. Defaults to `true`. (Boolean)
-  - __headers__: A map of header name/header values. Use an array to specify more than one value. (Object)
+  - __headers__: A map of header name/header values. Use an array to specify more than one value.  On iOS, Amazon and Android, if a header named Content-Type is present, multipart form data will NOT be used. (Object)
+  - __httpMethod__: The HTTP method to use e.g. POST or PUT.  Defaults to `POST`. (DOMString)
 
 ### Example
 
