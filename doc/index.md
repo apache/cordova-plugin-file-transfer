@@ -30,11 +30,14 @@ This plugin allows you to upload and download files.
 - Amazon Fire OS
 - Android
 - BlackBerry 10
+- Firefox OS**
 - iOS
 - Windows Phone 7 and 8*
 - Windows 8*
 
 \* _Do not support `onprogress` nor `abort()`_
+
+\** _Do not support `onprogress`_
 
 # FileTransfer
 
