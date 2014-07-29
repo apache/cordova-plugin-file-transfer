@@ -669,6 +669,9 @@ exports.defineAutoTests = function () {
                 ft.upload("/usr/local/bad/file/path.txt", remoteFile, uploadWin, uploadFail);
             });
             it("filetransfer.spec.27 should be able to set custom headers", function (done) {
+                if (cordova.platformId === 'windowsphone') {
+                    pending();
+                }
                 var uploadFail = createFail(done, "Upload error callback should not have been called");
                 var fileFail = createFail(done, "Error writing file to be uploaded");
                 var remoteFile = "http://whatheaders.com";
