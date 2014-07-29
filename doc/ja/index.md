@@ -30,7 +30,7 @@
 
 *   アマゾン火 OS
 *   アンドロイド
-*   ブラックベリー 10 *
+*   ブラックベリー 10
 *   iOS
 *   Windows Phone 7 と 8 *
 *   Windows 8 *
@@ -192,7 +192,7 @@ A `FileUploadResult` オブジェクトの成功時のコールバックに渡�
         uri,
         fileURL,
         function(entry) {
-            console.log("download complete: " + entry.fullPath);
+            console.log("download complete: " + entry.toURL());
         },
         function(error) {
             console.log("download error source " + error.source);
@@ -252,12 +252,15 @@ A `FileTransferError` オブジェクトは、エラーが発生エラー コー
 
 *   **http_status**: HTTP ステータス コード。この属性は、HTTP 接続から応答コードを受信したときにのみ使用できます。(数)
 
+*   **例外**: どちらか e.getMessage または e.toString (文字列)
+
 ### 定数
 
-*   `FileTransferError.FILE_NOT_FOUND_ERR`
-*   `FileTransferError.INVALID_URL_ERR`
-*   `FileTransferError.CONNECTION_ERR`
-*   `FileTransferError.ABORT_ERR`
+*   1 = `FileTransferError.FILE_NOT_FOUND_ERR`
+*   2 = `FileTransferError.INVALID_URL_ERR`
+*   3 = `FileTransferError.CONNECTION_ERR`
+*   4 = `FileTransferError.ABORT_ERR`
+*   5 = `FileTransferError.NOT_MODIFIED_ERR`
 
 ## 後方互換性をノートします。
 

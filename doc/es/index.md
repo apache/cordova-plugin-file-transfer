@@ -30,7 +30,7 @@ Este plugin te permite cargar y descargar archivos.
 
 *   Amazon fuego OS
 *   Android
-*   BlackBerry 10 *
+*   BlackBerry 10
 *   iOS
 *   Windows Phone 7 y 8 *
 *   Windows 8 *
@@ -192,7 +192,7 @@ A `FileUploadResult` objeto se pasa a la devolución del éxito de la `FileTrans
         uri,
         fileURL,
         function(entry) {
-            console.log("download complete: " + entry.fullPath);
+            console.log("download complete: " + entry.toURL());
         },
         function(error) {
             console.log("download error source " + error.source);
@@ -252,12 +252,15 @@ A `FileTransferError` objeto se pasa a un callback de error cuando se produce un
 
 *   **HTTP_STATUS**: código de estado HTTP. Este atributo sólo está disponible cuando se recibe un código de respuesta de la conexión HTTP. (Número)
 
+*   **excepción**: cualquier e.getMessage o e.toString (String)
+
 ### Constantes
 
-*   `FileTransferError.FILE_NOT_FOUND_ERR`
-*   `FileTransferError.INVALID_URL_ERR`
-*   `FileTransferError.CONNECTION_ERR`
-*   `FileTransferError.ABORT_ERR`
+*   1 = `FileTransferError.FILE_NOT_FOUND_ERR`
+*   2 = `FileTransferError.INVALID_URL_ERR`
+*   3 = `FileTransferError.CONNECTION_ERR`
+*   4 = `FileTransferError.ABORT_ERR`
+*   5 = `FileTransferError.NOT_MODIFIED_ERR`
 
 ## Al revés notas de compatibilidad
 

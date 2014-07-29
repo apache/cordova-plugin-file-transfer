@@ -144,4 +144,14 @@
         </js-module>
     </platform>
 
+    <!-- firefoxOS -->
+    <platform name="firefoxos">
+        <config-file target="config.xml" parent="/*">
+            <permission name="systemXHR" privileged="true"/>
+        </config-file>
+
+        <js-module src="www/firefoxos/FileTransferProxy.js" name="FileTransferProxy">
+            <runs/>
+        </js-module>
+    </platform>
 </plugin>
