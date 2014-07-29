@@ -245,7 +245,10 @@ exports.defineAutoTests = function () {
                 var lastProgressEvent = null;
 
                 if (!/^file/.exec(remoteFile) && cordova.platformId !== 'blackberry10') {
-                    expect(remoteFile).toMatch(/^file:/);
+                    if (cordova.platformId !== 'windowsphone')
+                        expect(remoteFile).toMatch(/^file:/);
+                    else
+                        expect(remoteFile).toMatch(/^x-wmapp0:/);
                     done();
                     return;
                 }
