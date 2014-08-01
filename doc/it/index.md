@@ -31,11 +31,14 @@ Questo plugin permette di caricare e scaricare file.
 *   Amazon fuoco OS
 *   Android
 *   BlackBerry 10
+*   Firefox OS * *
 *   iOS
 *   Windows Phone 7 e 8 *
 *   Windows 8 *
 
 * *Non supportano `onprogress` né `abort()` *
+
+* * *Non supportano `onprogress` *
 
 # FileTransfer
 
@@ -65,8 +68,6 @@ Il `FileTransfer` oggetto fornisce un modo per caricare i file utilizzando una r
 
 *   **errorCallback**: un callback che viene eseguito se si verifica un errore recuperando il `Metadata` . Invocato con un `FileTransferError` oggetto. *(Funzione)*
 
-*   **trustAllHosts**: parametro opzionale, valore predefinito è `false` . Se impostata su `true` , accetta tutti i certificati di sicurezza. Questo è utile poiché Android respinge i certificati autofirmati sicurezza. Non raccomandato per uso in produzione. Supportato su Android e iOS. *(boolean)*
-
 *   **opzioni**: parametri facoltativi *(oggetto)*. Chiavi valide:
     
     *   **fileKey**: il nome dell'elemento form. Valore predefinito è `file` . (DOMString)
@@ -75,6 +76,8 @@ Il `FileTransfer` oggetto fornisce un modo per caricare i file utilizzando una r
     *   **params**: un insieme di coppie chiave/valore opzionale per passare nella richiesta HTTP. (Oggetto)
     *   **chunkedMode**: se a caricare i dati in modalità streaming chunked. Valore predefinito è `true` . (Boolean)
     *   **intestazioni**: mappa di valori nome/intestazione intestazione. Utilizzare una matrice per specificare più valori. (Oggetto)
+
+*   **trustAllHosts**: parametro opzionale, valore predefinito è `false` . Se impostata su `true` , accetta tutti i certificati di sicurezza. Questo è utile poiché Android respinge i certificati autofirmati sicurezza. Non raccomandato per uso in produzione. Supportato su Android e iOS. *(boolean)*
 
 ### Esempio
 
