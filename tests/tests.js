@@ -868,36 +868,9 @@ exports.defineManualTests = function (contentEl, createActionButton) {
         results.innerHTML = '';
     }
 
-    function downloadImgCDV(ev) {
-        ev.preventDefault();
-        ev.stopPropagation();
-        downloadImg(imageURL, function (entry) { return entry.toURL(); }, new Image());
-    }
-
-    function downloadImgNative(ev) {
-        ev.preventDefault();
-        ev.stopPropagation();
-        downloadImg(imageURL, function (entry) { return entry.toNativeURL(); }, new Image);
-    }
-
-    function downloadVideoCDV(ev) {
-        ev.preventDefault();
-        ev.stopPropagation();
-        var videoElement = document.createElement('video');
-        videoElement.controls = "controls";
-        downloadImg(videoURL, function (entry) { return entry.toURL(); }, videoElement);
-    }
-
-    function downloadVideoNative(ev) {
-        ev.preventDefault();
-        ev.stopPropagation();
-        var videoElement = document.createElement('video');
-        videoElement.controls = "controls";
-        downloadImg(videoURL, function (entry) { return entry.toNativeURL(); }, videoElement);
-    }
-
-    function downloadImg(source, urlFn, element) {
+    function downloadImg(source, urlFn, element, directory) {
         var filename = source.substring(source.lastIndexOf("/") + 1);
+        filename = directory + filename || filename;
         function download(fileSystem) {
             var ft = new FileTransfer();
             console.log("Starting download");
@@ -913,14 +886,25 @@ exports.defineManualTests = function (contentEl, createActionButton) {
         clearResults();
         requestFileSystem(TEMPORARY, 0, function (fileSystem) {
             console.log("Checking for existing file");
-            fileSystem.root.getFile(filename, { create: false }, function (entry) {
-                console.log("Removing existing file");
-                entry.remove(function () {
+            if (directory != undefined) {
+                console.log("Checking for existing directory.");
+                fileSystem.root.getDirectory(directory, {}, function (dirEntry) {
+                    dirEntry.removeRecursively(function () {
+                        download(fileSystem);
+                    }, function (e) { console.log("ERROR: dirEntry.removeRecursively") });
+                }, function () {
                     download(fileSystem);
-                }, function (e) { console.log("ERROR: entry.remove"); });
-            }, function () {
-                download(fileSystem);
-            });
+                });
+            } else {
+                fileSystem.root.getFile(filename, { create: false }, function (entry) {
+                    console.log("Removing existing file");
+                    entry.remove(function () {
+                        download(fileSystem);
+                    }, function (e) { console.log("ERROR: entry.remove"); });
+                }, function () {
+                    download(fileSystem);
+                });
+            }
         }, function (e) { console.log("ERROR: requestFileSystem"); });
     }
 
@@ -935,6 +919,10 @@ exports.defineManualTests = function (contentEl, createActionButton) {
 
     createActionButton('Download and display img (native)', function () {
         downloadImg(imageURL, function (entry) { return entry.toNativeURL(); }, new Image);
+    }, 'actions');
+
+    createActionButton('Download to a non-existent dir (should work)', function () {
+        downloadImg(imageURL, function (entry) { return entry.toURL(); }, new Image, '/nonExistentDirTest/');
     }, 'actions');
 
     createActionButton('Download and play video (cdvfile)', function () {
