@@ -31,11 +31,14 @@ Este plugin te permite cargar y descargar archivos.
 *   Amazon fuego OS
 *   Android
 *   BlackBerry 10
+*   Firefox OS **
 *   iOS
 *   Windows Phone 7 y 8 *
 *   Windows 8 *
 
 * *No son compatibles con `onprogress` ni `abort()` *
+
+** *No son compatibles con `onprogress` *
 
 # File Transfer
 
@@ -65,8 +68,6 @@ El `FileTransfer` objeto proporciona una manera de subir archivos mediante una s
 
 *   **errorCallback**: una devolución de llamada que se ejecuta si se produce un error recuperar la `Metadata` . Invocado con un `FileTransferError` objeto. *(Función)*
 
-*   **trustAllHosts**: parámetro opcional, por defecto es `false` . Si establece en `true` , acepta todos los certificados de seguridad. Esto es útil ya que Android rechaza certificados autofirmados seguridad. No se recomienda para uso productivo. Compatible con iOS y Android. *(boolean)*
-
 *   **Opciones**: parámetros opcionales *(objeto)*. Teclas válidas:
     
     *   **fileKey**: el nombre del elemento de formulario. Por defecto es `file` . (DOMString)
@@ -75,6 +76,8 @@ El `FileTransfer` objeto proporciona una manera de subir archivos mediante una s
     *   **params**: un conjunto de pares clave/valor opcional para pasar en la petición HTTP. (Objeto)
     *   **chunkedMode**: Si desea cargar los datos en modo de transmisión fragmentado. Por defecto es `true` . (Boolean)
     *   **cabeceras**: un mapa de valores de encabezado nombre/cabecera. Utilice una matriz para especificar más de un valor. (Objeto)
+
+*   **trustAllHosts**: parámetro opcional, por defecto es `false` . Si establece en `true` , acepta todos los certificados de seguridad. Esto es útil ya que Android rechaza certificados autofirmados seguridad. No se recomienda para uso productivo. Compatible con iOS y Android. *(boolean)*
 
 ### Ejemplo
 

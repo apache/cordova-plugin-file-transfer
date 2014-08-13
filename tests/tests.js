@@ -524,6 +524,9 @@ exports.defineAutoTests = function () {
                     } catch (e) {
                         expect(obj).not.toBeNull('returned data from server should be valid json');
                     }
+                    expect(lastProgressEvent).not.toBeNull('expected progress events');
+                    expect(lastProgressEvent.loaded).toBeGreaterThan(1, 'loaded');
+                    expect(lastProgressEvent.total).not.toBeLessThan(lastProgressEvent.loaded);
                     done();
                 };
 
@@ -544,34 +547,6 @@ exports.defineAutoTests = function () {
                 };
 
                 writeFile(localFileName, fileContents, fileWin, fileFail);
-
-                expect(lastProgressEvent).not.toBeNull('expected progress events');
-                expect(lastProgressEvent.loaded).toBeGreaterThan(1, 'loaded');
-                expect(lastProgressEvent.total).not.toBeLessThan(lastProgressEvent.loaded);
-            });
-            it("filetransfer.spec.6 should get http status on basic auth failure", function (done) {
-                var uploadWin = createFail(done, "Upload success callback should not have been called");
-                var fileFail = createFail(done, "Error writing file to be uploaded");
-                var remoteFile = server + "/upload_basic_auth";
-                localFileName = "upload_expect_fail.txt";
-                var uploadFail = function (error) {
-                    expect(error.http_status).toBe(401);
-                    expect(error.http_status).not.toBe(404, "Ensure " + remoteFile + " is in the white list");
-                    done();
-                };
-
-                var fileWin = function (fileEntry) {
-                    var ft = new FileTransfer();
-
-                    var options = new FileUploadOptions();
-                    options.fileKey = "file";
-                    options.fileName = fileEntry.name;
-                    options.mimeType = "text/plain";
-
-                    ft.upload(fileEntry.toURL(), remoteFile, uploadWin, uploadFail, options);
-                };
-
-                writeFile(localFileName, "this file should fail to upload", fileWin, fileFail);
             });
             it("filetransfer.spec.21 should be stopped by abort() right away.", function (done) {
                 var uploadWin = createFail(done, "Upload success callback should not have been called");

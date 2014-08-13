@@ -97,3 +97,19 @@
 * CB-5980 Updated version and RELEASENOTES.md for release 0.4.1
 
 ### 0.4.5
+
+### 0.4.5 (Aug 06, 2014)
+* Upload parameters out of order
+* **FirefoxOS** initial implementation
+* CB-6781: Expose FileTransferError.exception to application
+* CB-6928: Add new error code to documentation
+* CB-6928: Handle 304 status code
+* CB-6928: Open output stream only if it's necessary.
+* [BlackBerry10] Minor doc correction
+* CB-6127 Updated translations for docs
+* [Windows8] upload uses the provided fileName or the actual fileName
+* CB-2420 [Windows8] honor fileKey and param options. This closes #15
+* CB-6781: Update new docs to match AlexNennker's changes in PR30
+* CB-6781: Continue previous commit with one new instance (This closes #30)
+* CB-6781: add the exception text to the error object
+* CB-6890: Fix pluginManager access for 4.0.x branch
