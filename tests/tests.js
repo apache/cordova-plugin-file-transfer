@@ -240,7 +240,7 @@ exports.defineAutoTests = function () {
             });
             it("filetransfer.spec.7 should be able to download a file using file:// (when hosted from file://)", function (done) {
                 var downloadFail = createFail(done, "Download error callback should not have been called");
-                var remoteFile = window.location.href.replace(/\?.*/, '').replace(/ /g, '%20');
+                var remoteFile = window.location.protocol + '//' + window.location.pathname.replace(/ /g, '%20');
                 localFileName = remoteFile.substring(remoteFile.lastIndexOf('/') + 1);
                 var lastProgressEvent = null;
 
