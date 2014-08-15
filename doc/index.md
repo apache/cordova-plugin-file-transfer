@@ -33,11 +33,14 @@ This plugin allows you to upload and download files.
 - Firefox OS**
 - iOS
 - Windows Phone 7 and 8*
-- Windows 8*
+- Windows 8***
+- Windows***
 
 \* _Do not support `onprogress` nor `abort()`_
 
 \** _Do not support `onprogress`_
+
+\*** Partial support of `onprogress` for upload method. `onprogress` is called with empty progress event due to Windows limitations_
 
 # FileTransfer
 
