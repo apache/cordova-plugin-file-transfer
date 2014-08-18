@@ -914,6 +914,7 @@ exports.defineManualTests = function (contentEl, createActionButton) {
         '<h3>The following tests should display an image of the Apache feather in the status box</h3>' +
         '<div id="cdv_image"></div>' +
         '<div id="native_image"></div>' +
+        '<div id="non-existent_dir"></div>' +
         '<h2>Video File Transfer Tests</h2>' +
         '<h3>The following tests should display a video in the status box. The video should play when play is pressed</h3>' +
         '<div id="cdv_video"></div>' +
@@ -932,7 +933,7 @@ exports.defineManualTests = function (contentEl, createActionButton) {
 
     createActionButton('Download to a non-existent dir (should work)', function () {
         downloadImg(imageURL, function (entry) { return entry.toURL(); }, new Image, '/nonExistentDirTest/');
-    }, 'actions');
+    }, 'non-existent_dir');
 
     createActionButton('Download and play video (cdvfile)', function () {
         var videoElement = document.createElement('video');
