@@ -121,7 +121,7 @@ exports.defineAutoTests = function () {
         };
 
         var getMalformedUrl = function () {
-            if (cordova.platformId === 'android') {
+            if (cordova.platformId === 'android' || cordova.platformId === 'amazon-fireos') {
                 // bad protocol causes a MalformedUrlException on Android
                 return "httpssss://example.com";
             } else {
