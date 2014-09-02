@@ -121,7 +121,7 @@ exports.defineAutoTests = function () {
         };
 
         var getMalformedUrl = function () {
-            if (cordova.platformId === 'android') {
+            if (cordova.platformId === 'android' || cordova.platformId === 'amazon-fireos') {
                 // bad protocol causes a MalformedUrlException on Android
                 return "httpssss://example.com";
             } else {
@@ -240,7 +240,7 @@ exports.defineAutoTests = function () {
             });
             it("filetransfer.spec.7 should be able to download a file using file:// (when hosted from file://)", function (done) {
                 var downloadFail = createFail(done, "Download error callback should not have been called");
-                var remoteFile = window.location.href.replace(/\?.*/, '').replace(/ /g, '%20');
+                var remoteFile = window.location.protocol + '//' + window.location.pathname.replace(/ /g, '%20');
                 localFileName = remoteFile.substring(remoteFile.lastIndexOf('/') + 1);
                 var lastProgressEvent = null;
 
@@ -874,36 +874,9 @@ exports.defineManualTests = function (contentEl, createActionButton) {
         results.innerHTML = '';
     }
 
-    function downloadImgCDV(ev) {
-        ev.preventDefault();
-        ev.stopPropagation();
-        downloadImg(imageURL, function (entry) { return entry.toURL(); }, new Image());
-    }
-
-    function downloadImgNative(ev) {
-        ev.preventDefault();
-        ev.stopPropagation();
-        downloadImg(imageURL, function (entry) { return entry.toNativeURL(); }, new Image);
-    }
-
-    function downloadVideoCDV(ev) {
-        ev.preventDefault();
-        ev.stopPropagation();
-        var videoElement = document.createElement('video');
-        videoElement.controls = "controls";
-        downloadImg(videoURL, function (entry) { return entry.toURL(); }, videoElement);
-    }
-
-    function downloadVideoNative(ev) {
-        ev.preventDefault();
-        ev.stopPropagation();
-        var videoElement = document.createElement('video');
-        videoElement.controls = "controls";
-        downloadImg(videoURL, function (entry) { return entry.toNativeURL(); }, videoElement);
-    }
-
-    function downloadImg(source, urlFn, element) {
+    function downloadImg(source, urlFn, element, directory) {
         var filename = source.substring(source.lastIndexOf("/") + 1);
+        filename = directory + filename || filename;
         function download(fileSystem) {
             var ft = new FileTransfer();
             console.log("Starting download");
@@ -919,39 +892,64 @@ exports.defineManualTests = function (contentEl, createActionButton) {
         clearResults();
         requestFileSystem(TEMPORARY, 0, function (fileSystem) {
             console.log("Checking for existing file");
-            fileSystem.root.getFile(filename, { create: false }, function (entry) {
-                console.log("Removing existing file");
-                entry.remove(function () {
+            if (directory != undefined) {
+                console.log("Checking for existing directory.");
+                fileSystem.root.getDirectory(directory, {}, function (dirEntry) {
+                    dirEntry.removeRecursively(function () {
+                        download(fileSystem);
+                    }, function (e) { console.log("ERROR: dirEntry.removeRecursively") });
+                }, function () {
                     download(fileSystem);
-                }, function (e) { console.log("ERROR: entry.remove"); });
-            }, function () {
-                download(fileSystem);
-            });
+                });
+            } else {
+                fileSystem.root.getFile(filename, { create: false }, function (entry) {
+                    console.log("Removing existing file");
+                    entry.remove(function () {
+                        download(fileSystem);
+                    }, function (e) { console.log("ERROR: entry.remove"); });
+                }, function () {
+                    download(fileSystem);
+                });
+            }
         }, function (e) { console.log("ERROR: requestFileSystem"); });
     }
 
     /******************************************************************************/
 
+    var file_transfer_tests = '<h2>Image File Transfer Tests</h2>' +
+        '<h3>The following tests should display an image of the Apache feather in the status box</h3>' +
+        '<div id="cdv_image"></div>' +
+        '<div id="native_image"></div>' +
+        '<div id="non-existent_dir"></div>' +
+        '<h2>Video File Transfer Tests</h2>' +
+        '<h3>The following tests should display a video in the status box. The video should play when play is pressed</h3>' +
+        '<div id="cdv_video"></div>' +
+        '<div id="native_video"></div>';
+
     contentEl.innerHTML = '<div id="info"></div>' +
-        '<div id="actions"></div>';
+        file_transfer_tests;
 
     createActionButton('Download and display img (cdvfile)', function () {
         downloadImg(imageURL, function (entry) { return entry.toURL(); }, new Image());
-    }, 'actions');
+    }, 'cdv_image');
 
     createActionButton('Download and display img (native)', function () {
         downloadImg(imageURL, function (entry) { return entry.toNativeURL(); }, new Image);
-    }, 'actions');
+    }, 'native_image');
+
+    createActionButton('Download to a non-existent dir (should work)', function () {
+        downloadImg(imageURL, function (entry) { return entry.toURL(); }, new Image, '/nonExistentDirTest/');
+    }, 'non-existent_dir');
 
     createActionButton('Download and play video (cdvfile)', function () {
         var videoElement = document.createElement('video');
         videoElement.controls = "controls";
         downloadImg(videoURL, function (entry) { return entry.toURL(); }, videoElement);
-    }, 'actions');
+    }, 'cdv_video');
 
     createActionButton('Download and play video (native)', function () {
         var videoElement = document.createElement('video');
         videoElement.controls = "controls";
         downloadImg(videoURL, function (entry) { return entry.toNativeURL(); }, videoElement)
-    }, 'actions');
+    }, 'native_video');
 };
