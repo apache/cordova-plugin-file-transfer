@@ -715,6 +715,7 @@ exports.defineAutoTests = function () {
              */
             var localFileName = "";
             var unsupportedWasCalled = false;
+            var lastProgressEvent = null;
             afterEach(function (done) {
                 if (!unsupportedWasCalled) {
                     console.log("Unsupported was not called");
@@ -731,7 +732,7 @@ exports.defineAutoTests = function () {
                 var remoteFile = server + "/robots.txt"
                 localFileName = remoteFile.substring(remoteFile.lastIndexOf('/') + 1);
                 var localURL = root.toURL() + "/" + localFileName;
-                var lastProgressEvent = null;
+                lastProgressEvent = null;
 
                 var downloadWin = function (entry) {
                     expect(entry.name).toBe(localFileName);
@@ -773,7 +774,7 @@ exports.defineAutoTests = function () {
                     unsupportedWasCalled = true;
                     done();
                 };
-                var lastProgressEvent = null;
+                lastProgressEvent = null;
 
                 var uploadWin = function (uploadResult) {
                     expect(uploadResult.bytesSent).toBeGreaterThan(0);
