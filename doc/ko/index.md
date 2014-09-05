@@ -34,11 +34,14 @@
 *   파이어 폭스 OS * *
 *   iOS
 *   Windows Phone 7과 8 *
-*   윈도우 8 *
+*   윈도우 8 \* * *|
+*   윈도 즈 \* * *|
 
 * *를 지원 하지 않는 `onprogress` 도 `abort()` *
 
 * * *를 지원 하지 않는 `onprogress` *
+
+부분적인 지원 `onprogress` 업로드 방법. `onprogress` Windows limitations_로 인해 빈 진행률 이벤트 호출
 
 # FileTransfer
 

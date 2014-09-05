@@ -34,11 +34,14 @@ Questo plugin permette di caricare e scaricare file.
 *   Firefox OS * *
 *   iOS
 *   Windows Phone 7 e 8 *
-*   Windows 8 *
+*   Windows 8 \* * *|
+*   Windows \* * *|
 
 * *Non supportano `onprogress` né `abort()` *
 
 * * *Non supportano `onprogress` *
+
+Supporto parziale di `onprogress` per caricare metodo. `onprogress` viene chiamato con evento progress vuota a causa di Windows limitations_
 
 # FileTransfer
 

@@ -34,11 +34,14 @@
 *   Firefox の OS * *
 *   iOS
 *   Windows Phone 7 と 8 *
-*   Windows 8 *
+*   Windows 8 \* * *|
+*   Windows \* * *|
 
 **サポートしていない `onprogress` も `abort()` *
 
 * **サポートしていない `onprogress` *
+
+部分的なサポート `onprogress` のアップロード方法 `onprogress` は Windows limitations_ のための空のプログレスのイベントで呼び出されます。
 
 # ファイル転送
 

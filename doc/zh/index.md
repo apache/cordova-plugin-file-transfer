@@ -34,11 +34,14 @@
 *   火狐瀏覽器作業系統 * *
 *   iOS
 *   Windows Phone 7 和 8 *
-*   Windows 8 *
+*   Windows 8 \* * *|
+*   Windows \* * *|
 
 **不支援 `onprogress` ，也不 `abort()` *
 
 * **不支援 `onprogress` *
+
+部分支援的 `onprogress` 為上傳方法。 `onprogress` 被稱為與 Windows limitations_ 空白進度事件
 
 # 檔案傳輸
 

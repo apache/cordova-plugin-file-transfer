@@ -34,11 +34,14 @@ Dieses Plugin ermöglicht Ihnen zum Hochladen und Herunterladen von Dateien.
 *   Firefox OS **
 *   iOS
 *   Windows Phone 7 und 8 *
-*   Windows 8 *
+*   Windows 8 \***|
+*   Windows \***|
 
 * *Unterstützen nicht `onprogress` noch `abort()` *
 
 ** *Unterstützen keine `onprogress` *
+
+Partielle Unterstützung von `onprogress` für upload-Methode. `onprogress` wird aufgerufen, mit leeren Progress-Ereignis durch Windows Limitations_
 
 # FileTransfer
 

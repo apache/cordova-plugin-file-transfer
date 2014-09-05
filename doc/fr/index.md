@@ -34,11 +34,14 @@ Ce plugin vous permet de télécharger des fichiers.
 *   Firefox OS **
 *   iOS
 *   Windows Phone 7 et 8 *
-*   Windows 8 *
+*   Windows 8 \***|
+*   Windows \***|
 
 * *Ne supportent pas `onprogress` ni `abort()` *
 
 ** *Ne prennent pas en charge `onprogress` *
+
+Prise en charge partielle des `onprogress` pour télécharger méthode. `onprogress` est appelée avec l'événement de progression vide à cause de Windows limitations_
 
 # Transfert de fichiers
 

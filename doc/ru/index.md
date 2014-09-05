@@ -34,11 +34,14 @@
 *   Firefox OS **
 *   iOS
 *   Windows Phone 7 и 8 *
-*   Windows 8 *
+*   Windows 8 \***|
+*   Windows \***|
 
 * *Не поддерживают `onprogress` , ни `abort()` *
 
 ** *Не поддерживает `onprogress` *
+
+Частичная поддержка `onprogress` для закачки метод. `onprogress` вызывается с пустой ход событий благодаря Windows limitations_
 
 # FileTransfer
 
