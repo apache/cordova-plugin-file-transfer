@@ -229,8 +229,12 @@ exec(win, fail, 'FileTransfer', 'upload',
                         currentDownloadOp.promise = null;
                     }
 
-                    successCallback && successCallback(new FileEntry(storageFile.name, storageFile.path));
-                }, function (error) {
+                    var nativeURI = storageFile.path.replace(Windows.Storage.ApplicationData.current.localFolder.path, 'ms-appdata:///local')
+                        .replace(Windows.Storage.ApplicationData.current.temporaryFolder.path, 'ms-appdata:///temp')
+                        .replace('\\', '/');
+
+                    successCallback && successCallback(new FileEntry(storageFile.name, storageFile.path, null, nativeURI));
+                }, function(error) {
 
                     var result;
                     // Handle download error here. If download was cancelled,
