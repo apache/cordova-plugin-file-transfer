@@ -188,8 +188,8 @@ exec(win, fail, 'FileTransfer', 'upload',
         // Create internal download operation object
         fileTransferOps[downloadId] = new FileTransferOperation(FileTransferOperation.PENDING, null);
 
-        Windows.Storage.StorageFolder.getFolderFromPathAsync(path).then(function (storageFolder) {
-            storageFolder.createFileAsync(fileName, Windows.Storage.CreationCollisionOption.generateUniqueName).then(function (storageFile) {
+        var downloadCallback = function(storageFolder) {
+            storageFolder.createFileAsync(fileName, Windows.Storage.CreationCollisionOption.generateUniqueName).then(function(storageFile) {
 
                 // check if download isn't already cancelled
                 var downloadOp = fileTransferOps[downloadId];
@@ -272,11 +272,27 @@ exec(win, fail, 'FileTransfer', 'upload',
 
                     successCallback && successCallback(progressEvent, { keepCallback: true });
                 });
-            }, function (error) {
+            }, function(error) {
                 errorCallback && errorCallback(new FileTransferError(FileTransferError.FILE_NOT_FOUND_ERR, source, target, null, null, error));
             });
-        }, function (error) {
+        };
+        
+        var fileNotFoundErrorCallback = function(error) {
             errorCallback && errorCallback(new FileTransferError(FileTransferError.FILE_NOT_FOUND_ERR, source, target, null, null, error));
+        };
+
+        Windows.Storage.StorageFolder.getFolderFromPathAsync(path).then(downloadCallback, function (error) {
+            // Handle non-existent directory
+            if (error.number === -2147024894) {
+                var parent = path.substr(0, path.lastIndexOf('\\')),
+                    folderNameToCreate = path.substr(path.lastIndexOf('\\') + 1);
+
+                Windows.Storage.StorageFolder.getFolderFromPathAsync(parent).then(function(parentFolder) {
+                    parentFolder.createFolderAsync(folderNameToCreate).then(downloadCallback, fileNotFoundErrorCallback);
+                }, fileNotFoundErrorCallback);
+            } else {
+                fileNotFoundErrorCallback();
+            }
         });
     },
 
