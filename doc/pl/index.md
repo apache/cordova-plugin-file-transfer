@@ -34,11 +34,14 @@ Plugin pozwala na przesyłanie i pobieranie plików.
 *   Firefox OS **
 *   iOS
 *   Windows Phone 7 i 8 *
-*   Windows 8 *
+*   Windows 8 \***|
+*   Windows \***|
 
 * *Nie obsługują `onprogress` ani `abort()` *
 
 ** *Nie obsługują `onprogress` *
+
+Częściowe wsparcie `onprogress` dla przesłać Metoda. `onprogress` jest wywoływana z zdarzenie progress pusty z powodu Windows limitations_
 
 # FileTransfer
 
