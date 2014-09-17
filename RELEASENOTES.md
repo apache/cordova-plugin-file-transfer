@@ -113,3 +113,20 @@
 * CB-6781: Continue previous commit with one new instance (This closes #30)
 * CB-6781: add the exception text to the error object
 * CB-6890: Fix pluginManager access for 4.0.x branch
+
+### 0.4.6 (Sep 17, 2014)
+* CB-7471 cordova-plugin-file-transfer documentation translation
+* CB-7249 cordova-plugin-file-transfer documentation translation
+* CB-7423 fix spec28,29 lastProgressEvent not visible to afterEach function
+* Amazon related changes.
+* Remove dupe file windows+windows8 both use the same one
+* CB-7316 Updates docs with actual information.
+* CB-7316 Adds support for Windows platform, moves *Proxy files to proper directory.
+* CB-7316 Improves current specs compatibility:
+* added documentation for new test
+* CB-6466 Fix failing test due to recent url change
+* CB-6466 created mobile-spec test
+* Renamed test dir, added nested plugin.xml and test
+* Fixed failing spec.19 on wp8
+* added documentation to manual tests
+* CB-6961 port file-transfer tests to framework
