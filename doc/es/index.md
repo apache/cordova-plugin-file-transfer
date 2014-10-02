@@ -28,7 +28,7 @@ Este plugin te permite cargar y descargar archivos.
 
 ## Plataformas soportadas
 
-*   Amazon fuego OS
+*   Amazon fire OS
 *   Android
 *   BlackBerry 10
 *   Firefox OS **
@@ -43,7 +43,7 @@ Este plugin te permite cargar y descargar archivos.
 
 Apoyo parcial de `onprogress` para subir método `onprogress` se llama con el evento progress vacía debido a Windows limitations_
 
-# File Transfer
+# FileTransfer
 
 El `FileTransfer` objeto proporciona una manera de subir archivos mediante una solicitud HTTP de POST varias parte y para descargar archivos.
 
