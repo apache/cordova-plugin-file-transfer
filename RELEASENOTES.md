@@ -121,7 +121,7 @@
 * Amazon related changes.
 * Remove dupe file windows+windows8 both use the same one
 * CB-7316 Updates docs with actual information.
-* CB-7316 Adds support for Windows platform, moves *Proxy files to proper directory.
+* CB-7316 Adds support for Windows platform, moves \*Proxy files to proper directory.
 * CB-7316 Improves current specs compatibility:
 * added documentation for new test
 * CB-6466 Fix failing test due to recent url change
@@ -130,3 +130,8 @@
 * Fixed failing spec.19 on wp8
 * added documentation to manual tests
 * CB-6961 port file-transfer tests to framework
+
+### 0.4.7 (Oct 03, 2014)
+* Construct proper FileEntry with nativeURL property set
+* CB-7532 Handle non-existent download dirs properly
+* CB-7529 Adds support for 'ms-appdata' URIs for windows
