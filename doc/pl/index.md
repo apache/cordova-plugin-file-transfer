@@ -21,16 +21,16 @@
 
 Plugin pozwala na przesyłanie i pobieranie plików.
 
-## Instalacji
+## Instalacja
 
     cordova plugin add org.apache.cordova.file-transfer
     
 
 ## Obsługiwane platformy
 
-*   Amazon ogień OS
+*   Amazon Fire OS
 *   Android
-*   Jeżyna 10
+*   BlackBerry 10
 *   Firefox OS **
 *   iOS
 *   Windows Phone 7 i 8 *
@@ -166,7 +166,7 @@ A `FileUploadResult` obiekt jest przekazywany do funkcji callback sukces z `File
     
     *   Obecnie obsługiwane na iOS tylko.
 
-### iOS dziwactwa
+### Dziwactwa iOS
 
 *   Nie obsługuje `responseCode` lub`bytesSent`.
 
