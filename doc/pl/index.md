@@ -34,8 +34,8 @@ Plugin pozwala na przesyłanie i pobieranie plików.
 *   Firefox OS **
 *   iOS
 *   Windows Phone 7 i 8 *
-*   Windows 8 \***|
-*   Windows \***|
+*   Windows 8 ***|
+*   Windows ***|
 
 * *Nie obsługują `onprogress` ani `abort()` *
 
