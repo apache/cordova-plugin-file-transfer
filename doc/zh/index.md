@@ -34,8 +34,8 @@
 *   火狐瀏覽器作業系統 * *
 *   iOS
 *   Windows Phone 7 和 8 *
-*   Windows 8 \* * *|
-*   Windows \* * *|
+*   Windows 8 * * *|
+*   Windows * * *|
 
 **不支援 `onprogress` ，也不 `abort()` *
 

@@ -34,8 +34,8 @@
 *   Firefox の OS * *
 *   iOS
 *   Windows Phone 7 と 8 *
-*   Windows 8 \* * *|
-*   Windows \* * *|
+*   Windows 8 * * *|
+*   Windows * * *|
 
 **サポートしていない `onprogress` も `abort()` *
 

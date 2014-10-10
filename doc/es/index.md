@@ -34,8 +34,8 @@ Este plugin te permite cargar y descargar archivos.
 *   Firefox OS **
 *   iOS
 *   Windows Phone 7 y 8 *
-*   Windows 8 \***|
-*   Windows \***|
+*   Windows 8 ***|
+*   Windows ***|
 
 * *No son compatibles con `onprogress` ni `abort()` *
 
