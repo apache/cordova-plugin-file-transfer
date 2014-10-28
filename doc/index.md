@@ -68,9 +68,9 @@ __Parameters__:
 
 - __server__: URL of the server to receive the file, as encoded by `encodeURI()`.
 
-- __successCallback__: A callback that is passed a `Metadata` object. _(Function)_
+- __successCallback__: A callback that is passed a `FileUploadResult` object. _(Function)_
 
-- __errorCallback__: A callback that executes if an error occurs retrieving the `Metadata`. Invoked with a `FileTransferError` object. _(Function)_
+- __errorCallback__: A callback that executes if an error occurs retrieving the `FileUploadResult`. Invoked with a `FileTransferError` object. _(Function)_
 
 - __options__: Optional parameters _(Object)_. Valid keys:
   - __fileKey__: The name of the form element.  Defaults to `file`. (DOMString)
@@ -179,7 +179,7 @@ __Parameters__:
 
 - __successCallback__: A callback that is passed  a `FileEntry` object. _(Function)_
 
-- __errorCallback__: A callback that executes if an error occurs when retrieving the `Metadata`. Invoked with a `FileTransferError` object. _(Function)_
+- __errorCallback__: A callback that executes if an error occurs when retrieving the `FileEntry`. Invoked with a `FileTransferError` object. _(Function)_
 
 - __trustAllHosts__: Optional parameter, defaults to `false`. If set to `true`, it accepts all security certificates. This is useful because Android rejects self-signed security certificates. Not recommended for production use. Supported on Android and iOS. _(boolean)_
 
