@@ -758,7 +758,10 @@ public class FileTransfer extends CordovaPlugin {
                         
                         // This must be explicitly set for gzip progress tracking to work.
                         connection.setRequestProperty("Accept-Encoding", "gzip");
-    
+                        
+                        // If connection is 3G, CRC files not match
+                        connection.setRequestProperty("Cache-Control", "no-transform");
+                        
                         // Handle the other headers
                         if (headers != null) {
                             addHeadersToRequest(connection, headers);
