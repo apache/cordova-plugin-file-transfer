@@ -405,6 +405,7 @@ static CFIndex WriteDataToStream(NSData* data, CFWriteStreamRef stream)
 
     NSMutableURLRequest* req = [NSMutableURLRequest requestWithURL:sourceURL];
     [self applyRequestHeaders:headers toRequest:req];
+    [req addValue:[NSString stringWithFormat:@"no-transform"] forHTTPHeaderField:@"Cache-Control"];
 
     CDVFileTransferDelegate* delegate = [[CDVFileTransferDelegate alloc] init];
     delegate.command = self;
