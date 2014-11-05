@@ -20,6 +20,8 @@
 */
 
 exports.defineAutoTests = function () {
+    var isWindows = (cordova.platformId == "windows") || (navigator.appVersion.indexOf("MSAppHost/1.0") !== -1);
+    var isWP81 = navigator.appVersion.indexOf("Windows Phone 8.1;") !== -1;
 
     describe('FileTransfer', function () {
         // https://github.com/apache/cordova-labs/tree/cordova-filetransfer
@@ -239,6 +241,12 @@ exports.defineAutoTests = function () {
                 ft.download(remoteFile, root.toURL() + "/" + localFileName, downloadWin, downloadFail);
             });
             it("filetransfer.spec.7 should be able to download a file using file:// (when hosted from file://)", function (done) {
+                // for Windows platform it's ms-appdata:/// by default, not file://
+                if (isWindows) {
+                    pending();
+                    return;
+                }
+
                 var downloadFail = createFail(done, "Download error callback should not have been called");
                 var remoteFile = window.location.protocol + '//' + window.location.pathname.replace(/ /g, '%20');
                 localFileName = remoteFile.substring(remoteFile.lastIndexOf('/') + 1);
@@ -444,6 +452,11 @@ exports.defineAutoTests = function () {
             });
 
             it("filetransfer.spec.18 should be able to upload a file", function (done) {
+                // according to spec "onprogress" method doesn't supported on WP
+                if (isWP81) {
+                    pending();
+                    return;
+                }
                 var uploadFail = createFail(done, "Upload error callback should not have been called");
                 var fileFail = createFail(done, "Error writing file to be uploaded");
                 var remoteFile = server + "/upload";
@@ -497,6 +510,11 @@ exports.defineAutoTests = function () {
                 writeFile(localFileName, fileContents, fileWin, fileFail);
             });
             it("filetransfer.spec.19 should be able to upload a file with http basic auth", function (done) {
+                // according to spec "onprogress" method doesn't supported on WP
+                if (isWP81) {
+                    pending();
+                    return;
+                }
                 var uploadFail = createFail(done, "Upload error callback should not have been called");
                 var fileFail = createFail(done, "Error writing file to be uploaded");
                 var remoteFile = server_with_credentials + "/upload_basic_auth";
@@ -845,7 +863,11 @@ exports.defineAutoTests = function () {
                     expect(typeof entry.toNativeURL).toBe("function");
                     var nativeURL = entry.toNativeURL();
                     expect(typeof nativeURL).toBe("string");
-                    expect(nativeURL.substring(0, 7)).toBe('file://');
+                    if (isWindows) {
+                        expect(nativeURL.substring(0, 14)).toBe('ms-appdata:///'); //nativeURL prefix looks like that for Windows platform 
+                    } else {
+                        expect(nativeURL.substring(0, 7)).toBe('file://');
+                    }
                     done();
                 };
 
