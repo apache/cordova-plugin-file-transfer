@@ -21,6 +21,15 @@
 
 This plugin allows you to upload and download files.
 
+This plugin defines global `FileTransfer`, `FileUploadOptions` Constructors.
+
+Although in the global scope, they are not available until after the `deviceready` event.
+
+    document.addEventListener("deviceready", onDeviceReady, false);
+    function onDeviceReady() {
+        console.log(FileTransfer);
+    }
+
 ## Installation
 
     cordova plugin add org.apache.cordova.file-transfer
