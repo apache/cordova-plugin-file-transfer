@@ -1,4 +1,4 @@
-﻿/*
+/*
 *
 * Licensed to the Apache Software Foundation (ASF) under one
 * or more contributor license agreements.  See the NOTICE file
@@ -19,9 +19,9 @@
 *
 */
 
-    exports.defineAutoTests = function () {
-        var isWindows = (cordova.platformId == "windows") || (navigator.appVersion.indexOf("MSAppHost/1.0") !== -1);
-        var isWP81 = navigator.appVersion.indexOf("Windows Phone 8.1;") !== -1;
+exports.defineAutoTests = function () {
+    var isWindows = (cordova.platformId == "windows") || (navigator.appVersion.indexOf("MSAppHost/1.0") !== -1);
+    var isWP81 = navigator.appVersion.indexOf("Windows Phone 8.1;") !== -1;
 
     describe('FileTransfer', function () {
         // https://github.com/apache/cordova-labs/tree/cordova-filetransfer
