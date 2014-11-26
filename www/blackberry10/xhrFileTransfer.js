@@ -55,7 +55,7 @@ module.exports = {
     upload: function(win, fail, args) {
         var filePath = args[0],
             server = args[1],
-            fileKey = args[9],
+            fileKey = args[2],
             fileName = args[3],
             mimeType = args[4],
             params = args[5],
