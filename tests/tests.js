@@ -659,12 +659,6 @@ exports.defineAutoTests = function () {
 
                 it("filetransfer.spec.18 should be able to upload a file", function (done) {
 
-                    // according to spec "onprogress" method isn't supported on WP
-                    if (isWP81()) {
-                        pending();
-                        return;
-                    }
-
                     var fileURL = SERVER + '/upload';
 
                     var uploadWin = function (uploadResult) {
@@ -684,12 +678,6 @@ exports.defineAutoTests = function () {
                 });
 
                 it("filetransfer.spec.19 should be able to upload a file with http basic auth", function (done) {
-
-                    // according to spec "onprogress" method doesn't supported on WP
-                    if (isWP81()) {
-                        pending();
-                        return;
-                    }
 
                     var fileURL = SERVER_WITH_CREDENTIALS + "/upload_basic_auth";
 
