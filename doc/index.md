@@ -84,6 +84,7 @@ __Parameters__:
 - __options__: Optional parameters _(Object)_. Valid keys:
   - __fileKey__: The name of the form element.  Defaults to `file`. (DOMString)
   - __fileName__: The file name to use when saving the file on the server.  Defaults to `image.jpg`. (DOMString)
+  - __httpMethod__: The HTTP method to use - either `PUT` or `POST`. Defaults to `POST`. (DOMString)
   - __mimeType__: The mime type of the data to upload.  Defaults to `image/jpeg`. (DOMString)
   - __params__: A set of optional key/value pairs to pass in the HTTP request. (Object)
   - __chunkedMode__: Whether to upload the data in chunked streaming mode. Defaults to `true`. (Boolean)
