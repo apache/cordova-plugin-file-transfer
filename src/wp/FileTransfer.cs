@@ -311,27 +311,7 @@ namespace WPCordovaClassLib.Cordova.Commands
         {
             try
             {
-                Dictionary<string, string> result = new Dictionary<string, string>();
-
-                string temp = jsonHeaders.StartsWith("{") ? jsonHeaders.Substring(1) : jsonHeaders;
-                temp = temp.EndsWith("}") ? temp.Substring(0, temp.Length - 1) : temp;
-
-                string[] strHeaders = temp.Split(',');
-                for (int n = 0; n < strHeaders.Length; n++)
-                {
-                    // we need to use indexOf in order to WP7 compatible
-                    int splitIndex = strHeaders[n].IndexOf(':');
-                    if (splitIndex > 0)
-                    {
-                        string[] split = new string[2];
-                        split[0] = strHeaders[n].Substring(0, splitIndex);
-                        split[1] = strHeaders[n].Substring(splitIndex + 1);
-
-                        split[0] = JSON.JsonHelper.Deserialize<string>(split[0]);
-                        split[1] = JSON.JsonHelper.Deserialize<string>(split[1]);
-                        result[split[0]] = split[1];
-                    }
-                }
+                Dictionary<string, string> result = JSON.JsonHelper.Deserialize<Dictionary<string, string>>(jsonHeaders);
                 return result;
             }
             catch (Exception)
