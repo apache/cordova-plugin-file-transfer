@@ -135,3 +135,11 @@
 * Construct proper FileEntry with nativeURL property set
 * CB-7532 Handle non-existent download dirs properly
 * CB-7529 Adds support for 'ms-appdata' URIs for windows
+
+### 0.4.8 (Dec 02, 2014)
+* CB-8021 - adds documentation for `httpMethod` to `doc/index.md`. However, translations still need to be addressed.
+* CB-7223 spec.27 marked pending for **wp8**
+* CB-6900 fixed `spec.7` for **wp8**
+* CB-7944 Pended unsupported auto tests for *Windows*
+* CB-7977 Mention `deviceready` in plugin docs
+* CB-7700 cordova-plugin-file-transfer documentation translation: cordova-plugin-file-transfer
