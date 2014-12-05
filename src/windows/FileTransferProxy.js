@@ -236,34 +236,40 @@ exec(win, fail, 'FileTransfer', 'upload',
                     successCallback && successCallback(new FileEntry(storageFile.name, storageFile.path, null, nativeURI));
                 }, function(error) {
 
-                    var result;
-                    // Handle download error here. If download was cancelled,
-                    // message property will be specified
-                    if (error.message == 'Canceled') {
-                        result = new FileTransferError(FileTransferError.ABORT_ERR, source, target, null, null, error);
-                    } else {
-                        // in the other way, try to get response property
-                        var response = download.getResponseInformation();
-                        if (!response) {
-                            result = new FileTransferError(FileTransferError.CONNECTION_ERR, source, target);
-                        } else if (response.statusCode == 401 || response.statusCode == 404) {
-                            result = new FileTransferError(FileTransferError.FILE_NOT_FOUND_ERR, source, target, response.statusCode, null, error);
+                    var getTransferError = new WinJS.Promise(function (resolve) {
+                        // Handle download error here. If download was cancelled,
+                        // message property will be specified
+                        if (error.message === 'Canceled') {
+                            resolve(new FileTransferError(FileTransferError.ABORT_ERR, source, target, null, null, error));
+                        } else {
+                            // in the other way, try to get response property
+                            var response = download.getResponseInformation();
+                            if (!response) {
+                                resolve(new FileTransferError(FileTransferError.CONNECTION_ERR, source, target));
+                            } else {
+                                var reader = new Windows.Storage.Streams.DataReader(download.getResultStreamAt(0));
+                                reader.loadAsync(download.progress.bytesReceived).then(function (bytesLoaded) {
+                                    var payload = reader.readString(bytesLoaded);
+                                    resolve(new FileTransferError(FileTransferError.FILE_NOT_FOUND_ERR, source, target, response.statusCode, payload, error));
+                                });
+                            }
                         }
-                    }
-
-                    // Update TransferOperation object with new state, delete promise property
-                    // since it is not actual anymore
-                    var currentDownloadOp = fileTransferOps[downloadId];
-                    if (currentDownloadOp) {
-                        currentDownloadOp.state = FileTransferOperation.CANCELLED;
-                        currentDownloadOp.promise = null;
-                    }
-
-                    // Cleanup, remove incompleted file
-                    storageFile.deleteAsync().then(function () {
-                        errorCallback && errorCallback(result);
                     });
+                    getTransferError.then(function (fileTransferError) {
 
+                        // Update TransferOperation object with new state, delete promise property
+                        // since it is not actual anymore
+                        var currentDownloadOp = fileTransferOps[downloadId];
+                        if (currentDownloadOp) {
+                            currentDownloadOp.state = FileTransferOperation.CANCELLED;
+                            currentDownloadOp.promise = null;
+                        }
+
+                        // Cleanup, remove incompleted file
+                        storageFile.deleteAsync().then(function() {
+                            errorCallback && errorCallback(fileTransferError);
+                        });
+                    });
 
                 }, function(evt) {
 
