@@ -20,106 +20,151 @@
 */
 
 exports.defineAutoTests = function () {
-    var isWindows = (cordova.platformId == "windows") || (navigator.appVersion.indexOf("MSAppHost/1.0") !== -1);
-    var isWP81 = navigator.appVersion.indexOf("Windows Phone 8.1;") !== -1;
+
+    // constants
+    var GRACE_TIME_DELTA = 300 // in milliseconds
+    var UNKNOWN_HOST = "http://foobar.apache.org";
+    var HEADERS_ECHO = "http://whatheaders.com"; // NOTE: this site is very useful!
+
+    // config for upload test server
+    // NOTE:
+    //      more info at https://github.com/apache/cordova-labs/tree/cordova-filetransfer
+    var SERVER                  = "http://cordova-filetransfer.jitsu.com";
+    var SERVER_WITH_CREDENTIALS = "http://cordova_user:cordova_password@cordova-filetransfer.jitsu.com";
+
+    // flags
+    var isWindows = function() {
+        return (cordova.platformId == "windows") || (navigator.appVersion.indexOf("MSAppHost/1.0") !== -1);
+    };
+
+    var isWP81 = function() {
+        return navigator.appVersion.indexOf("Windows Phone 8.1;") !== -1;
+    };
+
+    describe('FileTransferError', function () {
+
+        it('should exist', function () {
+            expect(FileTransferError).toBeDefined();
+        });
+
+        it('should be constructable', function () {
+            var transferError = new FileTransferError();
+            expect(transferError).toBeDefined();
+        });
+
+        it('filetransfer.spec.3 should expose proper constants', function () {
+
+            expect(FileTransferError.FILE_NOT_FOUND_ERR).toBeDefined();
+            expect(FileTransferError.INVALID_URL_ERR).toBeDefined();
+            expect(FileTransferError.CONNECTION_ERR).toBeDefined();
+            expect(FileTransferError.ABORT_ERR).toBeDefined();
+            expect(FileTransferError.NOT_MODIFIED_ERR).toBeDefined();
+
+            expect(FileTransferError.FILE_NOT_FOUND_ERR).toBe(1);
+            expect(FileTransferError.INVALID_URL_ERR).toBe(2);
+            expect(FileTransferError.CONNECTION_ERR).toBe(3);
+            expect(FileTransferError.ABORT_ERR).toBe(4);
+            expect(FileTransferError.NOT_MODIFIED_ERR).toBe(5);
+        });
+    });
+
+    describe('FileUploadOptions', function () {
+
+        it('should exist', function () {
+            expect(FileUploadOptions).toBeDefined();
+        });
+
+        it('should be constructable', function () {
+            var transferOptions = new FileUploadOptions();
+            expect(transferOptions).toBeDefined();
+        });
+    });
 
     describe('FileTransfer', function () {
-        // https://github.com/apache/cordova-labs/tree/cordova-filetransfer
-        var server = "http://cordova-filetransfer.jitsu.com";
-        var server_with_credentials = "http://cordova_user:cordova_password@cordova-filetransfer.jitsu.com";
 
-        beforeEach(function () {
-            jasmine.Expectation.addMatchers({
-                toFailWithMessage: function () {
-                    return {
-                        compare: function (actual, customMessage) {
-                            var pass = false;
-                            if (customMessage === undefined) {
-                                customMessage = "Forced failure: wrong callback called";
-                            }
-                            return {
-                                pass: pass,
-                                message: customMessage
-                            };
+        var persistentRoot, tempRoot;
+
+        // named callbacks
+        var unexpectedCallbacks = {
+            httpFail:          function () {},
+            httpWin:           function () {},
+            fileSystemFail:    function () {},
+            fileSystemWin:     function () {},
+            fileOperationFail: function () {},
+            fileOperationWin:  function () {},
+        };
+
+        var expectedCallbacks = {
+            unsupported: function (data) {
+                console.log('functionality unsupported; response:', data);
+                pending();
+            },
+        };
+
+        // helpers
+        var deleteFile = function (fileSystem, name, done) {
+
+            fileSystem.getFile(name, null,
+                function (fileEntry) {
+                    fileEntry.remove(
+                        function () {
+                            console.log('deleted', name);
+                            done();
+                        },
+                        function () {
+                            console.log('failed to delete', name);
+                            done();
                         }
-                    };
-                }
-            });
-
-
-        });
-        var createFail = function (done, message) {
-            return function () {
-                expect(true).toFailWithMessage(message);
-                done();
-            }
-        }
-
-        var root, temp_root, persistent_root;
-        it("Filesystem set-up should execute without failure", function (done) {
-            var onError = function (e) {
-                expect(true).toFailWithMessage('[ERROR] Problem setting up root filesystem for test running! ' + JSON.stringify(e));
-                done();
-            };
-
-            var getTemp = function () {
-                window.requestFileSystem(LocalFileSystem.TEMPORARY, 0,
-                function (fileSystem) {
-                    console.log('File API test Init: Setting TEMPORARY FS.');
-                    temp_root = fileSystem.root; // set in file.tests.js
+                    );
+                },
+                function () {
+                    console.log('could not find', name);
                     done();
-                }, onError);
-                expect(true).toBe(true);
-            };
+                }
+            );
+        };
 
-            window.requestFileSystem(LocalFileSystem.PERSISTENT, 0,
-            function (fileSystem) {
-                console.log('File API test Init: Setting PERSISTENT FS.');
-                root = fileSystem.root; // set in file.tests.js
-                persistent_root = root;
-                getTemp();
-            }, onError);
-        });
+        var writeFile = function (fileSystem, name, content, done) {
 
-
-        // deletes and re-creates the specified content
-        var writeFile = function (fileName, fileContent, success, error) {
-
-            var callback = function () {
-                root.getFile(fileName, { create: true }, function (fileEntry) {
+            fileSystem.getFile(name, { create: true },
+                function (fileEntry) {
                     fileEntry.createWriter(function (writer) {
 
                         writer.onwrite = function (evt) {
-                            success(fileEntry);
+                            console.log('created', name);
+                            done();
                         };
 
                         writer.onabort = function (evt) {
-                            error(evt);
+                            console.log('aborted creating', name);
+                            done();
                         };
 
                         writer.error = function (evt) {
-                            error(evt);
+                            console.log('failed to create', name);
+                            done();
                         };
 
-                        writer.write(fileContent + "\n");
-                    }, error);
-                }, error);
-            };
+                        writer.write(content + "\n");
 
-            root.getFile(fileName, null, function (entry) {
-                entry.remove(callback, callback);
-            }, callback)
+                    }, unexpectedCallbacks.fileOperationFail);
+                },
+                function () {
+                    console.log('could not find', name);
+                    done();
+                }
+            );
         };
 
-        var readFileEntry = function (entry, success, error) {
-            entry.file(function (file) {
-                var reader = new FileReader();
-                reader.onerror = error;
-                reader.onload = function (e) {
-                    success(reader.result);
-                };
-                reader.readAsText(file);
-            }, error);
+        var defaultOnProgressHandler = function (event) {
+            if (event.lengthComputable) {
+                expect(event.loaded).toBeGreaterThan(1);
+                expect(event.total).toBeGreaterThan(0);
+                expect(event.total).not.toBeLessThan(event.loaded);
+                expect(event.lengthComputable).toBe(true, 'lengthComputable');
+            } else {
+                expect(event.total).toBe(0);
+            }
         };
 
         var getMalformedUrl = function () {
@@ -132,410 +177,427 @@ exports.defineAutoTests = function () {
             }
         };
 
-        // deletes file, if it exists
-        var deleteFile = function (fileName, done) {
-            var callback = function () { done(); };
-            root.getFile(fileName, null,
-                // remove file system entry
-                function (entry) {
-                    entry.remove(callback, callback);
+        // NOTE:
+        //      there are several beforeEach calls, one per async call; since calling done()
+        //      signifies a completed async call, each async call needs its own done(), and
+        //      therefore its own beforeEach
+        beforeEach(function (done) {
+            window.requestFileSystem(LocalFileSystem.PERSISTENT, 0,
+                function (fileSystem) {
+                    persistentRoot = fileSystem.root;
+                    done();
                 },
-                // doesn't exist
-                callback);
-        };
-
-        it("filetransfer.spec.1 should exist and be constructable", function () {
-            var ft = new FileTransfer();
-            expect(ft).toBeDefined();
-        });
-        it("filetransfer.spec.2 should contain proper functions", function () {
-            var ft = new FileTransfer();
-            expect(typeof ft.upload).toBe('function');
-            expect(typeof ft.download).toBe('function');
+                function () {
+                    throw new Error('Failed to initialize persistent file system.');
+                }
+            );
         });
 
-        describe('FileTransferError', function () {
-            it("filetransfer.spec.3 FileTransferError constants should be defined", function () {
-                expect(FileTransferError.FILE_NOT_FOUND_ERR).toBe(1);
-                expect(FileTransferError.INVALID_URL_ERR).toBe(2);
-                expect(FileTransferError.CONNECTION_ERR).toBe(3);
-            });
+        beforeEach(function (done) {
+            window.requestFileSystem(LocalFileSystem.TEMPORARY, 0,
+                function (fileSystem) {
+                    tempRoot = fileSystem.root;
+                    done();
+                },
+                function () {
+                    throw new Error('Failed to initialize temporary file system.');
+                }
+            );
         });
 
-        describe('download method', function () {
+        // spy on all unexpected callbacks
+        beforeEach(function() {
+            for (callback in unexpectedCallbacks) {
+                spyOn(unexpectedCallbacks, callback);
+            }
+        });
 
-            // NOTE: if download tests are failing, check the white list
-            //
-            //   <access origin="httpssss://example.com"/>
-            //   <access origin="apache.org" subdomains="true" />
-            //   <access origin="cordova-filetransfer.jitsu.com"/>
+        // at the end, check that none of the unexpected callbacks got called
+        afterEach(function() {
+            for (callback in unexpectedCallbacks) {
+                expect(unexpectedCallbacks[callback]).not.toHaveBeenCalled();
+            }
+        });
 
-            var localFileName = "";
-            afterEach(function (done) {
-                deleteFile(localFileName, done);
+        it('should initialise correctly', function() {
+            expect(persistentRoot).toBeDefined();
+            expect(tempRoot).toBeDefined();
+        });
+
+        it('should exist', function () {
+            expect(FileTransfer).toBeDefined();
+        });
+
+        it('filetransfer.spec.1 should be constructable', function () {
+            var transfer = new FileTransfer();
+            expect(transfer).toBeDefined();
+        });
+
+        it('filetransfer.spec.2 should expose proper functions', function () {
+
+            var transfer = new FileTransfer();
+
+            expect(transfer.upload).toBeDefined();
+            expect(transfer.download).toBeDefined();
+
+            expect(transfer.upload).toEqual(jasmine.any(Function));
+            expect(transfer.download).toEqual(jasmine.any(Function));
+        });
+
+        describe('methods', function() {
+
+            var transfer;
+
+            var root;
+            var fileName;
+            var localFilePath;
+
+            beforeEach(function() {
+
+                transfer = new FileTransfer();
+
+                // assign a default onprogress handler
+                transfer.onprogress = defaultOnProgressHandler;
+
+                // spy on the onprogress handler, but still call through to it
+                spyOn(transfer, 'onprogress').and.callThrough();
+
+                root          = persistentRoot;
+                fileName      = 'testFile';
+                localFilePath = root.toURL() + fileName;
             });
 
-            it("filetransfer.spec.4 should be able to download a file using http", function (done) {
-                var fileFail = createFail(done, "File error callback should not have been called");
-                var downloadFail = createFail(done, "Download error callback should not have been called");
-                var remoteFile = server + "/robots.txt"
-                localFileName = remoteFile.substring(remoteFile.lastIndexOf('/') + 1);
-                var lastProgressEvent = null;
+            // NOTE:
+            //      if download tests are failing, check the
+            //      URL white list for the following URLs:
+            //         - 'httpssss://example.com'
+            //         - 'apache.org', with subdomains="true"
+            //         - 'cordova-filetransfer.jitsu.com'
+            describe('download', function() {
 
-                var fileWin = function (blob) {
-                    expect(lastProgressEvent.loaded).not.toBeGreaterThan(blob.size);
-                    done();
+                // helpers
+                var verifyDownload = function (fileEntry) {
+                    expect(fileEntry.name).toBe(fileName);
                 };
 
-                var downloadWin = function (entry) {
-                    expect(entry.name).toBe(localFileName);
-                    expect(lastProgressEvent.loaded).toBeGreaterThan(1);
-                    if (lastProgressEvent.lengthComputable) {
-                        expect(lastProgressEvent.total).not.toBeLessThan(lastProgressEvent.loaded);
-                    } else {
-                        expect(lastProgressEvent.total).toBe(0);
-                    }
-                    entry.file(fileWin, fileFail);
-                };
-
-                var ft = new FileTransfer();
-                ft.onprogress = function (e) {
-                    lastProgressEvent = e;
-                }
-                ft.download(remoteFile, root.toURL() + "/" + localFileName, downloadWin, downloadFail);
-            });
-            it("filetransfer.spec.5 should be able to download a file using http basic auth", function (done) {
-                var downloadFail = createFail(done, "Download error callback should not have been called");
-                var remoteFile = server_with_credentials + "/download_basic_auth"
-                localFileName = remoteFile.substring(remoteFile.lastIndexOf('/') + 1);
-                var lastProgressEvent = null;
-
-                var downloadWin = function (entry) {
-                    expect(entry.name).toBe(localFileName);
-                    expect(lastProgressEvent.loaded).toBeGreaterThan(1);
-                    if (lastProgressEvent.lengthComputable) {
-                        expect(lastProgressEvent.total).not.toBeLessThan(lastProgressEvent.loaded);
-                    } else {
-                        expect(lastProgressEvent.total).toBe(0);
-                    }
-                    done();
-                };
-
-                var ft = new FileTransfer();
-                ft.onprogress = function (e) {
-                    lastProgressEvent = e;
-                };
-                ft.download(remoteFile, root.toURL() + "/" + localFileName, downloadWin, downloadFail);
-            });
-            it("filetransfer.spec.6 should get http status on basic auth failure", function (done) {
-                var downloadWin = createFail(done, "Download success callback should not have been called");
-                var remoteFile = server + "/download_basic_auth";
-                localFileName = remoteFile.substring(remoteFile.lastIndexOf('/') + 1);
-                var downloadFail = function (error) {
-                    expect(error.http_status).toBe(401);
-                    expect(error.http_status).not.toBe(404, "Ensure " + remoteFile + " is in the white list");
-                    done();
-                };
-
-                var ft = new FileTransfer();
-                ft.download(remoteFile, root.toURL() + "/" + localFileName, downloadWin, downloadFail);
-            });
-            it("filetransfer.spec.7 should be able to download a file using file:// (when hosted from file://)", function (done) {
-                // for Windows platform it's ms-appdata:/// by default, not file://
-                if (isWindows) {
-                    pending();
-                    return;
-                }
-
-                var downloadFail = createFail(done, "Download error callback should not have been called");
-                var remoteFile = window.location.protocol + '//' + window.location.pathname.replace(/ /g, '%20');
-                localFileName = remoteFile.substring(remoteFile.lastIndexOf('/') + 1);
-                var lastProgressEvent = null;
-
-                if (!/^file/.exec(remoteFile) && cordova.platformId !== 'blackberry10') {
-                    if (cordova.platformId !== 'windowsphone')
-                        expect(remoteFile).toMatch(/^file:/);
-                    else
-                        expect(remoteFile).toMatch(/^x-wmapp0:/);
-                    done();
-                    return;
-                }
-
-                var downloadWin = function (entry) {
-                    expect(entry.name).toBe(localFileName);
-                    expect(lastProgressEvent.loaded).toBeGreaterThan(1);
-                    if (lastProgressEvent.lengthComputable) {
-                        expect(lastProgressEvent.total).not.toBeLessThan(lastProgressEvent.loaded);
-                    } else {
-                        expect(lastProgressEvent.total).toBe(0);
-                    }
-                    done();
-                };
-
-                var ft = new FileTransfer();
-                ft.onprogress = function (e) {
-                    lastProgressEvent = e;
-                };
-                ft.download(remoteFile, root.toURL() + "/" + localFileName, downloadWin, downloadFail);
-            });
-            it("filetransfer.spec.8 should be able to download a file using https", function (done) {
-                var downloadFail = createFail(done, "Download error callback should not have been called. Ensure " + remoteFile + " is in the white-list");
-                var fileFail = createFail(done, "File error callback should not have been called");
-                var remoteFile = "https://www.apache.org/licenses/";
-                localFileName = 'httpstest.html';
-                var lastProgressEvent = null;
-
-                var downloadWin = function (entry) {
-                    readFileEntry(entry, fileWin, fileFail);
-                };
-                var fileWin = function (content) {
-                    expect(content).toMatch(/The Apache Software Foundation/);
-                    expect(lastProgressEvent.loaded).not.toBeGreaterThan(content.length);
-                    done();
-                };
-
-                var ft = new FileTransfer();
-                ft.onprogress = function (e) {
-                    lastProgressEvent = e;
-                };
-                ft.download(remoteFile, root.toURL() + "/" + localFileName, downloadWin, downloadFail);
-            });
-            it("filetransfer.spec.9 should not leave partial file due to abort", function (done) {
-                var downloadWin = createFail(done, "Download success callback should not have been called");
-                var fileWin = createFail(done, "File existed after abort");
-                var remoteFile = 'http://cordova.apache.org/downloads/logos_2.zip';
-                localFileName = remoteFile.substring(remoteFile.lastIndexOf('/') + 1);
-                var startTime = +new Date();
-
-                var downloadFail = function (e) {
-                    expect(e.code).toBe(FileTransferError.ABORT_ERR);
-                    root.getFile(localFileName, null, fileWin, function () {
-                        done();
-                    });
-                };
-
-                var ft = new FileTransfer();
-                ft.onprogress = function (e) {
-                    if (e.loaded > 0) {
-                        ft.abort();
-                    }
-                };
-                ft.download(remoteFile, root.toURL() + "/" + localFileName, downloadWin, downloadFail);
-            });
-            it("filetransfer.spec.10 should be stopped by abort() right away", function (done) {
-                var downloadWin = createFail(done, "Download success callback should not have been called");
-                var remoteFile = 'http://cordova.apache.org/downloads/BlueZedEx.mp3';
-                localFileName = remoteFile.substring(remoteFile.lastIndexOf('/') + 1);
-                var startTime = +new Date();
-
-                var downloadFail = function (e) {
-                    expect(e.code).toBe(FileTransferError.ABORT_ERR);
-                    expect(new Date() - startTime).toBeLessThan(300);
-                    done();
-                };
-                var ft = new FileTransfer();
-                ft.abort(); // should be a no-op.
-                ft.download(remoteFile, root.toURL() + "/" + localFileName, downloadWin, downloadFail);
-                ft.abort();
-                ft.abort(); // should be a no-op.
-            });
-            it("filetransfer.spec.11 should call the error callback on abort()", function (done) {
-                var downloadWin = createFail(done, "Download success callback should not have been called");
-                var remoteFile = 'http://cordova.apache.org/downloads/BlueZedEx.mp3';
-                localFileName = remoteFile.substring(remoteFile.lastIndexOf('/') + 1);
-                var startTime = +new Date();
-
-                var downloadFail = function (e) {
-                    console.log("Abort called");
-                    done();
-                };
-                var ft = new FileTransfer();
-                ft.abort(); // should be a no-op.
-                ft.download(remoteFile, root.toURL() + "/" + localFileName, downloadWin, downloadFail);
-                ft.abort();
-                ft.abort(); // should be a no-op.
-            });
-            it("filetransfer.spec.12 should get http status on failure", function (done) {
-                var downloadWin = createFail(done, "Download success callback should not have been called");
-                var remoteFile = server + "/404";
-                localFileName = remoteFile.substring(remoteFile.lastIndexOf('/') + 1);
-                var downloadFail = function (error) {
-                    expect(error.http_status).toBe(404);
-                    expect(error.http_status).not.toBe(401, "Ensure " + remoteFile + " is in the white list");
-                    done();
-                };
-
-                var ft = new FileTransfer();
-                ft.download(remoteFile, root.toURL() + "/" + localFileName, downloadWin, downloadFail);
-            });
-            it("filetransfer.spec.13 should get response body on failure", function (done) {
-                var downloadWin = createFail(done, "Download success callback should not have been called");
-                var remoteFile = server + "/404";
-                localFileName = remoteFile.substring(remoteFile.lastIndexOf('/') + 1);
-                var downloadFail = function (error) {
-                    expect(error.body).toBeDefined();
-                    expect(error.body).toMatch('You requested a 404');
-                    done();
-                };
-
-                var ft = new FileTransfer();
-                ft.download(remoteFile, root.toURL() + "/" + localFileName, downloadWin, downloadFail);
-            });
-            it("filetransfer.spec.14 should handle malformed urls", function (done) {
-                var downloadWin = createFail(done, "Download success callback should not have been called");
-                var remoteFile = getMalformedUrl();
-                localFileName = "download_malformed_url.txt";
-                var downloadFail = function (error) {
-                    // Note: Android needs the bad protocol to be added to the access list
-                    // <access origin=".*"/> won't match because ^https?:// is prepended to the regex
-                    // The bad protocol must begin with http to avoid automatic prefix
-                    expect(error.http_status).not.toBe(401, "Ensure " + remoteFile + " is in the white list");
-                    expect(error.code).toBe(FileTransferError.INVALID_URL_ERR);
-                    done();
-                };
-
-                var ft = new FileTransfer();
-                ft.download(remoteFile, root.toURL() + "/" + localFileName, downloadWin, downloadFail);
-            });
-            it("filetransfer.spec.15 should handle unknown host", function (done) {
-                var downloadWin = createFail(done, "Download success callback should not have been called");
-                var remoteFile = "http://foobar.apache.org/index.html";
-                localFileName = remoteFile.substring(remoteFile.lastIndexOf('/') + 1);
-                var downloadFail = function (error) {
-                    expect(error.code).toBe(FileTransferError.CONNECTION_ERR);
-                    done();
-                };
-
-                var ft = new FileTransfer();
-                ft.download(remoteFile, root.toURL() + "/" + localFileName, downloadWin, downloadFail);
-            });
-            it("filetransfer.spec.16 should handle bad file path", function (done) {
-                var downloadWin = createFail(done, "Download success callback should not have been called");
-                var remoteFile = server;
-                var badFilePath = "c:\\54321";
-
-                var ft = new FileTransfer();
-                ft.download(remoteFile, badFilePath, downloadWin, function () {
-                    done();
+                // delete the downloaded file
+                afterEach(function (done) {
+                    deleteFile(root, fileName, done);
                 });
-            });
-            it("filetransfer.spec.17 progress should work with gzip encoding", function (done) {
-                //lengthComputable false on bb10 when downloading gzip 
-                if (cordova.platformId === 'blackberry10') {
-                    done();
-                    return;
-                }
 
-                var downloadFail = createFail(done, "Download error callback should not have been called");
-                var remoteFile = "http://www.apache.org/";
-                localFileName = "index.html";
-                var lastProgressEvent = null;
+                it('filetransfer.spec.4 should download a file', function (done) {
 
-                var downloadWin = function (entry) {
-                    expect(entry.name).toBe(localFileName);
-                    expect(lastProgressEvent.loaded).toBeGreaterThan(1, 'loaded');
-                    expect(lastProgressEvent.total).not.toBeLessThan(lastProgressEvent.loaded);
-                    expect(lastProgressEvent.lengthComputable).toBe(true, 'lengthComputable');
-                    done();
-                };
+                    var fileURL = SERVER + '/robots.txt';
 
-                var ft = new FileTransfer();
-                ft.onprogress = function (e) {
-                    lastProgressEvent = e;
-                };
-                ft.download(remoteFile, root.toURL() + "/" + localFileName, downloadWin, downloadFail);
-            });
-        });
+                    var fileWin = function (blob) {
 
-        describe('upload method', function () {
+                        if (transfer.onprogress.calls.any()) {
+                            var lastProgressEvent = transfer.onprogress.calls.mostRecent().args[0];
+                            expect(lastProgressEvent.loaded).not.toBeGreaterThan(blob.size);
+                        } else {
+                            console.log('no progress events were emitted');
+                        }
 
-            var localFileName = "";
-            afterEach(function (done) {
-                deleteFile(localFileName, done);
-            });
-
-            it("filetransfer.spec.18 should be able to upload a file", function (done) {
-                // according to spec "onprogress" method doesn't supported on WP
-                if (isWP81) {
-                    pending();
-                    return;
-                }
-                var uploadFail = createFail(done, "Upload error callback should not have been called");
-                var fileFail = createFail(done, "Error writing file to be uploaded");
-                var remoteFile = server + "/upload";
-                localFileName = "upload.txt";
-                var fileContents = 'This file should upload';
-                var lastProgressEvent = null;
-
-                var uploadWin = function (uploadResult) {
-                    expect(uploadResult.bytesSent).toBeGreaterThan(0);
-                    expect(uploadResult.responseCode).toBe(200);
-                    var obj = null;
-                    try {
-                        obj = JSON.parse(uploadResult.response);
-                        expect(obj.fields).toBeDefined();
-                        expect(obj.fields.value1).toBe("test");
-                        expect(obj.fields.value2).toBe("param");
-                    } catch (e) {
-                        expect(obj).not.toBeNull('returned data from server should be valid json');
-                    }
-                    expect(lastProgressEvent).not.toBeNull('expected progress events');
-                    if (cordova.platformId == 'ios') {
-                        expect(uploadResult.headers && uploadResult.headers['Content-Type']).toBeDefined('Expected content-type header to be defined.');
-                    }
-                    done();
-                };
-
-                var fileWin = function (fileEntry) {
-                    ft = new FileTransfer();
-
-                    var options = new FileUploadOptions();
-                    options.fileKey = "file";
-                    options.fileName = localFileName;
-                    options.mimeType = "text/plain";
-
-                    var params = new Object();
-                    params.value1 = "test";
-                    params.value2 = "param";
-                    options.params = params;
-
-                    ft.onprogress = function (e) {
-                        lastProgressEvent = e;
-                        expect(e.lengthComputable).toBe(true);
-                        expect(e.total).toBeGreaterThan(0);
-                        expect(e.loaded).toBeGreaterThan(0);
-                        expect(lastProgressEvent.total).not.toBeLessThan(lastProgressEvent.loaded);
+                        done();
                     };
 
-                    // removing options cause Android to timeout
-                    ft.upload(fileEntry.toURL(), remoteFile, uploadWin, uploadFail, options);
-                };
-                writeFile(localFileName, fileContents, fileWin, fileFail);
+                    var downloadWin = function (entry) {
+
+                        verifyDownload(entry);
+
+                        // verify the FileEntry representing this file
+                        entry.file(fileWin, unexpectedCallbacks.fileSystemFail);
+                    };
+
+                    transfer.download(fileURL, localFilePath, downloadWin, unexpectedCallbacks.httpFail);
+                });
+
+                it('filetransfer.spec.5 should download a file using http basic auth', function (done) {
+
+                    var fileURL = SERVER_WITH_CREDENTIALS + '/download_basic_auth';
+
+                    var downloadWin = function (entry) {
+                        verifyDownload(entry);
+                        done();
+                    };
+
+                    transfer.download(fileURL, localFilePath, downloadWin, unexpectedCallbacks.httpFail);
+                });
+
+                it('filetransfer.spec.6 should get 401 status on http basic auth failure', function (done) {
+
+                    // NOTE:
+                    //      using server without credentials
+                    var fileURL = SERVER + '/download_basic_auth';
+
+                    var downloadFail = function (error) {
+                        expect(error.http_status).toBe(401);
+                        expect(error.http_status).not.toBe(404, "Ensure " + fileURL + " is in the white list");
+                        done();
+                    };
+
+                    transfer.download(fileURL, localFilePath, unexpectedCallbacks.httpWin, downloadFail);
+                });
+
+                it("filetransfer.spec.7 should download a file using file:// (when hosted from file://)", function (done) {
+
+                    // for Windows platform it's ms-appdata:/// by default, not file://
+                    if (isWindows()) {
+                        pending();
+                        return;
+                    }
+
+                    var fileURL = window.location.protocol + '//' + window.location.pathname.replace(/ /g, '%20');
+
+                    if (!/^file/.exec(fileURL) && cordova.platformId !== 'blackberry10') {
+                        if (cordova.platformId !== 'windowsphone')
+                            expect(fileURL).toMatch(/^file:/);
+                        else
+                            expect(fileURL).toMatch(/^x-wmapp0:/);
+                        done();
+                        return;
+                    }
+
+                    var downloadWin = function (entry) {
+                        verifyDownload(entry);
+                        done();
+                    };
+
+                    transfer.download(fileURL, localFilePath, downloadWin, unexpectedCallbacks.httpFail);
+                });
+
+                it("filetransfer.spec.8 should download a file using https://", function (done) {
+
+                    var fileURL = "https://www.apache.org/licenses/";
+
+                    var fileWin = function (file) {
+
+                        var reader = new FileReader();
+
+                        reader.onerror = unexpectedCallbacks.fileOperationFail;
+                        reader.onload  = function (e) {
+                            expect(reader.result).toMatch(/The Apache Software Foundation/);
+                            done();
+                        };
+
+                        reader.readAsText(file);
+                    };
+
+                    var downloadWin = function (entry) {
+                        verifyDownload(entry);
+                        entry.file(fileWin, unexpectedCallbacks.fileSystemFail);
+                    };
+
+                    transfer.download(fileURL, localFilePath, downloadWin, unexpectedCallbacks.httpFail);
+                });
+
+                it("filetransfer.spec.11 should call the error callback on abort()", function (done) {
+
+                    var fileURL = 'http://cordova.apache.org/downloads/BlueZedEx.mp3';
+
+                    transfer.download(fileURL, localFilePath, unexpectedCallbacks.httpWin, done);
+                    transfer.abort();
+                });
+
+                it("filetransfer.spec.9 should not leave partial file due to abort", function (done) {
+
+                    var fileURL = 'http://cordova.apache.org/downloads/logos_2.zip';
+
+                    var downloadFail = function (error) {
+
+                        expect(error.code).toBe(FileTransferError.ABORT_ERR);
+                        expect(transfer.onprogress).toHaveBeenCalled();
+
+                        // check that there is no file
+                        root.getFile(localFilePath, null, unexpectedCallbacks.fileSystemWin, done);
+                    };
+
+                    // abort at the first onprogress event
+                    transfer.onprogress = function (event) {
+                        if (event.loaded > 0) {
+                            transfer.abort();
+                        }
+                    };
+
+                    spyOn(transfer, 'onprogress').and.callThrough();
+
+                    transfer.download(fileURL, localFilePath, unexpectedCallbacks.httpWin, downloadFail);
+                });
+
+                it("filetransfer.spec.10 should be stopped by abort() right away", function (done) {
+
+                    var fileURL = 'http://cordova.apache.org/downloads/BlueZedEx.mp3';
+
+                    expect(transfer.abort).not.toThrow(); // should be a no-op.
+
+                    var startTime = +new Date();
+
+                    var downloadFail = function (error) {
+
+                        expect(error.code).toBe(FileTransferError.ABORT_ERR);
+                        expect(new Date() - startTime).toBeLessThan(GRACE_TIME_DELTA);
+
+                        // delay calling done() to wait for the bogus abort()
+                        setTimeout(done, GRACE_TIME_DELTA * 2);
+                    };
+
+                    transfer.download(fileURL, localFilePath, unexpectedCallbacks.httpWin, downloadFail);
+                    transfer.abort();
+
+                    // call abort() again, after a time greater than the grace period
+                    setTimeout(function () {
+                        expect(transfer.abort).not.toThrow();
+                    }, GRACE_TIME_DELTA);
+                });
+
+                it("filetransfer.spec.12 should get http status on failure", function (done) {
+
+                    var fileURL = SERVER + "/404";
+
+                    var downloadFail = function (error) {
+
+                        expect(error.http_status).not.toBe(401, "Ensure " + fileURL + " is in the white list");
+                        expect(error.http_status).toBe(404);
+
+                        done();
+                    };
+
+                    transfer.download(fileURL, localFilePath, unexpectedCallbacks.httpWin, downloadFail);
+                });
+
+                it("filetransfer.spec.13 should get http body on failure", function (done) {
+
+                    var fileURL = SERVER + "/404";
+
+                    var downloadFail = function (error) {
+
+                        expect(error.http_status).not.toBe(401, "Ensure " + fileURL + " is in the white list");
+                        expect(error.http_status).toBe(404);
+
+                        expect(error.body).toBeDefined();
+                        expect(error.body).toMatch('You requested a 404');
+
+                        done();
+                    };
+
+                    transfer.download(fileURL, localFilePath, unexpectedCallbacks.httpWin, downloadFail);
+                });
+
+                it("filetransfer.spec.14 should handle malformed urls", function (done) {
+
+                    var fileURL = getMalformedUrl();
+
+                    var downloadFail = function (error) {
+
+                        // Note: Android needs the bad protocol to be added to the access list
+                        // <access origin=".*"/> won't match because ^https?:// is prepended to the regex
+                        // The bad protocol must begin with http to avoid automatic prefix
+                        expect(error.http_status).not.toBe(401, "Ensure " + fileURL + " is in the white list");
+                        expect(error.code).toBe(FileTransferError.INVALID_URL_ERR);
+
+                        done();
+                    };
+
+                    transfer.download(fileURL, localFilePath, unexpectedCallbacks.httpWin, downloadFail);
+                });
+
+                it("filetransfer.spec.15 should handle unknown host", function (done) {
+
+                    var fileURL = UNKNOWN_HOST;
+
+                    var downloadFail = function (error) {
+                        expect(error.code).toBe(FileTransferError.CONNECTION_ERR);
+                        done();
+                    };
+
+                    // turn off the onprogress handler
+                    transfer.onprogress = function () {};
+
+                    transfer.download(fileURL, localFilePath, unexpectedCallbacks.httpWin, downloadFail);
+                });
+
+                it("filetransfer.spec.16 should handle bad file path", function (done) {
+                    var fileURL = SERVER;
+                    transfer.download(fileURL, "c:\\54321", unexpectedCallbacks.httpWin, done);
+                });
+
+                it("filetransfer.spec.17 progress should work with gzip encoding", function (done) {
+
+                    // lengthComputable false on bb10 when downloading gzip
+                    if (cordova.platformId === 'blackberry10') {
+                        pending();
+                        return;
+                    }
+
+                    var fileURL = "http://www.apache.org/";
+
+                    var downloadWin = function (entry) {
+                        verifyDownload(entry);
+                        done();
+                    };
+
+                    transfer.download(fileURL, fileName, downloadWin, unexpectedCallbacks.httpFail);
+                });
+
+                it("filetransfer.spec.30 downloaded file entries should have a toNativeURL method", function (done) {
+
+                    var fileURL = SERVER + "/robots.txt";
+
+                    var downloadWin = function (entry) {
+
+                        expect(entry.toNativeURL).toBeDefined();
+                        expect(entry.toNativeURL).toEqual(jasmine.any(Function));
+
+                        var nativeURL = entry.toNativeURL();
+
+                        expect(nativeURL).toBeTruthy();
+                        expect(nativeURL).toEqual(jasmine.any(String));
+
+                        if (isWindows()) {
+                            expect(nativeURL.substring(0, 14)).toBe('ms-appdata:///');
+                        } else {
+                            expect(nativeURL.substring(0, 7)).toBe('file://');
+                        }
+
+                        done();
+                    };
+
+                    transfer.download(fileURL, localFilePath, downloadWin, unexpectedCallbacks.httpFail);
+                });
+
+                it("filetransfer.spec.28 (compatibility) should be able to download a file using local paths", function (done) {
+
+                    var fileURL = SERVER + "/robots.txt";
+
+                    var downloadWin = function (entry) {
+                        verifyDownload(entry);
+                        done();
+                    };
+
+                    // This is an undocumented interface to File which exists only for testing
+                    // backwards compatibilty. By obtaining the raw filesystem path of the download
+                    // location, we can pass that to transfer.download() to make sure that previously-stored
+                    // paths are still valid.
+                    cordova.exec(function (localPath) {
+                        transfer.download(fileURL, localPath, downloadWin, unexpectedCallbacks.httpFail);
+                    }, expectedCallbacks.unsupported, 'File', '_getLocalFilesystemPath', [localFilePath]);
+                });
             });
-            it("filetransfer.spec.19 should be able to upload a file with http basic auth", function (done) {
-                // according to spec "onprogress" method doesn't supported on WP
-                if (isWP81) {
-                    pending();
-                    return;
-                }
-                var uploadFail = createFail(done, "Upload error callback should not have been called");
-                var fileFail = createFail(done, "Error writing file to be uploaded");
-                var remoteFile = server_with_credentials + "/upload_basic_auth";
-                localFileName = "upload.txt";
-                var fileContents = 'This file should upload';
-                var lastProgressEvent = null;
 
-                var ft = new FileTransfer();
-                ft.onprogress = function (e) {
-                    expect(e.lengthComputable).toBe(true);
-                    expect(e.total).toBeGreaterThan(0);
-                    expect(e.loaded).toBeGreaterThan(0);
-                    lastProgressEvent = e;
-                };
+            describe('upload', function() {
 
-                var uploadWin = function (uploadResult) {
+                var uploadParams;
+                var uploadOptions;
+
+                var fileName;
+                var localFilePath;
+
+                // helpers
+                var verifyUpload = function (uploadResult) {
+
                     expect(uploadResult.bytesSent).toBeGreaterThan(0);
                     expect(uploadResult.responseCode).toBe(200);
+
                     var obj = null;
                     try {
                         obj = JSON.parse(uploadResult.response);
@@ -545,340 +607,223 @@ exports.defineAutoTests = function () {
                     } catch (e) {
                         expect(obj).not.toBeNull('returned data from server should be valid json');
                     }
-                    expect(lastProgressEvent).not.toBeNull('expected progress events');
-                    expect(lastProgressEvent.loaded).toBeGreaterThan(1, 'loaded');
-                    expect(lastProgressEvent.total).not.toBeLessThan(lastProgressEvent.loaded);
-                    done();
+
+                    expect(transfer.onprogress).toHaveBeenCalled();
                 };
 
-                var fileWin = function (fileEntry) {
-                    var options = new FileUploadOptions();
-                    options.fileKey = "file";
-                    options.fileName = localFileName;
-                    options.mimeType = "text/plain";
+                beforeEach(function(done) {
 
-                    var params = new Object();
-                    params.value1 = "test";
-                    params.value2 = "param";
-                    options.params = params;
+                    fileName      = 'fileToUpload';
+                    localFilePath = root.toURL() + fileName;
+                    fileContents  = 'upload test file';
 
+                    uploadParams        = new Object();
+                    uploadParams.value1 = "test";
+                    uploadParams.value2 = "param";
 
-                    // removing options cause Android to timeout
-                    ft.upload(fileEntry.toURL(), remoteFile, uploadWin, uploadFail, options);
-                };
+                    uploadOptions          = new FileUploadOptions();
+                    uploadOptions.fileKey  = "file";
+                    uploadOptions.fileName = fileName;
+                    uploadOptions.mimeType = "text/plain";
+                    uploadOptions.params   = uploadParams;
 
-                writeFile(localFileName, fileContents, fileWin, fileFail);
-            });
-            it("filetransfer.spec.21 should be stopped by abort() right away.", function (done) {
-                var uploadWin = createFail(done, "Upload success callback should not have been called");
-                var fileFail = createFail(done, "Error writing file to be uploaded");
-                var remoteFile = server + "/upload";
-                localFileName = "upload.txt";
-                var startTime;
+                    // create a file to upload
+                    writeFile(root, fileName, fileContents, done);
+                });
 
-                var uploadFail = function (e) {
-                    expect(e.code).toBe(FileTransferError.ABORT_ERR);
-                    expect(new Date() - startTime).toBeLessThan(300);
-                    done();
-                };
+                // delete the uploaded file
+                afterEach(function (done) {
+                    deleteFile(root, fileName, done);
+                });
 
-                var fileWin = function (fileEntry) {
-                    ft = new FileTransfer();
+                it("filetransfer.spec.18 should be able to upload a file", function (done) {
 
-                    var options = new FileUploadOptions();
-                    options.fileKey = "file";
-                    options.fileName = localFileName;
-                    options.mimeType = "text/plain";
+                    // according to spec "onprogress" method isn't supported on WP
+                    if (isWP81()) {
+                        pending();
+                        return;
+                    }
 
-                    startTime = +new Date();
-                    // removing options cause Android to timeout
-                    ft.abort(); // should be a no-op.
-                    ft.upload(fileEntry.toURL(), remoteFile, uploadWin, uploadFail, options);
-                    ft.abort();
-                    ft.abort(); // should be a no-op.
-                };
+                    var fileURL = SERVER + '/upload';
 
-                writeFile(localFileName, new Array(10000).join('aborttest!'), fileWin, fileFail);
-            });
-            it("filetransfer.spec.12 should get http status on failure", function (done) {
-                var uploadWin = createFail(done, "Upload success callback should not have been called");
-                var fileFail = createFail(done, "Error writing file to be uploaded");
-                var remoteFile = server + "/403";
-                localFileName = "upload_expect_fail.txt";
-                var uploadFail = function (error) {
-                    expect(error.http_status).toBe(403);
-                    expect(error.http_status).not.toBe(401, "Ensure " + remoteFile + " is in the white list");
-                    done();
-                };
+                    var uploadWin = function (uploadResult) {
 
-                var fileWin = function (fileEntry) {
-                    var ft = new FileTransfer();
+                        verifyUpload(uploadResult);
 
-                    var options = new FileUploadOptions();
-                    options.fileKey = "file";
-                    options.fileName = fileEntry.name;
-                    options.mimeType = "text/plain";
+                        if (cordova.platformId == 'ios') {
+                            expect(uploadResult.headers).toBeDefined('Expected headers to be defined.');
+                            expect(uploadResult.headers['Content-Type']).toBeDefined('Expected content-type header to be defined.');
+                        }
 
-                    ft.upload(fileEntry.toURL(), remoteFile, uploadWin, uploadFail, options);
-                };
+                        done();
+                    };
 
-                writeFile(localFileName, "this file should fail to upload", fileWin, fileFail);
-            });
-            it("filetransfer.spec.14 should handle malformed urls", function (done) {
-                var uploadWin = createFail(done, "Upload success callback should not have been called");
-                var fileFail = createFail(done, "Error writing file to be uploaded");
-                var remoteFile = getMalformedUrl();
-                localFileName = "malformed_url.txt";
+                    // NOTE: removing uploadOptions cause Android to timeout
+                    transfer.upload(localFilePath, fileURL, uploadWin, unexpectedCallbacks.httpFail, uploadOptions);
+                });
 
-                var uploadFail = function (error) {
-                    expect(error.code).toBe(FileTransferError.INVALID_URL_ERR);
-                    expect(error.http_status).not.toBe(401, "Ensure " + remoteFile + " is in the white list");
-                    done();
-                };
-                var fileWin = function (fileEntry) {
-                    var ft = new FileTransfer();
-                    ft.upload(fileEntry.toURL(), remoteFile, uploadWin, uploadFail, {});
-                };
+                it("filetransfer.spec.19 should be able to upload a file with http basic auth", function (done) {
 
-                writeFile(localFileName, "Some content", fileWin, fileFail);
-            });
-            it("filetransfer.spec.15 should handle unknown host", function (done) {
-                var uploadWin = createFail(done, "Upload success callback should not have been called");
-                var fileFail = createFail(done, "Error writing file to be uploaded");
-                var remoteFile = "http://foobar.apache.org/robots.txt";
-                localFileName = remoteFile.substring(remoteFile.lastIndexOf('/') + 1);
+                    // according to spec "onprogress" method doesn't supported on WP
+                    if (isWP81()) {
+                        pending();
+                        return;
+                    }
 
-                var uploadFail = function (error) {
-                    expect(error.code).toBe(FileTransferError.CONNECTION_ERR);
-                    expect(error.http_status).not.toBe(401, "Ensure " + remoteFile + " is in the white list");
-                    done();
-                };
-                var fileWin = function (fileEntry) {
-                    var ft = new FileTransfer();
-                    ft.upload(fileEntry.toURL(), remoteFile, uploadWin, uploadFail, {});
-                };
+                    var fileURL = SERVER_WITH_CREDENTIALS + "/upload_basic_auth";
 
-                writeFile(localFileName, "# allow all", fileWin, fileFail);
-            });
-            it("filetransfer.spec.25 should handle missing file", function (done) {
-                var uploadWin = createFail(done, "Upload success callback should not have been called");
-                var remoteFile = server + "/upload";
-                localFileName = "does_not_exist.txt";
+                    var uploadWin = function (uploadResult) {
+                        verifyUpload(uploadResult);
+                        done();
+                    };
 
-                var uploadFail = function (error) {
-                    expect(error.code).toBe(FileTransferError.FILE_NOT_FOUND_ERR);
-                    expect(error.http_status).not.toBe(401, "Ensure " + remoteFile + " is in the white list");
-                    done();
-                };
+                    // NOTE: removing uploadOptions cause Android to timeout
+                    transfer.upload(localFilePath, fileURL, uploadWin, unexpectedCallbacks.httpFail, uploadOptions);
+                });
 
-                var ft = new FileTransfer();
-                ft.upload(root.toURL() + "/" + localFileName, remoteFile, uploadWin, uploadFail);
-            });
-            it("filetransfer.spec.16 should handle bad file path", function (done) {
-                var uploadWin = createFail(done, "Upload success callback should not have been called");
-                var remoteFile = server + "/upload";
+                it("filetransfer.spec.21 should be stopped by abort() right away", function (done) {
 
-                var uploadFail = function (error) {
-                    expect(error.http_status).not.toBe(401, "Ensure " + remoteFile + " is in the white list");
-                    done();
-                };
+                    var fileURL = SERVER + '/upload';
+                    var startTime;
 
-                var ft = new FileTransfer();
-                ft.upload("/usr/local/bad/file/path.txt", remoteFile, uploadWin, uploadFail);
-            });
-            it("filetransfer.spec.27 should be able to set custom headers", function (done) {
-                if (cordova.platformId === 'windowsphone') {
-                    pending();
-                }
-                var uploadFail = createFail(done, "Upload error callback should not have been called");
-                var fileFail = createFail(done, "Error writing file to be uploaded");
-                var remoteFile = "http://whatheaders.com";
-                localFileName = "upload.txt";
+                    var uploadFail = function (e) {
+                        expect(e.code).toBe(FileTransferError.ABORT_ERR);
+                        expect(new Date() - startTime).toBeLessThan(GRACE_TIME_DELTA);
 
-                var uploadWin = function (uploadResult) {
-                    expect(uploadResult.bytesSent).toBeGreaterThan(0);
-                    expect(uploadResult.responseCode).toBe(200);
-                    expect(uploadResult.response).toBeDefined();
-                    var responseHtml = decodeURIComponent(uploadResult.response);
-                    expect(responseHtml).toMatch(/CustomHeader1[\s\S]*CustomValue1/i);
-                    expect(responseHtml).toMatch(/CustomHeader2[\s\S]*CustomValue2[\s\S]*CustomValue3/i, "Should allow array values");
-                    done();
-                };
+                        // delay calling done() to wait for the bogus abort()
+                        setTimeout(done, GRACE_TIME_DELTA * 2);
+                    };
 
-                var fileWin = function (fileEntry) {
-                    ft = new FileTransfer();
+                    var fileWin = function (fileEntry) {
 
-                    var options = new FileUploadOptions();
-                    options.fileKey = "file";
-                    options.fileName = localFileName;
-                    options.mimeType = "text/plain";
+                        startTime = +new Date();
 
-                    var params = new Object();
-                    params.value1 = "test";
-                    params.value2 = "param";
-                    options.params = params;
-                    options.headers = {
+                        expect(transfer.abort).not.toThrow();
+
+                        // NOTE: removing uploadOptions cause Android to timeout
+                        transfer.upload(localFilePath, fileURL, unexpectedCallbacks.httpWin, uploadFail, uploadOptions);
+                        transfer.abort();
+
+                        setTimeout(function () {
+                            expect(transfer.abort).not.toThrow();
+                        }, GRACE_TIME_DELTA);
+                    };
+
+                    writeFile(root, fileName, new Array(10000).join('aborttest!'), fileWin);
+                });
+
+                it("filetransfer.spec.22 should get http status and body on failure", function (done) {
+
+                    var fileURL = SERVER + '/403';
+
+                    var uploadFail = function (error) {
+                        expect(error.http_status).toBe(403);
+                        expect(error.http_status).not.toBe(401, "Ensure " + fileURL + " is in the white list");
+                        done();
+                    };
+
+                    transfer.upload(localFilePath, fileURL, unexpectedCallbacks.httpWin, uploadFail, uploadOptions);
+                });
+
+                it("filetransfer.spec.24 should handle malformed urls", function (done) {
+
+                    var fileURL = getMalformedUrl();
+
+                    var uploadFail = function (error) {
+                        expect(error.code).toBe(FileTransferError.INVALID_URL_ERR);
+                        expect(error.http_status).not.toBe(401, "Ensure " + fileURL + " is in the white list");
+                        done();
+                    };
+
+                    transfer.upload(localFilePath, fileURL, unexpectedCallbacks.httpWin, uploadFail, {});
+                });
+
+                it("filetransfer.spec.25 should handle unknown host", function (done) {
+
+                    var fileURL = UNKNOWN_HOST;
+
+                    var uploadFail = function (error) {
+                        expect(error.code).toBe(FileTransferError.CONNECTION_ERR);
+                        expect(error.http_status).not.toBe(401, "Ensure " + fileURL + " is in the white list");
+                        done();
+                    };
+
+                    transfer.upload(localFilePath, fileURL, unexpectedCallbacks.httpWin, uploadFail, {});
+                });
+
+                it("filetransfer.spec.25 should handle missing file", function (done) {
+
+                    var fileURL = SERVER + "/upload";
+
+                    var uploadFail = function (error) {
+                        expect(error.code).toBe(FileTransferError.FILE_NOT_FOUND_ERR);
+                        expect(error.http_status).not.toBe(401, "Ensure " + fileURL + " is in the white list");
+                        done();
+                    };
+
+                    transfer.upload('does_not_exist.txt', fileURL, unexpectedCallbacks.httpWin, uploadFail);
+                });
+
+                it("filetransfer.spec.26 should handle bad file path", function (done) {
+
+                    var fileURL = SERVER + "/upload";
+
+                    var uploadFail = function (error) {
+                        expect(error.http_status).not.toBe(401, "Ensure " + fileURL + " is in the white list");
+                        done();
+                    };
+
+                    transfer.upload("c:\\54321", fileURL, unexpectedCallbacks.httpWin, uploadFail);
+                });
+
+                it("filetransfer.spec.27 should be able to set custom headers", function (done) {
+
+                    if (cordova.platformId === 'windowsphone') {
+                        pending();
+                    }
+
+                    var fileURL = HEADERS_ECHO;
+
+                    var uploadWin = function (uploadResult) {
+
+                        expect(uploadResult.bytesSent).toBeGreaterThan(0);
+                        expect(uploadResult.responseCode).toBe(200);
+                        expect(uploadResult.response).toBeDefined();
+
+                        var responseHtml = decodeURIComponent(uploadResult.response);
+
+                        expect(responseHtml).toMatch(/CustomHeader1[\s\S]*CustomValue1/i);
+                        expect(responseHtml).toMatch(/CustomHeader2[\s\S]*CustomValue2[\s\S]*CustomValue3/i, "Should allow array values");
+
+                        done();
+                    };
+
+                    uploadOptions.headers = {
                         "CustomHeader1": "CustomValue1",
                         "CustomHeader2": ["CustomValue2", "CustomValue3"],
                     };
 
-                    // removing options cause Android to timeout
-                    ft.upload(fileEntry.toURL(), remoteFile, uploadWin, uploadFail, options);
-                };
+                    // NOTE: removing uploadOptions cause Android to timeout
+                    transfer.upload(localFilePath, fileURL, uploadWin, unexpectedCallbacks.httpFail, uploadOptions);
+                });
 
-                writeFile(localFileName, "this file should upload", fileWin, fileFail);
-            });
-        });
+                it("filetransfer.spec.29 (compatibility) should be able to upload a file using local paths", function (done) {
 
-        describe('Backwards compatibility', function () {
-            /* These specs exist to test that the previously supported API still works with
-             * the new version of file-transfer.
-             * They rely on an undocumented interface to File which provides absolute file
-             * paths, which are not used internally anymore.
-             * If that interface is not present, then these tests will silently succeed.
-             */
-            var localFileName = "";
-            var unsupportedWasCalled = false;
-            var lastProgressEvent = null;
-            afterEach(function (done) {
-                if (!unsupportedWasCalled) {
-                    console.log("Unsupported was not called");
-                    expect(lastProgressEvent).not.toBeNull('expected progress events');
-                    expect(lastProgressEvent.loaded).toBeGreaterThan(1);
-                    expect(lastProgressEvent.total).not.toBeLessThan(lastProgressEvent.loaded);
-                }
-                unsupportedWasCalled = false;
-                deleteFile(localFileName, done);
-            });
+                    var fileURL = SERVER + "/upload";
 
-            it("filetransfer.spec.28 should be able to download a file using local paths", function (done) {
-                var downloadFail = createFail(done, "Download error callback should not have been called");
-                var remoteFile = server + "/robots.txt"
-                localFileName = remoteFile.substring(remoteFile.lastIndexOf('/') + 1);
-                var localURL = root.toURL() + "/" + localFileName;
-                lastProgressEvent = null;
-
-                var downloadWin = function (entry) {
-                    expect(entry.name).toBe(localFileName);
-                    expect(lastProgressEvent.loaded).toBeGreaterThan(1);
-                    done();
-                };
-                var unsupportedOperation = function () {
-                    console.log("Operation not supported");
-                    unsupportedWasCalled = true;
-                    done();
-                };
-
-                /* This is an undocumented interface to File which exists only for testing
-                     * backwards compatibilty. By obtaining the raw filesystem path of the download
-                     * location, we can pass that to ft.download() to make sure that previously-stored
-                     * paths are still valid.
-                     */
-                cordova.exec(function (localPath) {
-                    var ft = new FileTransfer();
-                    ft.onprogress = function (e) {
-                        lastProgressEvent = e;
-                        if (lastProgressEvent.lengthComputable) {
-                            expect(lastProgressEvent.total).not.toBeLessThan(lastProgressEvent.loaded);
-                        } else {
-                            expect(lastProgressEvent.total).toBe(0);
-                        }
-                    };
-                    ft.download(remoteFile, localPath, downloadWin, downloadFail);
-                }, unsupportedOperation, 'File', '_getLocalFilesystemPath', [localURL]);
-            });
-            it("filetransfer.spec.29 should be able to upload a file using local paths", function (done) {
-                var uploadFail = createFail(done, "Upload error callback should not have been called");
-                var fileFail = createFail(done, "Error writing file to be uploaded");
-                var remoteFile = server + "/upload";
-                localFileName = "upload.txt";
-                var fileContents = 'This file should upload';
-                var unsupportedOperation = function () {
-                    console.log("Operation not supported");
-                    unsupportedWasCalled = true;
-                    done();
-                };
-                lastProgressEvent = null;
-
-                var uploadWin = function (uploadResult) {
-                    expect(uploadResult.bytesSent).toBeGreaterThan(0);
-                    expect(uploadResult.responseCode).toBe(200);
-                    var obj = null;
-                    try {
-                        obj = JSON.parse(uploadResult.response);
-                        expect(obj.fields).toBeDefined();
-                        expect(obj.fields.value1).toBe("test");
-                        expect(obj.fields.value2).toBe("param");
-                    } catch (e) {
-                        expect(obj).not.toBeNull('returned data from server should be valid json');
-                    }
-                    done();
-                };
-
-                var fileWin = function (fileEntry) {
-                    ft = new FileTransfer();
-
-                    var options = new FileUploadOptions();
-                    options.fileKey = "file";
-                    options.fileName = localFileName;
-                    options.mimeType = "text/plain";
-
-                    var params = new Object();
-                    params.value1 = "test";
-                    params.value2 = "param";
-                    options.params = params;
-
-                    ft.onprogress = function (e) {
-                        expect(e.lengthComputable).toBe(true);
-                        expect(e.total).toBeGreaterThan(0);
-                        expect(e.loaded).toBeGreaterThan(0);
-                        lastProgressEvent = e;
-                        console.log("Setting");
+                    var uploadWin = function (uploadResult) {
+                        verifyUpload(uploadResult);
+                        done();
                     };
 
-                    // removing options cause Android to timeout
-
-                    /* This is an undocumented interface to File which exists only for testing
-                     * backwards compatibilty. By obtaining the raw filesystem path of the download
-                     * location, we can pass that to ft.download() to make sure that previously-stored
-                     * paths are still valid.
-                     */
+                    // This is an undocumented interface to File which exists only for testing
+                    // backwards compatibilty. By obtaining the raw filesystem path of the download
+                    // location, we can pass that to transfer.download() to make sure that previously-stored
+                    // paths are still valid.
                     cordova.exec(function (localPath) {
-                        ft.upload(localPath, remoteFile, uploadWin, uploadFail, options);
-                    }, unsupportedOperation, 'File', '_getLocalFilesystemPath', [fileEntry.toURL()]);
-
-                };
-
-                writeFile(localFileName, fileContents, fileWin, fileFail);
-            });
-        });
-
-        describe('native URL interface', function (done) {
-            var localFileName = "";
-            afterEach(function (done) {
-                deleteFile(localFileName, done);
-            });
-
-            it("filetransfer.spec.30 downloaded file entries should have a toNativeURL method", function (done) {
-                var downloadFail = createFail(done, "Download error callback should not have been called");
-                var remoteFile = server + "/robots.txt";
-                localFileName = remoteFile.substring(remoteFile.lastIndexOf('/') + 1) + ".spec30";
-
-                var downloadWin = function (entry) {
-                    expect(entry.toNativeURL).toBeDefined();
-                    expect(typeof entry.toNativeURL).toBe("function");
-                    var nativeURL = entry.toNativeURL();
-                    expect(typeof nativeURL).toBe("string");
-                    if (isWindows) {
-                        expect(nativeURL.substring(0, 14)).toBe('ms-appdata:///'); //nativeURL prefix looks like that for Windows platform 
-                    } else {
-                        expect(nativeURL.substring(0, 7)).toBe('file://');
-                    }
-                    done();
-                };
-
-                var ft = new FileTransfer();
-                ft.download(remoteFile, root.toURL() + "/" + localFileName, downloadWin, downloadFail);
+                        transfer.upload(localPath, fileURL, uploadWin, unexpectedCallbacks.httpFail, options);
+                    }, expectedCallbacks.unsupported, 'File', '_getLocalFilesystemPath', [localFilePath]);
+                });
             });
         });
     });
