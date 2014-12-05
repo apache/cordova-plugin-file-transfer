@@ -76,7 +76,7 @@ exec(win, fail, 'FileTransfer', 'upload',
         var uploadId = options[9];
 
         if (filePath === null || typeof filePath === 'undefined') {
-            errorCallback && errorCallback(FTErr.FILE_NOT_FOUND_ERR);
+            errorCallback && errorCallback(new FTErr(FTErr.FILE_NOT_FOUND_ERR,null,server));
             return;
         }
 
@@ -158,6 +158,7 @@ exec(win, fail, 'FileTransfer', 'upload',
         });
     },
 
+    // [source, target, trustAllHosts, id, headers]
     download:function(successCallback, errorCallback, options) {
         var source = options[0];
         var target = cordovaPathToNative(options[1]);
@@ -165,7 +166,7 @@ exec(win, fail, 'FileTransfer', 'upload',
         var headers = options[4] || {};
 
         if (target === null || typeof target === undefined) {
-            errorCallback && errorCallback(FTErr.FILE_NOT_FOUND_ERR);
+            errorCallback && errorCallback(new FTErr(FTErr.FILE_NOT_FOUND_ERR);
             return;
         }
         if (String(target).substr(0, 8) == "file:///") {
@@ -181,7 +182,7 @@ exec(win, fail, 'FileTransfer', 'upload',
         var path = target.substr(0, String(target).lastIndexOf("\\"));
         var fileName = target.substr(String(target).lastIndexOf("\\") + 1);
         if (path === null || fileName === null) {
-            errorCallback && errorCallback(FTErr.FILE_NOT_FOUND_ERR);
+            errorCallback && errorCallback(new FTErr(FTErr.FILE_NOT_FOUND_ERR));
             return;
         }
 
