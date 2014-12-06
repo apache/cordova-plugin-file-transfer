@@ -31,8 +31,10 @@ var appData = Windows.Storage.ApplicationData.current;
 
 // Some private helper functions, hidden by the module
 function cordovaPathToNative(path) {
+
+    var cleanPath = String(path);
     // turn / into \\
-    var cleanPath = path.replace(/\//g, '\\');
+    cleanPath = cleanPath.replace(/\//g, '\\');
     // turn  \\ into \
     cleanPath = cleanPath.replace(/\\\\/g, '\\');
     // strip end \\ characters
@@ -41,8 +43,7 @@ function cordovaPathToNative(path) {
 }
 
 function nativePathToCordova(path) {
-    var cleanPath = path.replace(/\\/g, '/');
-    return cleanPath;
+    return String(path).replace(/\\/g, '/');
 }
 
 var fileTransferOps = [];
@@ -75,18 +76,17 @@ exec(win, fail, 'FileTransfer', 'upload',
         var headers = options[8] || {};
         var uploadId = options[9];
 
-        if (filePath === null || typeof filePath === 'undefined') {
+        if (!filePath || (typeof filePath != 'string')) {
             errorCallback(new FTErr(FTErr.FILE_NOT_FOUND_ERR,null,server));
             return;
         }
 
-        if (String(filePath).substr(0, 8) == "file:///") {
-            filePath = appData.localFolder.path + String(filePath).substr(8).split("/").join("\\");
-        } else if (String(filePath).indexOf('ms-appdata:///') === 0) {
+        if (filePath.substr(0, 8) == "file:///") {
+            filePath = appData.localFolder.path + filePath.substr(8).split("/").join("\\");
+        } else if (filePath.indexOf('ms-appdata:///') === 0) {
             // Handle 'ms-appdata' scheme
-            filePath = filePath.toString()
-                .replace('ms-appdata:///local', appData.localFolder.path)
-                .replace('ms-appdata:///temp', appData.temporaryFolder.path);
+            filePath = filePath.replace('ms-appdata:///local', appData.localFolder.path)
+                               .replace('ms-appdata:///temp', appData.temporaryFolder.path);
         }
         // normalize path separators
         filePath = cordovaPathToNative(filePath);
@@ -94,7 +94,8 @@ exec(win, fail, 'FileTransfer', 'upload',
         // Create internal download operation object
         fileTransferOps[uploadId] = new FileTransferOperation(FileTransferOperation.PENDING, null);
 
-        Windows.Storage.StorageFile.getFileFromPathAsync(filePath).then(function (storageFile) {
+        Windows.Storage.StorageFile.getFileFromPathAsync(filePath)
+        .then(function (storageFile) {
 
             if(!fileName) {
                 fileName = storageFile.name;
@@ -105,7 +106,8 @@ exec(win, fail, 'FileTransfer', 'upload',
                 mimeType = storageFile.contentType;
             }
 
-            storageFile.openAsync(Windows.Storage.FileAccessMode.read).then(function (stream) {
+            storageFile.openAsync(Windows.Storage.FileAccessMode.read)
+            .then(function (stream) {
 
                 // check if upload isn't already cancelled
                 var uploadOp = fileTransferOps[uploadId];
@@ -165,22 +167,21 @@ exec(win, fail, 'FileTransfer', 'upload',
         var downloadId = options[3];
         var headers = options[4] || {};
 
-        if (target === null || typeof target === undefined) {
-            errorCallback(new FTErr(FTErr.FILE_NOT_FOUND_ERR);
+        if (!target) {
+            errorCallback(new FTErr(FTErr.FILE_NOT_FOUND_ERR));
             return;
         }
-        if (String(target).substr(0, 8) == "file:///") {
-            target = appData.localFolder.path + String(target).substr(8).split("/").join("\\");
-        } else if (String(target).indexOf('ms-appdata:///') === 0) {
+        if (target.substr(0, 8) == "file:///") {
+            target = appData.localFolder.path + target.substr(8).split("/").join("\\");
+        } else if (target.indexOf('ms-appdata:///') === 0) {
             // Handle 'ms-appdata' scheme
-            target = target.toString()
-                .replace('ms-appdata:///local', appData.localFolder.path)
-                .replace('ms-appdata:///temp', appData.temporaryFolder.path);
+            target = target.replace('ms-appdata:///local', appData.localFolder.path)
+                           .replace('ms-appdata:///temp', appData.temporaryFolder.path);
         }
-        target = cordovaPathToNative(target);
+        target = cordovaPathToNative(target); // again?
 
-        var path = target.substr(0, String(target).lastIndexOf("\\"));
-        var fileName = target.substr(String(target).lastIndexOf("\\") + 1);
+        var path = target.substr(0, target.lastIndexOf("\\"));
+        var fileName = target.substr(target.lastIndexOf("\\") + 1);
         if (path === null || fileName === null) {
             errorCallback(new FTErr(FTErr.FILE_NOT_FOUND_ERR));
             return;
