@@ -21,16 +21,20 @@
 
 /*jshint -W030 */
 
-var FileTransferError = require('./FileTransferError'),
+var FTErr = require('./FileTransferError'),
     ProgressEvent = require('org.apache.cordova.file.ProgressEvent'),
     FileUploadResult = require('org.apache.cordova.file.FileUploadResult'),
     FileEntry = require('org.apache.cordova.file.FileEntry');
 
+var appData = Windows.Storage.ApplicationData.current;
+
 
 // Some private helper functions, hidden by the module
 function cordovaPathToNative(path) {
+
+    var cleanPath = String(path);
     // turn / into \\
-    var cleanPath = path.replace(/\//g, '\\');
+    cleanPath = cleanPath.replace(/\//g, '\\');
     // turn  \\ into \
     cleanPath = cleanPath.replace(/\\\\/g, '\\');
     // strip end \\ characters
@@ -39,8 +43,7 @@ function cordovaPathToNative(path) {
 }
 
 function nativePathToCordova(path) {
-    var cleanPath = path.replace(/\\/g, '/');
-    return cleanPath;
+    return String(path).replace(/\\/g, '/');
 }
 
 var fileTransferOps = [];
@@ -73,18 +76,17 @@ exec(win, fail, 'FileTransfer', 'upload',
         var headers = options[8] || {};
         var uploadId = options[9];
 
-        if (filePath === null || typeof filePath === 'undefined') {
-            errorCallback && errorCallback(FileTransferError.FILE_NOT_FOUND_ERR);
+        if (!filePath || (typeof filePath != 'string')) {
+            errorCallback(new FTErr(FTErr.FILE_NOT_FOUND_ERR,null,server));
             return;
         }
 
-        if (String(filePath).substr(0, 8) == "file:///") {
-            filePath = Windows.Storage.ApplicationData.current.localFolder.path + String(filePath).substr(8).split("/").join("\\");
-        } else if (String(filePath).indexOf('ms-appdata:///') === 0) {
+        if (filePath.substr(0, 8) == "file:///") {
+            filePath = appData.localFolder.path + filePath.substr(8).split("/").join("\\");
+        } else if (filePath.indexOf('ms-appdata:///') === 0) {
             // Handle 'ms-appdata' scheme
-            filePath = filePath.toString()
-                .replace('ms-appdata:///local', Windows.Storage.ApplicationData.current.localFolder.path)
-                .replace('ms-appdata:///temp', Windows.Storage.ApplicationData.current.temporaryFolder.path);
+            filePath = filePath.replace('ms-appdata:///local', appData.localFolder.path)
+                               .replace('ms-appdata:///temp', appData.temporaryFolder.path);
         }
         // normalize path separators
         filePath = cordovaPathToNative(filePath);
@@ -92,7 +94,8 @@ exec(win, fail, 'FileTransfer', 'upload',
         // Create internal download operation object
         fileTransferOps[uploadId] = new FileTransferOperation(FileTransferOperation.PENDING, null);
 
-        Windows.Storage.StorageFile.getFileFromPathAsync(filePath).then(function (storageFile) {
+        Windows.Storage.StorageFile.getFileFromPathAsync(filePath)
+        .then(function (storageFile) {
 
             if(!fileName) {
                 fileName = storageFile.name;
@@ -103,13 +106,14 @@ exec(win, fail, 'FileTransfer', 'upload',
                 mimeType = storageFile.contentType;
             }
 
-            storageFile.openAsync(Windows.Storage.FileAccessMode.read).then(function (stream) {
+            storageFile.openAsync(Windows.Storage.FileAccessMode.read)
+            .then(function (stream) {
 
                 // check if upload isn't already cancelled
                 var uploadOp = fileTransferOps[uploadId];
                 if (uploadOp && uploadOp.state == FileTransferOperation.CANCELLED) {
                     // Here we should call errorCB with ABORT_ERR error
-                    errorCallback && errorCallback(new FileTransferError(FileTransferError.ABORT_ERR, filePath, server));
+                    errorCallback(new FTErr(FTErr.ABORT_ERR, filePath, server));
                     return;
                 }
 
@@ -129,57 +133,57 @@ exec(win, fail, 'FileTransfer', 'upload',
                     fileTransferOps[uploadId].promise = uploadOperation;
                 } catch (e) {
                     // it will fail if URL is malformed, so we handle this situation
-                    errorCallback && errorCallback(new FileTransferError(FileTransferError.INVALID_URL_ERR, filePath, server, null, null, e));
+                    errorCallback(new FTErr(FTErr.INVALID_URL_ERR, filePath, server, null, null, e));
                     return;
                 }
 
                 uploadOperation.then(function (response) {
                     storageFile.getBasicPropertiesAsync().done(function(basicProperties) {
                         var ftResult = new FileUploadResult(basicProperties.size, response.status, response.responseText);
-                        successCallback && successCallback(ftResult);
+                        successCallback(ftResult);
                     });
                 }, function(err) {
                     if ('status' in err) {
-                        errorCallback && errorCallback(new FileTransferError(FileTransferError.CONNECTION_ERR, filePath, server, err.status, err.responseText, err));
+                        errorCallback(new FTErr(FTErr.CONNECTION_ERR, filePath, server, err.status, err.responseText, err));
                     } else {
-                        errorCallback && errorCallback(new FileTransferError(FileTransferError.INVALID_URL_ERR, filePath, server, null, null, err));
+                        errorCallback(new FTErr(FTErr.INVALID_URL_ERR, filePath, server, null, null, err));
                     }
                 }, function(evt) {
                     // progress event handler, calls successCallback with empty ProgressEvent
                     // We can't specify ProgressEvent data here since evt not provides any helpful information
                     var progressEvent = new ProgressEvent('progress');
-                    successCallback && successCallback(progressEvent, { keepCallback: true });
+                    successCallback(progressEvent, { keepCallback: true });
                 });
             });
         }, function(err) {
-            errorCallback && errorCallback(new FileTransferError(FileTransferError.FILE_NOT_FOUND_ERR, server, server, null, null, err));
+            errorCallback(new FTErr(FTErr.FILE_NOT_FOUND_ERR, server, server, null, null, err));
         });
     },
 
+    // [source, target, trustAllHosts, id, headers]
     download:function(successCallback, errorCallback, options) {
         var source = options[0];
         var target = cordovaPathToNative(options[1]);
         var downloadId = options[3];
         var headers = options[4] || {};
 
-        if (target === null || typeof target === undefined) {
-            errorCallback && errorCallback(FileTransferError.FILE_NOT_FOUND_ERR);
+        if (!target) {
+            errorCallback(new FTErr(FTErr.FILE_NOT_FOUND_ERR));
             return;
         }
-        if (String(target).substr(0, 8) == "file:///") {
-            target = Windows.Storage.ApplicationData.current.localFolder.path + String(target).substr(8).split("/").join("\\");
-        } else if (String(target).indexOf('ms-appdata:///') === 0) {
+        if (target.substr(0, 8) == "file:///") {
+            target = appData.localFolder.path + target.substr(8).split("/").join("\\");
+        } else if (target.indexOf('ms-appdata:///') === 0) {
             // Handle 'ms-appdata' scheme
-            target = target.toString()
-                .replace('ms-appdata:///local', Windows.Storage.ApplicationData.current.localFolder.path)
-                .replace('ms-appdata:///temp', Windows.Storage.ApplicationData.current.temporaryFolder.path);
+            target = target.replace('ms-appdata:///local', appData.localFolder.path)
+                           .replace('ms-appdata:///temp', appData.temporaryFolder.path);
         }
-        target = cordovaPathToNative(target);
+        target = cordovaPathToNative(target); // again?
 
-        var path = target.substr(0, String(target).lastIndexOf("\\"));
-        var fileName = target.substr(String(target).lastIndexOf("\\") + 1);
+        var path = target.substr(0, target.lastIndexOf("\\"));
+        var fileName = target.substr(target.lastIndexOf("\\") + 1);
         if (path === null || fileName === null) {
-            errorCallback && errorCallback(FileTransferError.FILE_NOT_FOUND_ERR);
+            errorCallback(new FTErr(FTErr.FILE_NOT_FOUND_ERR));
             return;
         }
 
@@ -195,7 +199,7 @@ exec(win, fail, 'FileTransfer', 'upload',
                 var downloadOp = fileTransferOps[downloadId];
                 if (downloadOp && downloadOp.state == FileTransferOperation.CANCELLED) {
                     // Here we should call errorCB with ABORT_ERR error
-                    errorCallback && errorCallback(new FileTransferError(FileTransferError.ABORT_ERR, source, target));
+                    errorCallback(new FTErr(FTErr.ABORT_ERR, source, target));
                     return;
                 }
 
@@ -211,7 +215,7 @@ exec(win, fail, 'FileTransfer', 'upload',
                     download = downloader.createDownload(uri, storageFile);
                 } catch (e) {
                     // so we handle this and call errorCallback
-                    errorCallback && errorCallback(new FileTransferError(FileTransferError.INVALID_URL_ERR));
+                    errorCallback(new FTErr(FTErr.INVALID_URL_ERR));
                     return;
                 }
 
@@ -229,41 +233,47 @@ exec(win, fail, 'FileTransfer', 'upload',
                         currentDownloadOp.promise = null;
                     }
 
-                    var nativeURI = storageFile.path.replace(Windows.Storage.ApplicationData.current.localFolder.path, 'ms-appdata:///local')
-                        .replace(Windows.Storage.ApplicationData.current.temporaryFolder.path, 'ms-appdata:///temp')
+                    var nativeURI = storageFile.path.replace(appData.localFolder.path, 'ms-appdata:///local')
+                        .replace(appData.temporaryFolder.path, 'ms-appdata:///temp')
                         .replace('\\', '/');
 
-                    successCallback && successCallback(new FileEntry(storageFile.name, storageFile.path, null, nativeURI));
+                    successCallback(new FileEntry(storageFile.name, storageFile.path, null, nativeURI));
                 }, function(error) {
 
-                    var result;
-                    // Handle download error here. If download was cancelled,
-                    // message property will be specified
-                    if (error.message == 'Canceled') {
-                        result = new FileTransferError(FileTransferError.ABORT_ERR, source, target, null, null, error);
-                    } else {
-                        // in the other way, try to get response property
-                        var response = download.getResponseInformation();
-                        if (!response) {
-                            result = new FileTransferError(FileTransferError.CONNECTION_ERR, source, target);
-                        } else if (response.statusCode == 401 || response.statusCode == 404) {
-                            result = new FileTransferError(FileTransferError.FILE_NOT_FOUND_ERR, source, target, response.statusCode, null, error);
+                    var getTransferError = new WinJS.Promise(function (resolve) {
+                        // Handle download error here. If download was cancelled,
+                        // message property will be specified
+                        if (error.message === 'Canceled') {
+                            resolve(new FTErr(FTErr.ABORT_ERR, source, target, null, null, error));
+                        } else {
+                            // in the other way, try to get response property
+                            var response = download.getResponseInformation();
+                            if (!response) {
+                                resolve(new FTErr(FTErr.CONNECTION_ERR, source, target));
+                            } else {
+                                var reader = new Windows.Storage.Streams.DataReader(download.getResultStreamAt(0));
+                                reader.loadAsync(download.progress.bytesReceived).then(function (bytesLoaded) {
+                                    var payload = reader.readString(bytesLoaded);
+                                    resolve(new FTErr(FTErr.FILE_NOT_FOUND_ERR, source, target, response.statusCode, payload, error));
+                                });
+                            }
                         }
-                    }
-
-                    // Update TransferOperation object with new state, delete promise property
-                    // since it is not actual anymore
-                    var currentDownloadOp = fileTransferOps[downloadId];
-                    if (currentDownloadOp) {
-                        currentDownloadOp.state = FileTransferOperation.CANCELLED;
-                        currentDownloadOp.promise = null;
-                    }
-
-                    // Cleanup, remove incompleted file
-                    storageFile.deleteAsync().then(function () {
-                        errorCallback && errorCallback(result);
                     });
+                    getTransferError.then(function (fileTransferError) {
 
+                        // Update TransferOperation object with new state, delete promise property
+                        // since it is not actual anymore
+                        var currentDownloadOp = fileTransferOps[downloadId];
+                        if (currentDownloadOp) {
+                            currentDownloadOp.state = FileTransferOperation.CANCELLED;
+                            currentDownloadOp.promise = null;
+                        }
+
+                        // Cleanup, remove incompleted file
+                        storageFile.deleteAsync().then(function() {
+                            errorCallback(fileTransferError);
+                        });
+                    });
 
                 }, function(evt) {
 
@@ -274,15 +284,15 @@ exec(win, fail, 'FileTransfer', 'upload',
                     });
                     progressEvent.lengthComputable = true;
 
-                    successCallback && successCallback(progressEvent, { keepCallback: true });
+                    successCallback(progressEvent, { keepCallback: true });
                 });
             }, function(error) {
-                errorCallback && errorCallback(new FileTransferError(FileTransferError.FILE_NOT_FOUND_ERR, source, target, null, null, error));
+                errorCallback(new FTErr(FTErr.FILE_NOT_FOUND_ERR, source, target, null, null, error));
             });
         };
         
         var fileNotFoundErrorCallback = function(error) {
-            errorCallback && errorCallback(new FileTransferError(FileTransferError.FILE_NOT_FOUND_ERR, source, target, null, null, error));
+            errorCallback(new FTErr(FTErr.FILE_NOT_FOUND_ERR, source, target, null, null, error));
         };
 
         Windows.Storage.StorageFolder.getFolderFromPathAsync(path).then(downloadCallback, function (error) {
