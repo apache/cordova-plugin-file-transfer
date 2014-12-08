@@ -96,7 +96,7 @@ exports.defineAutoTests = function () {
 
         var expectedCallbacks = {
             unsupported: function (data) {
-                console.log('functionality unsupported; response:', data);
+                console.log('spec called unsupported functionality; response:', data, '; therefore, marking spec as pending');
                 pending();
             },
         };
@@ -108,17 +108,16 @@ exports.defineAutoTests = function () {
                 function (fileEntry) {
                     fileEntry.remove(
                         function () {
-                            console.log('deleted', name);
+                            console.log('deleted \'' + name + '\'');
                             done();
                         },
                         function () {
-                            console.log('failed to delete', name);
-                            done();
+                            throw new Error('failed to delete: \'' + name + '\'');
                         }
                     );
                 },
                 function () {
-                    console.log('could not find', name);
+                    console.log('could not find \'' + name + '\' to delete; skipping cleanup');
                     done();
                 }
             );
@@ -131,18 +130,16 @@ exports.defineAutoTests = function () {
                     fileEntry.createWriter(function (writer) {
 
                         writer.onwrite = function (evt) {
-                            console.log('created', name);
+                            console.log('created test file \'' + name + '\'');
                             done();
                         };
 
                         writer.onabort = function (evt) {
-                            console.log('aborted creating', name);
-                            done();
+                            throw new Error('aborted creating test file \'' + name + '\': ' + evt);
                         };
 
                         writer.error = function (evt) {
-                            console.log('failed to create', name);
-                            done();
+                            throw new Error('aborted creating test file \'' + name + '\': ' + evt);
                         };
 
                         writer.write(content + "\n");
@@ -150,8 +147,7 @@ exports.defineAutoTests = function () {
                     }, unexpectedCallbacks.fileOperationFail);
                 },
                 function () {
-                    console.log('could not find', name);
-                    done();
+                    throw new Error('could not create test file \'' + name + '\'');
                 }
             );
         };
@@ -536,7 +532,7 @@ exports.defineAutoTests = function () {
                         done();
                     };
 
-                    transfer.download(fileURL, fileName, downloadWin, unexpectedCallbacks.httpFail);
+                    transfer.download(fileURL, localFilePath, downloadWin, unexpectedCallbacks.httpFail);
                 });
 
                 it("filetransfer.spec.30 downloaded file entries should have a toNativeURL method", function (done) {
