@@ -95,15 +95,13 @@ exports.defineAutoTests = function () {
         };
 
         var expectedCallbacks = {
-            unsupported: function (data) {
-                console.log('spec called unsupported functionality; response:', data, '; therefore, marking spec as pending');
-                pending();
+            unsupportedOperation: function (response) {
+                console.log('spec called unsupported functionality; response:', response);
             },
         };
 
         // helpers
         var deleteFile = function (fileSystem, name, done) {
-
             fileSystem.getFile(name, null,
                 function (fileEntry) {
                     fileEntry.remove(
@@ -117,21 +115,20 @@ exports.defineAutoTests = function () {
                     );
                 },
                 function () {
-                    console.log('could not find \'' + name + '\' to delete; skipping cleanup');
+                    console.log('no \'' + name + '\' to delete; skipping deletion');
                     done();
                 }
             );
         };
 
-        var writeFile = function (fileSystem, name, content, done) {
-
+        var writeFile = function (fileSystem, name, content, success) {
             fileSystem.getFile(name, { create: true },
                 function (fileEntry) {
                     fileEntry.createWriter(function (writer) {
 
                         writer.onwrite = function (evt) {
                             console.log('created test file \'' + name + '\'');
-                            done();
+                            success(fileEntry);
                         };
 
                         writer.onabort = function (evt) {
@@ -204,14 +201,19 @@ exports.defineAutoTests = function () {
         // spy on all unexpected callbacks
         beforeEach(function() {
             for (callback in unexpectedCallbacks) {
-                spyOn(unexpectedCallbacks, callback);
+                spyOn(unexpectedCallbacks, callback).and.callThrough();
             }
         });
 
-        // at the end, check that none of the unexpected callbacks got called
+        // at the end, check that none of the unexpected callbacks got called,
+        // and act on the expected callbacks
         afterEach(function() {
             for (callback in unexpectedCallbacks) {
                 expect(unexpectedCallbacks[callback]).not.toHaveBeenCalled();
+            }
+
+            if (expectedCallbacks.unsupportedOperation.calls.any()) {
+                pending();
             }
         });
 
@@ -259,7 +261,7 @@ exports.defineAutoTests = function () {
                 spyOn(transfer, 'onprogress').and.callThrough();
 
                 root          = persistentRoot;
-                fileName      = 'testFile';
+                fileName      = 'testFile.txt';
                 localFilePath = root.toURL() + fileName;
             });
 
@@ -565,6 +567,11 @@ exports.defineAutoTests = function () {
 
                     var fileURL = SERVER + "/robots.txt";
 
+                    var unsupported = function (response) {
+                        expectedCallbacks.unsupportedOperation(response);
+                        done();
+                    };
+
                     var downloadWin = function (entry) {
                         verifyDownload(entry);
                         done();
@@ -576,7 +583,7 @@ exports.defineAutoTests = function () {
                     // paths are still valid.
                     cordova.exec(function (localPath) {
                         transfer.download(fileURL, localPath, downloadWin, unexpectedCallbacks.httpFail);
-                    }, expectedCallbacks.unsupported, 'File', '_getLocalFilesystemPath', [localFilePath]);
+                    }, unsupported, 'File', '_getLocalFilesystemPath', [localFilePath]);
                 });
             });
 
@@ -609,8 +616,7 @@ exports.defineAutoTests = function () {
 
                 beforeEach(function(done) {
 
-                    fileName      = 'fileToUpload';
-                    localFilePath = root.toURL() + fileName;
+                    fileName      = 'fileToUpload.txt';
                     fileContents  = 'upload test file';
 
                     uploadParams        = new Object();
@@ -623,8 +629,13 @@ exports.defineAutoTests = function () {
                     uploadOptions.mimeType = "text/plain";
                     uploadOptions.params   = uploadParams;
 
+                    var fileWin = function (entry) {
+                        localFilePath = entry.toURL();
+                        done();
+                    }
+
                     // create a file to upload
-                    writeFile(root, fileName, fileContents, done);
+                    writeFile(root, fileName, fileContents, fileWin);
                 });
 
                 // delete the uploaded file
@@ -807,6 +818,11 @@ exports.defineAutoTests = function () {
 
                     var fileURL = SERVER + "/upload";
 
+                    var unsupported = function (response) {
+                        expectedCallbacks.unsupportedOperation(response);
+                        done();
+                    };
+
                     var uploadWin = function (uploadResult) {
                         verifyUpload(uploadResult);
                         done();
@@ -818,7 +834,7 @@ exports.defineAutoTests = function () {
                     // paths are still valid.
                     cordova.exec(function (localPath) {
                         transfer.upload(localPath, fileURL, uploadWin, unexpectedCallbacks.httpFail, options);
-                    }, expectedCallbacks.unsupported, 'File', '_getLocalFilesystemPath', [localFilePath]);
+                    }, unsupported, 'File', '_getLocalFilesystemPath', [localFilePath]);
                 });
             });
         });
