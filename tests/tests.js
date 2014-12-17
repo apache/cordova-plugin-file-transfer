@@ -198,10 +198,17 @@ exports.defineAutoTests = function () {
             );
         });
 
-        // spy on all unexpected callbacks
+        // spy on all named callbacks
         beforeEach(function() {
+
+            // ignore the actual implementations of the unexpected callbacks
             for (callback in unexpectedCallbacks) {
-                spyOn(unexpectedCallbacks, callback).and.callThrough();
+                spyOn(unexpectedCallbacks, callback);
+            }
+
+            // but run the implementations of the expected callbacks
+            for (callback in expectedCallbacks) {
+                spyOn(expectedCallbacks, callback).and.callThrough();
             }
         });
 
