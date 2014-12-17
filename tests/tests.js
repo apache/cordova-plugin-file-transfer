@@ -584,13 +584,20 @@ exports.defineAutoTests = function () {
                         done();
                     };
 
+                    var internalFilePath;
+                    if (root.toInternalURL) {
+                        internalFilePath = root.toInternalURL() + fileName;
+                    } else {
+                        internalFilePath = localFilePath;
+                    }
+
                     // This is an undocumented interface to File which exists only for testing
                     // backwards compatibilty. By obtaining the raw filesystem path of the download
                     // location, we can pass that to transfer.download() to make sure that previously-stored
                     // paths are still valid.
                     cordova.exec(function (localPath) {
                         transfer.download(fileURL, localPath, downloadWin, unexpectedCallbacks.httpFail);
-                    }, unsupported, 'File', '_getLocalFilesystemPath', [localFilePath]);
+                    }, unsupported, 'File', '_getLocalFilesystemPath', [internalFilePath]);
                 });
             });
 
@@ -835,13 +842,20 @@ exports.defineAutoTests = function () {
                         done();
                     };
 
+                    var internalFilePath;
+                    if (root.toInternalURL) {
+                        internalFilePath = root.toInternalURL() + fileName;
+                    } else {
+                        internalFilePath = localFilePath;
+                    }
+
                     // This is an undocumented interface to File which exists only for testing
                     // backwards compatibilty. By obtaining the raw filesystem path of the download
                     // location, we can pass that to transfer.download() to make sure that previously-stored
                     // paths are still valid.
                     cordova.exec(function (localPath) {
-                        transfer.upload(localPath, fileURL, uploadWin, unexpectedCallbacks.httpFail, options);
-                    }, unsupported, 'File', '_getLocalFilesystemPath', [localFilePath]);
+                        transfer.upload(localPath, fileURL, uploadWin, unexpectedCallbacks.httpFail, uploadOptions);
+                    }, unsupported, 'File', '_getLocalFilesystemPath', [internalFilePath]);
                 });
             });
         });
