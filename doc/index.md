@@ -265,6 +265,9 @@ A `FileTransferError` object is passed to an error callback when an error occurs
 - __target__: URL to the target. (String)
 
 - __http_status__: HTTP status code.  This attribute is only available when a response code is received from the HTTP connection. (Number)
+
+- __body__ Response body. This attribute is only available when a response is received from the HTTP connection. (String)
+
 - __exception__: Either e.getMessage or e.toString (String)
 
 ### Constants
