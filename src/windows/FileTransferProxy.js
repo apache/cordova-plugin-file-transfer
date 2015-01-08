@@ -20,6 +20,8 @@
 */
 
 /*jshint -W030 */
+/*global Windows, WinJS*/
+/*global module, require*/
 
 var FTErr = require('./FileTransferError'),
     ProgressEvent = require('org.apache.cordova.file.ProgressEvent'),
@@ -71,17 +73,17 @@ exec(win, fail, 'FileTransfer', 'upload',
         var fileName = options[3];
         var mimeType = options[4];
         var params = options[5];
-        var trustAllHosts = options[6]; // todo
-        var chunkedMode = options[7]; // todo 
+        // var trustAllHosts = options[6]; // todo
+        // var chunkedMode = options[7]; // todo 
         var headers = options[8] || {};
         var uploadId = options[9];
 
-        if (!filePath || (typeof filePath != 'string')) {
+        if (!filePath || (typeof filePath !== 'string')) {
             errorCallback(new FTErr(FTErr.FILE_NOT_FOUND_ERR,null,server));
             return;
         }
 
-        if (filePath.substr(0, 8) == "file:///") {
+        if (filePath.substr(0, 8) === "file:///") {
             filePath = appData.localFolder.path + filePath.substr(8).split("/").join("\\");
         } else if (filePath.indexOf('ms-appdata:///') === 0) {
             // Handle 'ms-appdata' scheme
@@ -143,7 +145,6 @@ exec(win, fail, 'FileTransfer', 'upload',
             try {
                 uploader.createUploadAsync(uri, transferParts).then(
                     function (upload) {
-
                         // update internal TransferOperation object with newly created promise
                         var uploadOperation = upload.startAsync();
                         fileTransferOps[uploadId].promise = uploadOperation;
@@ -169,7 +170,6 @@ exec(win, fail, 'FileTransfer', 'upload',
                                 });
                             },
                             function (error) {
-
                                 var source = nativePathToCordova(filePath);
 
                                 // Handle download error here.
@@ -208,12 +208,8 @@ exec(win, fail, 'FileTransfer', 'upload',
                                         errorCallback(transferError);
                                     });
                                 });
-
-
                             },
                             function (evt) {
-
-
                                 var progressEvent = new ProgressEvent('progress', {
                                     loaded: evt.progress.bytesSent,
                                     total: evt.progress.totalBytesToSend,
@@ -223,7 +219,6 @@ exec(win, fail, 'FileTransfer', 'upload',
                                 successCallback(progressEvent, { keepCallback: true });
                             }
                         );
-
                     },
                     function (err) {
                         var errorObj = new FTErr(FTErr.INVALID_URL_ERR);
@@ -250,7 +245,7 @@ exec(win, fail, 'FileTransfer', 'upload',
             errorCallback(new FTErr(FTErr.FILE_NOT_FOUND_ERR));
             return;
         }
-        if (target.substr(0, 8) == "file:///") {
+        if (target.substr(0, 8) === "file:///") {
             target = appData.localFolder.path + target.substr(8).split("/").join("\\");
         } else if (target.indexOf('ms-appdata:///') === 0) {
             // Handle 'ms-appdata' scheme
@@ -276,7 +271,7 @@ exec(win, fail, 'FileTransfer', 'upload',
 
                 // check if download isn't already cancelled
                 var downloadOp = fileTransferOps[downloadId];
-                if (downloadOp && downloadOp.state == FileTransferOperation.CANCELLED) {
+                if (downloadOp && downloadOp.state === FileTransferOperation.CANCELLED) {
                     // Here we should call errorCB with ABORT_ERR error
                     errorCallback(new FTErr(FTErr.ABORT_ERR, source, target));
                     return;
@@ -285,7 +280,9 @@ exec(win, fail, 'FileTransfer', 'upload',
                 // if download isn't cancelled, contunue with creating and preparing download operation
                 var downloader = new Windows.Networking.BackgroundTransfer.BackgroundDownloader();
                 for (var header in headers) {
-                    downloader.setRequestHeader(header, headers[header]);
+                    if (header.hasOwnProperty(header)) {
+                        downloader.setRequestHeader(header, headers[header]);
+                    }
                 }
 
                 // create download object. This will throw an exception if URL is malformed
