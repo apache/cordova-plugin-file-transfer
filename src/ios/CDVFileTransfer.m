@@ -587,7 +587,11 @@ static CFIndex WriteDataToStream(NSData* data, CFWriteStreamRef stream)
 {
     NSFileManager* fileMgr = [NSFileManager defaultManager];
 
-    [fileMgr removeItemAtPath:[self targetFilePath] error:nil];
+    NSString *targetPath = [self targetFilePath];
+    if ([fileMgr fileExistsAtPath:targetPath])
+    {
+        [fileMgr removeItemAtPath:targetPath error:nil];
+    }
 }
 
 - (void)cancelTransfer:(NSURLConnection*)connection
