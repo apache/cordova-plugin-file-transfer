@@ -252,6 +252,7 @@ public class FileTransfer extends CordovaPlugin {
         Log.d(LOG_TAG, "headers: " + headers);
         Log.d(LOG_TAG, "objectId: " + objectId);
         Log.d(LOG_TAG, "httpMethod: " + httpMethod);
+        //Log.d()
         
         final Uri targetUri = resourceApi.remapUri(Uri.parse(target));
         // Accept a path or a URI for the source.
