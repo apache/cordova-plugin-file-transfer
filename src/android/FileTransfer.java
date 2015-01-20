@@ -466,14 +466,18 @@ public class FileTransfer extends CordovaPlugin {
                         safeClose(inStream);
                     }
                     
-                    Log.d(LOG_TAG, "got response from server");
+                    Log.d(LOG_TAG, "MB says ... got response from server");
                     Log.d(LOG_TAG, responseString.substring(0, Math.min(256, responseString.length())));
                     
                     // send request and retrieve response
+                    Log.d(LOG_TAG, "MB says ... CHECK 1");
                     result.setResponseCode(responseCode);
+                    Log.d(LOG_TAG, "MB says ... CHECK 2");
                     result.setResponse(responseString);
+                    Log.d(LOG_TAG, "MB says ... CHECK 3");
 
                     context.sendPluginResult(new PluginResult(PluginResult.Status.OK, result.toJSONObject()));
+                    Log.d(LOG_TAG, "MB says ... CHECK 4");
                 } catch (FileNotFoundException e) {
                     JSONObject error = createFileTransferError(FILE_NOT_FOUND_ERR, source, target, conn, e);
                     Log.e(LOG_TAG, error.toString(), e);
