@@ -26,6 +26,14 @@
 #import <AssetsLibrary/ALAssetsLibrary.h>
 #import <CFNetwork/CFNetwork.h>
 
+#ifndef DLog
+#ifdef DEBUG
+    #define DLog(fmt, ...) NSLog((@"%s [Line %d] " fmt), __PRETTY_FUNCTION__, __LINE__, ##__VA_ARGS__)
+#else
+    #define DLog(...)
+#endif
+#endif
+
 @interface CDVFileTransfer ()
 // Sets the requests headers for the request.
 - (void)applyRequestHeaders:(NSDictionary*)headers toRequest:(NSMutableURLRequest*)req;
