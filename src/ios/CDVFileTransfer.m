@@ -146,7 +146,7 @@ static CFIndex WriteDataToStream(NSData* data, CFWriteStreamRef stream)
     NSString* fileName = [command argumentAtIndex:3 withDefault:@"no-filename"];
     NSString* mimeType = [command argumentAtIndex:4 withDefault:nil];
     NSDictionary* options = [command argumentAtIndex:5 withDefault:nil];
-    //    BOOL trustAllHosts = [[arguments objectAtIndex:6 withDefault:[NSNumber numberWithBool:YES]] boolValue]; // allow self-signed certs
+    //    BOOL trustAllHosts = [[command argumentAtIndex:6 withDefault:[NSNumber numberWithBool:YES]] boolValue]; // allow self-signed certs
     BOOL chunkedMode = [[command argumentAtIndex:7 withDefault:[NSNumber numberWithBool:YES]] boolValue];
     NSDictionary* headers = [command argumentAtIndex:8 withDefault:nil];
     // Allow alternative http method, default to POST. JS side checks
@@ -256,10 +256,10 @@ static CFIndex WriteDataToStream(NSData* data, CFWriteStreamRef stream)
 
 - (CDVFileTransferDelegate*)delegateForUploadCommand:(CDVInvokedUrlCommand*)command
 {
-    NSString* source = [command.arguments objectAtIndex:0];
-    NSString* server = [command.arguments objectAtIndex:1];
-    BOOL trustAllHosts = [[command.arguments objectAtIndex:6 withDefault:[NSNumber numberWithBool:NO]] boolValue]; // allow self-signed certs
-    NSString* objectId = [command.arguments objectAtIndex:9];
+    NSString* source = [command argumentAtIndex:0];
+    NSString* server = [command argumentAtIndex:1];
+    BOOL trustAllHosts = [[command argumentAtIndex:6 withDefault:[NSNumber numberWithBool:NO]] boolValue]; // allow self-signed certs
+    NSString* objectId = [command argumentAtIndex:9];
 
     CDVFileTransferDelegate* delegate = [[CDVFileTransferDelegate alloc] init];
 
@@ -277,8 +277,8 @@ static CFIndex WriteDataToStream(NSData* data, CFWriteStreamRef stream)
 
 - (void)fileDataForUploadCommand:(CDVInvokedUrlCommand*)command
 {
-    NSString* source = (NSString*)[command.arguments objectAtIndex:0];
-    NSString* server = [command.arguments objectAtIndex:1];
+    NSString* source = (NSString*)[command argumentAtIndex:0];
+    NSString* server = [command argumentAtIndex:1];
     NSError* __autoreleasing err = nil;
 
     CDVFilesystemURL *sourceURL = [CDVFilesystemURL fileSystemURLWithString:source];
@@ -356,7 +356,7 @@ static CFIndex WriteDataToStream(NSData* data, CFWriteStreamRef stream)
 
 - (void)abort:(CDVInvokedUrlCommand*)command
 {
-    NSString* objectId = [command.arguments objectAtIndex:0];
+    NSString* objectId = [command argumentAtIndex:0];
 
     @synchronized (activeTransfers) {
         CDVFileTransferDelegate* delegate = activeTransfers[objectId];
@@ -371,11 +371,11 @@ static CFIndex WriteDataToStream(NSData* data, CFWriteStreamRef stream)
 - (void)download:(CDVInvokedUrlCommand*)command
 {
     DLog(@"File Transfer downloading file...");
-    NSString* source = [command.arguments objectAtIndex:0];
-    NSString* target = [command.arguments objectAtIndex:1];
-    BOOL trustAllHosts = [[command.arguments objectAtIndex:2 withDefault:[NSNumber numberWithBool:NO]] boolValue]; // allow self-signed certs
-    NSString* objectId = [command.arguments objectAtIndex:3];
-    NSDictionary* headers = [command.arguments objectAtIndex:4 withDefault:nil];
+    NSString* source = [command argumentAtIndex:0];
+    NSString* target = [command argumentAtIndex:1];
+    BOOL trustAllHosts = [[command argumentAtIndex:2 withDefault:[NSNumber numberWithBool:NO]] boolValue]; // allow self-signed certs
+    NSString* objectId = [command argumentAtIndex:3];
+    NSDictionary* headers = [command argumentAtIndex:4 withDefault:nil];
 
     CDVPluginResult* result = nil;
     CDVFileTransferError errorCode = 0;
