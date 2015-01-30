@@ -39,6 +39,7 @@ Although in the global scope, they are not available until after the `deviceread
 - Amazon Fire OS
 - Android
 - BlackBerry 10
+- Browser
 - Firefox OS**
 - iOS
 - Windows Phone 7 and 8*

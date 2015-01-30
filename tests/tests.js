@@ -19,15 +19,17 @@
 *
 */
 
-/* global exports, cordova */
-/* global describe, it, expect, beforeEach, afterEach, jasmine, pending, spyOn */
+/*global exports, cordova, FileTransfer, FileTransferError,
+         FileUploadOptions, LocalFileSystem, requestFileSystem, TEMPORARY */
 
-/* global FileTransfer, FileTransferError, FileUploadOptions, LocalFileSystem */
+/*global describe, it, expect, beforeEach, afterEach, spyOn,
+         jasmine, pending*/
 
 exports.defineAutoTests = function () {
 
     // constants
     var GRACE_TIME_DELTA = 300; // in milliseconds
+    var DEFAULT_FILESYSTEM_SIZE = 1024*50; //filesystem size in bytes
     var UNKNOWN_HOST = "http://foobar.apache.org";
     var HEADERS_ECHO = "http://whatheaders.com"; // NOTE: this site is very useful!
 
@@ -41,6 +43,9 @@ exports.defineAutoTests = function () {
     var isWindows = function() {
         return (cordova.platformId === "windows") || (navigator.appVersion.indexOf("MSAppHost/1.0") !== -1);
     };
+
+    var isBrowser = cordova.platformId === 'browser';
+    var isIE = isBrowser && navigator.userAgent.indexOf('Trident') >= 0;
 
     describe('FileTransferError', function () {
 
@@ -140,7 +145,14 @@ exports.defineAutoTests = function () {
                             throw new Error('aborted creating test file \'' + name + '\': ' + evt);
                         };
 
-                        writer.write(content + "\n");
+                        if (cordova.platformId === 'browser') {
+                            // var builder = new BlobBuilder();
+                            // builder.append(content + '\n');
+                            var blob = new Blob([content + '\n'], { type: 'text/plain' });
+                            writer.write(blob);
+                        } else {
+                            writer.write(content + "\n");
+                        }
 
                     }, unexpectedCallbacks.fileOperationFail);
                 },
@@ -157,7 +169,12 @@ exports.defineAutoTests = function () {
                 expect(event.total).not.toBeLessThan(event.loaded);
                 expect(event.lengthComputable).toBe(true, 'lengthComputable');
             } else {
-                expect(event.total).toBe(0);
+                // In IE, when lengthComputable === false, event.total somehow is equal to 2^64
+                if (isIE) {
+                    expect(event.total).toBe(Math.pow(2, 64));
+                } else {
+                    expect(event.total).toBe(0);
+                }
             }
         };
 
@@ -176,7 +193,7 @@ exports.defineAutoTests = function () {
         //      signifies a completed async call, each async call needs its own done(), and
         //      therefore its own beforeEach
         beforeEach(function (done) {
-            window.requestFileSystem(LocalFileSystem.PERSISTENT, 0,
+            window.requestFileSystem(LocalFileSystem.PERSISTENT, DEFAULT_FILESYSTEM_SIZE,
                 function (fileSystem) {
                     persistentRoot = fileSystem.root;
                     done();
@@ -188,7 +205,7 @@ exports.defineAutoTests = function () {
         });
 
         beforeEach(function (done) {
-            window.requestFileSystem(LocalFileSystem.TEMPORARY, 0,
+            window.requestFileSystem(LocalFileSystem.TEMPORARY, DEFAULT_FILESYSTEM_SIZE,
                 function (fileSystem) {
                     tempRoot = fileSystem.root;
                     done();
@@ -210,7 +227,7 @@ exports.defineAutoTests = function () {
             }
 
             // but run the implementations of the expected callbacks
-            for (callback in expectedCallbacks) {
+            for (callback in expectedCallbacks) { //jshint ignore: line
                 if (expectedCallbacks.hasOwnProperty(callback)) {
                     spyOn(expectedCallbacks, callback).and.callThrough();
                 }
@@ -361,10 +378,8 @@ exports.defineAutoTests = function () {
 
                     var fileURL = window.location.protocol + '//' + window.location.pathname.replace(/ /g, '%20');
 
-                    if (!/^file/.exec(fileURL) && cordova.platformId !== 'blackberry10') {
-                        if (cordova.platformId !== 'windowsphone')
-                            expect(fileURL).toMatch(/^file:/);
-                        else
+                    if (!/^file:/.exec(fileURL) && cordova.platformId !== 'blackberry10') {
+                        if (cordova.platformId === 'windowsphone')
                             expect(fileURL).toMatch(/^x-wmapp0:/);
                         done();
                         return;
@@ -552,6 +567,11 @@ exports.defineAutoTests = function () {
                 });
 
                 it("filetransfer.spec.30 downloaded file entries should have a toNativeURL method", function (done) {
+
+                    if (cordova.platformId === 'browser') {
+                        pending();
+                        return;
+                    }
 
                     var fileURL = SERVER + "/robots.txt";
 
