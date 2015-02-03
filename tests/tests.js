@@ -19,10 +19,15 @@
 *
 */
 
+/* global exports, cordova */
+/* global describe, it, expect, beforeEach, afterEach, jasmine, pending, spyOn */
+
+/* global FileTransfer, FileTransferError, FileUploadOptions, LocalFileSystem */
+
 exports.defineAutoTests = function () {
 
     // constants
-    var GRACE_TIME_DELTA = 300 // in milliseconds
+    var GRACE_TIME_DELTA = 300; // in milliseconds
     var UNKNOWN_HOST = "http://foobar.apache.org";
     var HEADERS_ECHO = "http://whatheaders.com"; // NOTE: this site is very useful!
 
@@ -34,11 +39,7 @@ exports.defineAutoTests = function () {
 
     // flags
     var isWindows = function() {
-        return (cordova.platformId == "windows") || (navigator.appVersion.indexOf("MSAppHost/1.0") !== -1);
-    };
-
-    var isWP81 = function() {
-        return navigator.appVersion.indexOf("Windows Phone 8.1;") !== -1;
+        return (cordova.platformId === "windows") || (navigator.appVersion.indexOf("MSAppHost/1.0") !== -1);
     };
 
     describe('FileTransferError', function () {
@@ -126,7 +127,7 @@ exports.defineAutoTests = function () {
                 function (fileEntry) {
                     fileEntry.createWriter(function (writer) {
 
-                        writer.onwrite = function (evt) {
+                        writer.onwrite = function () {
                             console.log('created test file \'' + name + '\'');
                             success(fileEntry);
                         };
@@ -202,21 +203,27 @@ exports.defineAutoTests = function () {
         beforeEach(function() {
 
             // ignore the actual implementations of the unexpected callbacks
-            for (callback in unexpectedCallbacks) {
-                spyOn(unexpectedCallbacks, callback);
+            for (var callback in unexpectedCallbacks) {
+                if (unexpectedCallbacks.hasOwnProperty(callback)) {
+                    spyOn(unexpectedCallbacks, callback);
+                }
             }
 
             // but run the implementations of the expected callbacks
             for (callback in expectedCallbacks) {
-                spyOn(expectedCallbacks, callback).and.callThrough();
+                if (expectedCallbacks.hasOwnProperty(callback)) {
+                    spyOn(expectedCallbacks, callback).and.callThrough();
+                }
             }
         });
 
         // at the end, check that none of the unexpected callbacks got called,
         // and act on the expected callbacks
         afterEach(function() {
-            for (callback in unexpectedCallbacks) {
-                expect(unexpectedCallbacks[callback]).not.toHaveBeenCalled();
+            for (var callback in unexpectedCallbacks) {
+                if (unexpectedCallbacks.hasOwnProperty(callback)) {
+                    expect(unexpectedCallbacks[callback]).not.toHaveBeenCalled();
+                }
             }
 
             if (expectedCallbacks.unsupportedOperation.calls.any()) {
@@ -380,7 +387,7 @@ exports.defineAutoTests = function () {
                         var reader = new FileReader();
 
                         reader.onerror = unexpectedCallbacks.fileOperationFail;
-                        reader.onload  = function (e) {
+                        reader.onload  = function () {
                             expect(reader.result).toMatch(/The Apache Software Foundation/);
                             done();
                         };
@@ -607,6 +614,7 @@ exports.defineAutoTests = function () {
                 var uploadOptions;
 
                 var fileName;
+                var fileContents;
                 var localFilePath;
 
                 // helpers
@@ -633,7 +641,7 @@ exports.defineAutoTests = function () {
                     fileName      = 'fileToUpload.txt';
                     fileContents  = 'upload test file';
 
-                    uploadParams        = new Object();
+                    uploadParams        = {};
                     uploadParams.value1 = "test";
                     uploadParams.value2 = "param";
 
@@ -646,7 +654,7 @@ exports.defineAutoTests = function () {
                     var fileWin = function (entry) {
                         localFilePath = entry.toURL();
                         done();
-                    }
+                    };
 
                     // create a file to upload
                     writeFile(root, fileName, fileContents, fileWin);
@@ -659,19 +667,13 @@ exports.defineAutoTests = function () {
 
                 it("filetransfer.spec.18 should be able to upload a file", function (done) {
 
-                    // according to spec "onprogress" method isn't supported on WP
-                    if (isWP81()) {
-                        pending();
-                        return;
-                    }
-
                     var fileURL = SERVER + '/upload';
 
                     var uploadWin = function (uploadResult) {
 
                         verifyUpload(uploadResult);
 
-                        if (cordova.platformId == 'ios') {
+                        if (cordova.platformId === 'ios') {
                             expect(uploadResult.headers).toBeDefined('Expected headers to be defined.');
                             expect(uploadResult.headers['Content-Type']).toBeDefined('Expected content-type header to be defined.');
                         }
@@ -684,12 +686,6 @@ exports.defineAutoTests = function () {
                 });
 
                 it("filetransfer.spec.19 should be able to upload a file with http basic auth", function (done) {
-
-                    // according to spec "onprogress" method doesn't supported on WP
-                    if (isWP81()) {
-                        pending();
-                        return;
-                    }
 
                     var fileURL = SERVER_WITH_CREDENTIALS + "/upload_basic_auth";
 
@@ -715,7 +711,7 @@ exports.defineAutoTests = function () {
                         setTimeout(done, GRACE_TIME_DELTA * 2);
                     };
 
-                    var fileWin = function (fileEntry) {
+                    var fileWin = function () {
 
                         startTime = +new Date();
 
@@ -871,7 +867,7 @@ exports.defineManualTests = function (contentEl, createActionButton) {
     var videoURL = "http://techslides.com/demos/sample-videos/small.mp4";
 
     function clearResults() {
-        results = document.getElementById("info");
+        var results = document.getElementById("info");
         results.innerHTML = '';
     }
 
@@ -882,8 +878,8 @@ exports.defineManualTests = function (contentEl, createActionButton) {
             var ft = new FileTransfer();
             console.log("Starting download");
             ft.download(source, fileSystem.root.toURL() + filename, function (entry) {
-                console.log("Download complete")
-                element.src = urlFn(entry)
+                console.log("Download complete");
+                element.src = urlFn(entry);
                 console.log("Src URL is " + element.src);
                 console.log("Inserting element");
                 document.getElementById("info").appendChild(element);
@@ -891,14 +887,14 @@ exports.defineManualTests = function (contentEl, createActionButton) {
         }
         console.log("Requesting filesystem");
         clearResults();
-        requestFileSystem(TEMPORARY, 0, function (fileSystem) {
+        window.requestFileSystem(LocalFileSystem.TEMPORARY, 0, function (fileSystem) {
             console.log("Checking for existing file");
-            if (directory != undefined) {
+            if (directory !== undefined) {
                 console.log("Checking for existing directory.");
                 fileSystem.root.getDirectory(directory, {}, function (dirEntry) {
                     dirEntry.removeRecursively(function () {
                         download(fileSystem);
-                    }, function (e) { console.log("ERROR: dirEntry.removeRecursively") });
+                    }, function () { console.log("ERROR: dirEntry.removeRecursively"); });
                 }, function () {
                     download(fileSystem);
                 });
@@ -907,12 +903,12 @@ exports.defineManualTests = function (contentEl, createActionButton) {
                     console.log("Removing existing file");
                     entry.remove(function () {
                         download(fileSystem);
-                    }, function (e) { console.log("ERROR: entry.remove"); });
+                    }, function () { console.log("ERROR: entry.remove"); });
                 }, function () {
                     download(fileSystem);
                 });
             }
-        }, function (e) { console.log("ERROR: requestFileSystem"); });
+        }, function () { console.log("ERROR: requestFileSystem"); });
     }
 
     /******************************************************************************/
@@ -935,11 +931,11 @@ exports.defineManualTests = function (contentEl, createActionButton) {
     }, 'cdv_image');
 
     createActionButton('Download and display img (native)', function () {
-        downloadImg(imageURL, function (entry) { return entry.toNativeURL(); }, new Image);
+        downloadImg(imageURL, function (entry) { return entry.toNativeURL(); }, new Image());
     }, 'native_image');
 
     createActionButton('Download to a non-existent dir (should work)', function () {
-        downloadImg(imageURL, function (entry) { return entry.toURL(); }, new Image, '/nonExistentDirTest/');
+        downloadImg(imageURL, function (entry) { return entry.toURL(); }, new Image(), '/nonExistentDirTest/');
     }, 'non-existent_dir');
 
     createActionButton('Download and play video (cdvfile)', function () {
@@ -951,6 +947,6 @@ exports.defineManualTests = function (contentEl, createActionButton) {
     createActionButton('Download and play video (native)', function () {
         var videoElement = document.createElement('video');
         videoElement.controls = "controls";
-        downloadImg(videoURL, function (entry) { return entry.toNativeURL(); }, videoElement)
+        downloadImg(videoURL, function (entry) { return entry.toNativeURL(); }, videoElement);
     }, 'native_video');
 };
