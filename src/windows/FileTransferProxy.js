@@ -26,6 +26,7 @@
 var FTErr = require('./FileTransferError'),
     ProgressEvent = require('org.apache.cordova.file.ProgressEvent'),
     FileUploadResult = require('org.apache.cordova.file.FileUploadResult'),
+    FileProxy = require('org.apache.cordova.file.FileProxy'),
     FileEntry = require('org.apache.cordova.file.FileEntry');
 
 var appData = Windows.Storage.ApplicationData.current;
@@ -313,7 +314,9 @@ exec(win, fail, 'FileTransfer', 'upload',
                         .replace(appData.temporaryFolder.path, 'ms-appdata:///temp')
                         .replace('\\', '/');
 
-                    successCallback(new FileEntry(storageFile.name, storageFile.path, null, nativeURI));
+                    // Passing null as error callback here because downloaded file should exist in any case
+                    // otherwise the error callback will be hit during file creation in another place
+                    FileProxy.resolveLocalFileSystemURI(successCallback, null, [nativeURI]);
                 }, function(error) {
 
                     var getTransferError = new WinJS.Promise(function (resolve) {
