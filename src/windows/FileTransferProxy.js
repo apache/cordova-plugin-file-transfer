@@ -237,7 +237,7 @@ exec(win, fail, 'FileTransfer', 'upload',
     // [source, target, trustAllHosts, id, headers]
     download:function(successCallback, errorCallback, options) {
         var source = options[0];
-        var target = cordovaPathToNative(options[1]);
+        var target = options[1];
         var downloadId = options[3];
         var headers = options[4] || {};
 
@@ -252,7 +252,7 @@ exec(win, fail, 'FileTransfer', 'upload',
             target = target.replace('ms-appdata:///local', appData.localFolder.path)
                            .replace('ms-appdata:///temp', appData.temporaryFolder.path);
         }
-        target = cordovaPathToNative(target); // again?
+        target = cordovaPathToNative(target);
 
         var path = target.substr(0, target.lastIndexOf("\\"));
         var fileName = target.substr(target.lastIndexOf("\\") + 1);
