@@ -143,3 +143,16 @@
 * CB-7944 Pended unsupported auto tests for *Windows*
 * CB-7977 Mention `deviceready` in plugin docs
 * CB-7700 cordova-plugin-file-transfer documentation translation: cordova-plugin-file-transfer
+
+### 0.5.0 (Feb 04, 2015)
+* CB-8095 windows: Rewrite upload method to support progress events properly
+* CB-5059 android: Add a CookieManager abstraction for pluggable webviews
+* ios: Fix compile warning about implicity int conversion
+* CB-8351 ios: Use argumentForIndex rather than NSArray extension
+* CB-8351 ios: Use a local copy of DLog macro rather than CordovaLib version
+* CB-8296 ios: Fix crash when upload fails and file is not yet created (close #57)
+* Document "body" property on FileTransferError
+* CB-7912 ios, android: Update to work with whitelist plugins in Cordova 4.x
+* Error callback should always be called with the FileTransferError object, and not just the code
+* windows: alias appData to Windows.Storage.ApplicationData.current
+* CB-8093 Fixes incorrect FileTransferError returned in case of download failure
