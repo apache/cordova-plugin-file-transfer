@@ -281,7 +281,7 @@ exec(win, fail, 'FileTransfer', 'upload',
                 // if download isn't cancelled, contunue with creating and preparing download operation
                 var downloader = new Windows.Networking.BackgroundTransfer.BackgroundDownloader();
                 for (var header in headers) {
-                    if (header.hasOwnProperty(header)) {
+                    if (headers.hasOwnProperty(header)) {
                         downloader.setRequestHeader(header, headers[header]);
                     }
                 }
