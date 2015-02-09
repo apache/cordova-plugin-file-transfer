@@ -145,6 +145,7 @@
 * CB-7700 cordova-plugin-file-transfer documentation translation: cordova-plugin-file-transfer
 
 ### 0.5.0 (Feb 04, 2015)
+* CB-8407 windows: Fix download of `ms-appdata:///` URIs
 * CB-8095 windows: Rewrite upload method to support progress events properly
 * CB-5059 android: Add a CookieManager abstraction for pluggable webviews
 * ios: Fix compile warning about implicity int conversion
