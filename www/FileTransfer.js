@@ -132,14 +132,18 @@ FileTransfer.prototype.upload = function(filePath, server, successCallback, erro
 
     var self = this;
     var win = function(result) {
+        console.log("MB check1");
         if (typeof result.lengthComputable != "undefined") {
+            console.log("MB onprogress");
             if (self.onprogress) {
                 self.onprogress(newProgressEvent(result));
             }
         } else {
+            console.log("MB successCallback");
             successCallback && successCallback(result);
         }
     };
+    console.log("MB execute upload filePath =" + filePath + "server =" + server + "fileKey =" + fileKey + "fileName =" + fileName + "mimeType =" + mimeType);
     exec(win, fail, 'FileTransfer', 'upload', [filePath, server, fileKey, fileName, mimeType, params, trustAllHosts, chunkedMode, headers, this._id, httpMethod]);
 };
 

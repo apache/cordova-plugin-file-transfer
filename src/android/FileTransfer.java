@@ -95,9 +95,12 @@ public class FileTransfer extends CordovaPlugin {
             this.callbackContext = callbackContext;
         }
         void sendPluginResult(PluginResult pluginResult) {
+          Log.d(LOG_TAG, "MB says ... CHECK 8");
             synchronized (this) {
                 if (!aborted) {
+                  Log.d(LOG_TAG, "MB says ... CHECK 9");
                     callbackContext.sendPluginResult(pluginResult);
+                    Log.d(LOG_TAG, "MB says ... CHECK 10");
                 }
             }
         }
@@ -281,6 +284,7 @@ public class FileTransfer extends CordovaPlugin {
         Log.d(LOG_TAG, "headers: " + headers);
         Log.d(LOG_TAG, "objectId: " + objectId);
         Log.d(LOG_TAG, "httpMethod: " + httpMethod);
+        //Log.d()
         
         final Uri targetUri = resourceApi.remapUri(Uri.parse(target));
         // Accept a path or a URI for the source.
@@ -495,14 +499,18 @@ public class FileTransfer extends CordovaPlugin {
                         safeClose(inStream);
                     }
                     
-                    Log.d(LOG_TAG, "got response from server");
+                    Log.d(LOG_TAG, "MB says ... got response from server");
                     Log.d(LOG_TAG, responseString.substring(0, Math.min(256, responseString.length())));
                     
                     // send request and retrieve response
+                    Log.d(LOG_TAG, "MB says ... CHECK 1");
                     result.setResponseCode(responseCode);
+                    Log.d(LOG_TAG, "MB says ... CHECK 2");
                     result.setResponse(responseString);
+                    Log.d(LOG_TAG, "MB says ... CHECK 3");
 
                     context.sendPluginResult(new PluginResult(PluginResult.Status.OK, result.toJSONObject()));
+                    Log.d(LOG_TAG, "MB says ... CHECK 4");
                 } catch (FileNotFoundException e) {
                     JSONObject error = createFileTransferError(FILE_NOT_FOUND_ERR, source, target, conn, e);
                     Log.e(LOG_TAG, error.toString(), e);
@@ -521,11 +529,15 @@ public class FileTransfer extends CordovaPlugin {
                     Log.e(LOG_TAG, error.toString(), t);
                     context.sendPluginResult(new PluginResult(PluginResult.Status.IO_EXCEPTION, error));
                 } finally {
+                  Log.d(LOG_TAG, "MB says ... CHECK 5");
                     synchronized (activeRequests) {
+                      Log.d(LOG_TAG, "MB says ... CHECK 5A");
                         activeRequests.remove(objectId);
-                    }
+                    Log.d(LOG_TAG, "MB says ... CHECK 5B");
+                  }
 
                     if (conn != null) {
+                      Log.d(LOG_TAG, "MB says ... CHECK 6");
                         // Revert back to the proper verifier and socket factories
                         // Revert back to the proper verifier and socket factories
                         if (trustEveryone && useHttps) {
