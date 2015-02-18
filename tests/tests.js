@@ -40,9 +40,8 @@ exports.defineAutoTests = function () {
     var SERVER_WITH_CREDENTIALS = "http://cordova_user:cordova_password@cordova-filetransfer.jitsu.com";
 
     // flags
-    var isWindows = function() {
-        return (cordova.platformId === "windows") || (navigator.appVersion.indexOf("MSAppHost/1.0") !== -1);
-    };
+    var isWindows = cordova.platformId === 'windows8' || cordova.platformId === 'windows';
+    var isWP8 = cordova.platformId === 'windowsphone';
 
     var isBrowser = cordova.platformId === 'browser';
     var isIE = isBrowser && navigator.userAgent.indexOf('Trident') >= 0;
@@ -161,6 +160,10 @@ exports.defineAutoTests = function () {
                 }
             );
         };
+
+        // according to documentation, wp8 does not support onProgress:
+        // https://github.com/apache/cordova-plugin-file-transfer/blob/master/doc/index.md#supported-platforms
+        var wp8OnProgressHandler = function () {};
 
         var defaultOnProgressHandler = function (event) {
             if (event.lengthComputable) {
@@ -285,8 +288,8 @@ exports.defineAutoTests = function () {
 
                 transfer = new FileTransfer();
 
-                // assign a default onprogress handler
-                transfer.onprogress = defaultOnProgressHandler;
+                // assign onprogress handler
+                transfer.onprogress = isWP8 ? wp8OnProgressHandler : defaultOnProgressHandler;
 
                 // spy on the onprogress handler, but still call through to it
                 spyOn(transfer, 'onprogress').and.callThrough();
@@ -371,7 +374,7 @@ exports.defineAutoTests = function () {
                 it("filetransfer.spec.7 should download a file using file:// (when hosted from file://)", function (done) {
 
                     // for Windows platform it's ms-appdata:/// by default, not file://
-                    if (isWindows()) {
+                    if (isWindows) {
                         pending();
                         return;
                     }
@@ -528,20 +531,33 @@ exports.defineAutoTests = function () {
                     transfer.download(fileURL, localFilePath, unexpectedCallbacks.httpWin, downloadFail);
                 });
 
-                it("filetransfer.spec.15 should handle unknown host", function (done) {
+                describe('unknown host:', function () {
+                    var originalTimeout = jasmine.DEFAULT_TIMEOUT_INTERVAL;
 
-                    var fileURL = UNKNOWN_HOST;
+                    beforeEach(function() {
+                        jasmine.DEFAULT_TIMEOUT_INTERVAL = 30000;
+                    });
 
-                    var downloadFail = function (error) {
-                        expect(error.code).toBe(FileTransferError.CONNECTION_ERR);
-                        done();
-                    };
+                    afterEach(function() {
+                        jasmine.DEFAULT_TIMEOUT_INTERVAL = originalTimeout;
+                    });
 
-                    // turn off the onprogress handler
-                    transfer.onprogress = function () {};
+                    it("filetransfer.spec.15 should handle unknown host", function (done) {
 
-                    transfer.download(fileURL, localFilePath, unexpectedCallbacks.httpWin, downloadFail);
+                        var fileURL = UNKNOWN_HOST;
+
+                        var downloadFail = function (error) {
+                            expect(error.code).toBe(FileTransferError.CONNECTION_ERR);
+                            done();
+                        };
+
+                        // turn off the onprogress handler
+                        transfer.onprogress = function () {};
+
+                        transfer.download(fileURL, localFilePath, unexpectedCallbacks.httpWin, downloadFail);
+                    });                    
                 });
+                
 
                 it("filetransfer.spec.16 should handle bad file path", function (done) {
                     var fileURL = SERVER;
@@ -585,8 +601,10 @@ exports.defineAutoTests = function () {
                         expect(nativeURL).toBeTruthy();
                         expect(nativeURL).toEqual(jasmine.any(String));
 
-                        if (isWindows()) {
+                        if (isWindows) {
                             expect(nativeURL.substring(0, 14)).toBe('ms-appdata:///');
+                        } else if (isWP8) {
+                            expect(nativeURL.substring(0, 1)).toBe('/');
                         } else {
                             expect(nativeURL.substring(0, 7)).toBe('file://');
                         }
