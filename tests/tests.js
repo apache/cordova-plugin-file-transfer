@@ -27,9 +27,16 @@
 
 exports.defineAutoTests = function () {
 
+    // flags
+    var isWindows = cordova.platformId === 'windows8' || cordova.platformId === 'windows';
+    var isWP8 = cordova.platformId === 'windowsphone';
+    var isAndroid = cordova.platformId === 'android';
+    var isBrowser = cordova.platformId === 'browser';
+    var isIE = isBrowser && navigator.userAgent.indexOf('Trident') >= 0;
+    
     // constants
     var GRACE_TIME_DELTA = 300; // in milliseconds
-    var DEFAULT_FILESYSTEM_SIZE = 1024*50; //filesystem size in bytes
+    var DEFAULT_FILESYSTEM_SIZE = isAndroid ? 0 : 1024*50; //filesystem size in bytes
     var UNKNOWN_HOST = "http://foobar.apache.org";
     var HEADERS_ECHO = "http://whatheaders.com"; // NOTE: this site is very useful!
 
@@ -38,13 +45,6 @@ exports.defineAutoTests = function () {
     //      more info at https://github.com/apache/cordova-labs/tree/cordova-filetransfer
     var SERVER                  = "http://cordova-filetransfer.jitsu.com";
     var SERVER_WITH_CREDENTIALS = "http://cordova_user:cordova_password@cordova-filetransfer.jitsu.com";
-
-    // flags
-    var isWindows = cordova.platformId === 'windows8' || cordova.platformId === 'windows';
-    var isWP8 = cordova.platformId === 'windowsphone';
-
-    var isBrowser = cordova.platformId === 'browser';
-    var isIE = isBrowser && navigator.userAgent.indexOf('Trident') >= 0;
 
     describe('FileTransferError', function () {
 
