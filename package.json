@@ -1,0 +1,44 @@
+{
+  "name": "cordova-plugin-file-transfer",
+  "version": "0.5.1-dev",
+  "description": "Cordova File Transfer Plugin",
+  "cordova": {
+    "id": "org.apache.cordova.file-transfer",
+    "platforms": [
+      "android",
+      "amazon-fireos",
+      "ubuntu",
+      "blackberry10",
+      "ios",
+      "wp7",
+      "wp8",
+      "windows8",
+      "windows",
+      "firefoxos",
+      "browser"
+    ]
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://git-wip-us.apache.org/repos/asf/cordova-plugin-file-transfer.git"
+  },
+  "keywords": [
+    "cordova",
+    "file",
+    "transfer",
+    "ecosystem:cordova",
+    "cordova-android",
+    "cordova-amazon-fireos",
+    "cordova-ubuntu",
+    "cordova-blackberry10",
+    "cordova-ios",
+    "cordova-wp7",
+    "cordova-wp8",
+    "cordova-windows8",
+    "cordova-windows",
+    "cordova-firefoxos",
+    "cordova-browser"
+  ],
+  "author": "Apache Software Foundation",
+  "license": "Apache 2.0"
+}
