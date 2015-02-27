@@ -21,6 +21,16 @@
 
 Dieses Plugin ermöglicht Ihnen zum Hochladen und Herunterladen von Dateien.
 
+Dieses Plugin wird global `FileTransfer`, `FileUploadOptions` Konstruktoren definiert.
+
+Obwohl im globalen Gültigkeitsbereich, sind sie nicht bis nach dem `deviceready`-Ereignis.
+
+    document.addEventListener("deviceready", onDeviceReady, false);
+    function onDeviceReady() {
+        console.log(FileTransfer);
+    }
+    
+
 ## Installation
 
     cordova plugin add org.apache.cordova.file-transfer
@@ -31,21 +41,20 @@ Dieses Plugin ermöglicht Ihnen zum Hochladen und Herunterladen von Dateien.
 *   Amazon Fire OS
 *   Android
 *   BlackBerry 10
+*   Browser
 *   Firefox OS **
 *   iOS
 *   Windows Phone 7 und 8 *
-*   Windows 8 ***|
-*   Windows ***|
+*   Windows 8
+*   Windows
 
-* *Unterstützen nicht `onprogress` noch `abort()` *
+* *Unterstützen keine `onprogress` noch `abort()`*
 
-** *Unterstützen keine `onprogress` *
-
-Partielle Unterstützung von `onprogress` für upload-Methode. `onprogress` wird aufgerufen, mit leeren Progress-Ereignis durch Windows Limitations_
+* * *`onprogress` nicht unterstützt*
 
 # FileTransfer
 
-Das `FileTransfer` Objekt bietet eine Möglichkeit zum Hochladen von Dateien, die mithilfe einer HTTP-Anforderung für mehrteiligen POST sowie Informationen zum Herunterladen von Dateien sowie.
+Das `FileTransfer`-Objekt bietet eine Möglichkeit zum Hochladen von Dateien, die mithilfe einer HTTP-Anforderung für mehrteiligen POST sowie Informationen zum Herunterladen von Dateien sowie.
 
 ## Eigenschaften
 
@@ -57,7 +66,7 @@ Das `FileTransfer` Objekt bietet eine Möglichkeit zum Hochladen von Dateien, di
 
 *   **Download**: lädt eine Datei vom Server.
 
-*   **Abbrechen**: Abbruch eine Übertragung in Bearbeitung.
+*   **abort**: Abbruch eine Übertragung in Bearbeitung.
 
 ## Upload
 
@@ -67,18 +76,19 @@ Das `FileTransfer` Objekt bietet eine Möglichkeit zum Hochladen von Dateien, di
 
 *   **Server**: URL des Servers, die Datei zu empfangen, wie kodiert`encodeURI()`.
 
-*   **SuccessCallback**: ein Rückruf, der übergeben wird ein `Metadata` Objekt. *(Funktion)*
+*   **successCallback**: ein Rückruf, der ein `FileUploadResult`-Objekt übergeben wird. *(Funktion)*
 
-*   **ErrorCallback**: ein Rückruf, der ausgeführt wird, tritt ein Fehler beim Abrufen der `Metadata` . Aufgerufene mit einem `FileTransferError` Objekt. *(Funktion)*
+*   **errorCallback**: ein Rückruf, der ausgeführt wird, tritt ein Fehler beim Abrufen der `FileUploadResult`. Mit einem `FileTransferError`-Objekt aufgerufen. *(Funktion)*
 
 *   **Optionen**: optionale Parameter *(Objekt)*. Gültige Schlüssel:
     
     *   **FileKey**: der Name des Form-Elements. Wird standardmäßig auf `file` . (DOM-String und enthält)
     *   **Dateiname**: der Dateiname beim Speichern der Datei auf dem Server verwendet. Wird standardmäßig auf `image.jpg` . (DOM-String und enthält)
-    *   **MimeType**: den Mime-Typ der Daten hochzuladen. Wird standardmäßig auf `image/jpeg` . (DOM-String und enthält)
-    *   **Params**: eine Reihe von optionalen Schlüssel/Wert-Paaren in der HTTP-Anforderung übergeben. (Objekt)
-    *   **ChunkedMode**: ob die Daten in "Chunked" streaming-Modus hochladen. Wird standardmäßig auf `true` . (Boolean)
-    *   **Header**: eine Karte von Header-Name-Header-Werte. Verwenden Sie ein Array, um mehr als einen Wert anzugeben. (Objekt)
+    *   **httpMethod**: die HTTP-Methode, die-entweder `PUT` oder `POST`. Der Standardwert ist `POST`. (DOM-String und enthält)
+    *   **mimeType**: den Mime-Typ der Daten hochzuladen. Standardwerte auf `Image/Jpeg`. (DOM-String und enthält)
+    *   **params**: eine Reihe von optionalen Schlüssel/Wert-Paaren in der HTTP-Anforderung übergeben. (Objekt)
+    *   **chunkedMode**: ob die Daten in "Chunked" streaming-Modus hochladen. Der Standardwert ist `true`. (Boolean)
+    *   **headers**: eine Karte von Header-Name-Header-Werte. Verwenden Sie ein Array, um mehr als einen Wert anzugeben. (Objekt)
 
 *   **TrustAllHosts**: Optionaler Parameter, wird standardmäßig auf `false` . Wenn legen Sie auf `true` , es akzeptiert alle Sicherheitszertifikate. Dies ist nützlich, da Android selbstsignierte Zertifikate ablehnt. Nicht für den produktiven Einsatz empfohlen. Auf Android und iOS unterstützt. *(Boolean)*
 
@@ -152,7 +162,7 @@ Das `FileTransfer` Objekt bietet eine Möglichkeit zum Hochladen von Dateien, di
 
 ## FileUploadResult
 
-A `FileUploadResult` -Objekt wird an den Erfolg-Rückruf des übergeben die `FileTransfer` des Objekts `upload()` Methode.
+Ein `FileUploadResult`-Objekt wird an den Erfolg-Rückruf des `Objekts <code>FileTransfer`-Upload()-Methode</code> übergeben.
 
 ### Eigenschaften
 
@@ -160,7 +170,7 @@ A `FileUploadResult` -Objekt wird an den Erfolg-Rückruf des übergeben die `Fil
 
 *   **ResponseCode**: die HTTP-Response-Code vom Server zurückgegeben. (lange)
 
-*   **Antwort**: der HTTP-Antwort vom Server zurückgegeben. (DOM-String und enthält)
+*   **response**: der HTTP-Antwort vom Server zurückgegeben. (DOM-String und enthält)
 
 *   **Header**: die HTTP-Response-Header vom Server. (Objekt)
     
@@ -174,17 +184,17 @@ A `FileUploadResult` -Objekt wird an den Erfolg-Rückruf des übergeben die `Fil
 
 **Parameter**:
 
-*   **Quelle**: URL des Servers, um die Datei herunterzuladen, wie kodiert`encodeURI()`.
+*   **source**: URL des Servers, um die Datei herunterzuladen, wie kodiert`encodeURI()`.
 
-*   **Ziel**: Dateisystem-Url, das die Datei auf dem Gerät. Für rückwärts Kompatibilität, dies kann auch der vollständige Pfad der Datei auf dem Gerät sein. (Siehe [rückwärts Kompatibilität Notes] unten)
+*   **target**: Dateisystem-Url, das die Datei auf dem Gerät. Für rückwärts Kompatibilität, dies kann auch der vollständige Pfad der Datei auf dem Gerät sein. (Siehe [rückwärts Kompatibilität Notes] unten)
 
 *   **SuccessCallback**: ein Rückruf, der übergeben wird ein `FileEntry` Objekt. *(Funktion)*
 
-*   **ErrorCallback**: ein Rückruf, der ausgeführt wird, tritt ein Fehler beim Abrufen der `Metadata` . Aufgerufene mit einem `FileTransferError` Objekt. *(Funktion)*
+*   **errorCallback**: ein Rückruf, der ausgeführt wird, tritt ein Fehler beim Abrufen der `FileEntry`. Mit einem `FileTransferError`-Objekt aufgerufen. *(Funktion)*
 
 *   **TrustAllHosts**: Optionaler Parameter, wird standardmäßig auf `false` . Wenn legen Sie auf `true` , es akzeptiert alle Sicherheitszertifikate. Dies ist nützlich, da Android selbstsignierte Zertifikate ablehnt. Nicht für den produktiven Einsatz empfohlen. Auf Android und iOS unterstützt. *(Boolean)*
 
-*   **Optionen**: optionale Parameter, derzeit nur unterstützt Kopfzeilen (z. B. Autorisierung (Standardauthentifizierung), etc.).
+*   **Options**: optionale Parameter, derzeit nur unterstützt Kopfzeilen (z. B. Autorisierung (Standardauthentifizierung), etc.).
 
 ### Beispiel
 
@@ -214,7 +224,7 @@ A `FileUploadResult` -Objekt wird an den Erfolg-Rückruf des übergeben die `Fil
     );
     
 
-## Abbruch
+## abort
 
 Bricht einen in-Progress-Transfer. Der Onerror-Rückruf wird ein FileTransferError-Objekt übergeben, die einen Fehlercode FileTransferError.ABORT_ERR hat.
 
@@ -246,7 +256,7 @@ Bricht einen in-Progress-Transfer. Der Onerror-Rückruf wird ein FileTransferErr
 
 ## FileTransferError
 
-A `FileTransferError` Objekt wird an eine Fehler-Callback übergeben, wenn ein Fehler auftritt.
+Ein `FileTransferError`-Objekt wird an eine Fehler-Callback übergeben, wenn ein Fehler auftritt.
 
 ### Eigenschaften
 
@@ -258,7 +268,9 @@ A `FileTransferError` Objekt wird an eine Fehler-Callback übergeben, wenn ein F
 
 *   **HTTP_STATUS**: HTTP-Statuscode. Dieses Attribut ist nur verfügbar, wenn ein Response-Code aus der HTTP-Verbindung eingeht. (Anzahl)
 
-*   **Ausnahme**: entweder e.getMessage oder e.toString (String)
+*   **body** Antworttext. Dieses Attribut ist nur verfügbar, wenn eine Antwort von der HTTP-Verbindung eingeht. (String)
+
+*   **exception**: entweder e.getMessage oder e.toString (String)
 
 ### Konstanten
 
@@ -278,13 +290,13 @@ Frühere Versionen des Plugins würde nur Gerät-Absolute-Dateipfade als Quelle 
 
 Für rückwärts Kompatibilität, diese Pfade noch akzeptiert werden, und wenn Ihre Anwendung Pfade wie diese im permanenten Speicher aufgezeichnet hat, dann sie können weiter verwendet werden.
 
-Diese Pfade waren zuvor ausgesetzt, der `fullPath` -Eigenschaft des `FileEntry` und `DirectoryEntry` Objekte, die durch das Plugin Datei zurückgegeben. Neue Versionen der die Datei-Erweiterung, jedoch nicht länger werden diese Pfade zu JavaScript.
+Diese Pfade waren zuvor in der Eigenschaft `fullPath` `FileEntry` und `DirectoryEntry`-Objekte, die durch das Plugin Datei zurückgegeben ausgesetzt. Neue Versionen der die Datei-Erweiterung, jedoch nicht länger werden diese Pfade zu JavaScript.
 
-Wenn Sie ein auf eine neue Upgrade (1.0.0 oder neuere) Version der Datei und Sie zuvor verwendet haben `entry.fullPath` als Argumente für `download()` oder `upload()` , dann du den Code musst, um die Dateisystem-URLs verwenden zu ändern.
+Wenn Sie ein auf eine neue Upgrade (1.0.0 oder neuere) Version der Datei, und Sie haben zuvor mit `entry.fullPath` als Argumente `download()` oder `upload()`, dann ändern Sie den Code, um die Dateisystem-URLs verwenden müssen.
 
-`FileEntry.toURL()`und `DirectoryEntry.toURL()` zurück, eine Dateisystem-URL in der Form
+`FileEntry.toURL()` und `DirectoryEntry.toURL()` zurück, eine Dateisystem-URL in der form
 
     cdvfile://localhost/persistent/path/to/file
     
 
-die benutzt werden kann, anstelle der absoluten Dateipfad in beiden `download()` und `upload()` Methoden.
+die anstelle der absoluten Dateipfad in `download()` und `upload()` Methode verwendet werden kann.

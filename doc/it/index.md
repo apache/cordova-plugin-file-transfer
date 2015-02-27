@@ -21,6 +21,16 @@
 
 Questo plugin permette di caricare e scaricare file.
 
+Questo plugin definisce globale `FileTransfer`, costruttori di `FileUploadOptions`.
+
+Anche se in ambito globale, non sono disponibili fino a dopo l'evento `deviceready`.
+
+    document.addEventListener("deviceready", onDeviceReady, false);
+    function onDeviceReady() {
+        console.log(FileTransfer);
+    }
+    
+
 ## Installazione
 
     cordova plugin add org.apache.cordova.file-transfer
@@ -31,21 +41,20 @@ Questo plugin permette di caricare e scaricare file.
 *   Amazon fuoco OS
 *   Android
 *   BlackBerry 10
-*   Firefox OS * *
+*   Browser
+*   Firefox OS**
 *   iOS
 *   Windows Phone 7 e 8 *
-*   Windows 8 * * *|
-*   Windows * * *|
+*   Windows 8
+*   Windows
 
-* *Non supportano `onprogress` né `abort()` *
+* *Supporto `onprogress` né `abort()`*
 
-* * *Non supportano `onprogress` *
-
-Supporto parziale di `onprogress` per caricare metodo. `onprogress` viene chiamato con evento progress vuota a causa di Windows limitations_
+** *Non supportano `onprogress`*
 
 # FileTransfer
 
-Il `FileTransfer` oggetto fornisce un modo per caricare i file utilizzando una richiesta HTTP di POST più parte e scaricare file pure.
+L'oggetto `FileTransfer` fornisce un modo per caricare i file utilizzando una richiesta HTTP di POST più parte e scaricare file pure.
 
 ## Proprietà
 
@@ -67,18 +76,19 @@ Il `FileTransfer` oggetto fornisce un modo per caricare i file utilizzando una r
 
 *   **server**: URL del server per ricevere il file, come codificato dal`encodeURI()`.
 
-*   **successCallback**: un callback passato un `Metadata` oggetto. *(Funzione)*
+*   **successCallback**: un callback che viene passato un oggetto `FileUploadResult`. *(Funzione)*
 
-*   **errorCallback**: un callback che viene eseguito se si verifica un errore recuperando il `Metadata` . Invocato con un `FileTransferError` oggetto. *(Funzione)*
+*   **errorCallback**: un callback che viene eseguito se si verifica un errore di recupero `FileUploadResult`. Richiamato con un oggetto `FileTransferError`. *(Funzione)*
 
 *   **opzioni**: parametri facoltativi *(oggetto)*. Chiavi valide:
     
     *   **fileKey**: il nome dell'elemento form. Valore predefinito è `file` . (DOMString)
     *   **nome file**: il nome del file da utilizzare quando si salva il file sul server. Valore predefinito è `image.jpg` . (DOMString)
-    *   **mimeType**: il tipo mime dei dati da caricare. Valore predefinito è `image/jpeg` . (DOMString)
-    *   **params**: un insieme di coppie chiave/valore opzionale per passare nella richiesta HTTP. (Oggetto)
-    *   **chunkedMode**: se a caricare i dati in modalità streaming chunked. Valore predefinito è `true` . (Boolean)
-    *   **intestazioni**: mappa di valori nome/intestazione intestazione. Utilizzare una matrice per specificare più valori. (Oggetto)
+    *   **httpMethod**: metodo HTTP da utilizzare - `PUT` o `POST`. Impostazioni predefinite per `POST`. (DOMString)
+    *   **mimeType**: il tipo mime dei dati da caricare. Impostazioni predefinite su `image/jpeg`. (DOMString)
+    *   **params**: un insieme di coppie chiave/valore opzionale per passare nella richiesta HTTP. (Object)
+    *   **chunkedMode**: se a caricare i dati in modalità streaming chunked. Impostazione predefinita è `true`. (Boolean)
+    *   **headers**: mappa di valori nome/intestazione intestazione. Utilizzare una matrice per specificare più valori. (Object)
 
 *   **trustAllHosts**: parametro opzionale, valore predefinito è `false` . Se impostata su `true` , accetta tutti i certificati di sicurezza. Questo è utile poiché Android respinge i certificati autofirmati sicurezza. Non raccomandato per uso in produzione. Supportato su Android e iOS. *(boolean)*
 
@@ -152,7 +162,7 @@ Il `FileTransfer` oggetto fornisce un modo per caricare i file utilizzando una r
 
 ## FileUploadResult
 
-A `FileUploadResult` oggetto viene passato al metodo di callback di successo il `FileTransfer` dell'oggetto `upload()` metodo.
+Un oggetto `FileUploadResult` viene passato al metodo di callback del metodo `upload()` dell'oggetto `FileTransfer` successo.
 
 ### Proprietà
 
@@ -180,7 +190,7 @@ A `FileUploadResult` oggetto viene passato al metodo di callback di successo il 
 
 *   **successCallback**: un callback passato un `FileEntry` oggetto. *(Funzione)*
 
-*   **errorCallback**: un callback che viene eseguito se si verifica un errore durante il recupero del `Metadata` . Invocato con un `FileTransferError` oggetto. *(Funzione)*
+*   **errorCallback**: un callback che viene eseguito se si verifica un errore durante il recupero `FileEntry`. Richiamato con un oggetto `FileTransferError`. *(Function)*
 
 *   **trustAllHosts**: parametro opzionale, valore predefinito è `false` . Se impostata su `true` , accetta tutti i certificati di sicurezza. Questo è utile perché Android respinge i certificati autofirmati sicurezza. Non raccomandato per uso in produzione. Supportato su Android e iOS. *(boolean)*
 
@@ -246,7 +256,7 @@ Interrompe un trasferimento in corso. Il callback onerror viene passato un ogget
 
 ## FileTransferError
 
-A `FileTransferError` oggetto viene passato a un callback di errore quando si verifica un errore.
+Un oggetto `FileTransferError` viene passato a un callback di errore quando si verifica un errore.
 
 ### Proprietà
 
@@ -258,7 +268,9 @@ A `FileTransferError` oggetto viene passato a un callback di errore quando si ve
 
 *   **http_status**: codice di stato HTTP. Questo attributo è disponibile solo quando viene ricevuto un codice di risposta della connessione HTTP. (Numero)
 
-*   **eccezione**: O e.getMessage o e.toString (String)
+*   **body** Corpo della risposta. Questo attributo è disponibile solo quando viene ricevuta una risposta dalla connessione HTTP. (String)
+
+*   **exception**: O e.getMessage o e.toString (String)
 
 ### Costanti
 
@@ -278,13 +290,13 @@ Versioni precedenti di questo plugin accetterebbe solo dispositivo-assoluto-perc
 
 Per indietro compatibilità, questi percorsi sono ancora accettati, e se l'applicazione ha registrato percorsi come questi in un archivio permanente, quindi possono continuare a essere utilizzato.
 
-Questi percorsi sono state precedentemente esposte nella `fullPath` proprietà di `FileEntry` e `DirectoryEntry` oggetti restituiti dal File plugin. Nuove versioni del File plugin, tuttavia, non è più espongono questi percorsi a JavaScript.
+Questi percorsi sono stati precedentemente esposti nella proprietà `fullPath` di `FileEntry` e oggetti `DirectoryEntry` restituiti dal File plugin. Nuove versioni del File plugin, tuttavia, non è più espongono questi percorsi a JavaScript.
 
-Se si esegue l'aggiornamento a una nuova (1.0.0 o più recente) precedentemente utilizzano la versione del File e si `entry.fullPath` come argomenti a `download()` o `upload()` , sarà necessario modificare il codice per utilizzare gli URL filesystem invece.
+Se si esegue l'aggiornamento a una nuova (1.0.0 o più recente) versione del File e si hanno precedentemente utilizzato `entry.fullPath` come argomenti per `download()` o `upload()`, quindi sarà necessario cambiare il codice per utilizzare gli URL filesystem invece.
 
-`FileEntry.toURL()`e `DirectoryEntry.toURL()` restituiscono un filesystem URL del modulo
+`FileEntry.toURL()` e `DirectoryEntry.toURL()` restituiscono un filesystem URL del modulo
 
     cdvfile://localhost/persistent/path/to/file
     
 
-che può essere utilizzato al posto del percorso assoluto in entrambi `download()` e `upload()` metodi.
+che può essere utilizzato al posto del percorso assoluto nei metodi sia `download()` e `upload()`.

@@ -21,6 +21,16 @@
 
 이 플러그인을 사용 하면 업로드 및 다운로드 파일 수 있습니다.
 
+이 플러그인 글로벌 `FileTransfer`, `FileUploadOptions` 생성자를 정의합니다.
+
+전역 범위에서 그들은 제공 되지 않습니다 때까지 `deviceready` 이벤트 후.
+
+    document.addEventListener("deviceready", onDeviceReady, false);
+    function onDeviceReady() {
+        console.log(FileTransfer);
+    }
+    
+
 ## 설치
 
     cordova plugin add org.apache.cordova.file-transfer
@@ -31,21 +41,20 @@
 *   아마존 화재 운영 체제
 *   안 드 로이드
 *   블랙베리 10
+*   브라우저
 *   파이어 폭스 OS * *
 *   iOS
 *   Windows Phone 7과 8 *
-*   윈도우 8 * * *|
-*   윈도 즈 * * *|
+*   윈도우 8
+*   윈도우
 
-* *를 지원 하지 않는 `onprogress` 도 `abort()` *
+* *`onprogress`도 `abort()`를 지원 하지 않습니다*
 
-* * *를 지원 하지 않는 `onprogress` *
-
-부분적인 지원 `onprogress` 업로드 방법. `onprogress` Windows limitations_로 인해 빈 진행률 이벤트 호출
+* * *`onprogress`를 지원 하지 않습니다*
 
 # FileTransfer
 
-`FileTransfer`개체는 HTTP 다중 파트 POST 요청을 사용 하 여 파일을 업로드 하 고 뿐만 아니라 파일을 다운로드 하는 방법을 제공 합니다.
+`FileTransfer` 개체는 HTTP 다중 파트 POST 요청을 사용 하 여 파일 업로드 뿐만 아니라 파일을 다운로드 하는 방법을 제공 합니다.
 
 ## 속성
 
@@ -67,18 +76,19 @@
 
 *   **서버**: 인코딩 파일 수신 서버의 URL`encodeURI()`.
 
-*   **successCallback**: 콜백 전달 되는 `Metadata` 개체. *(기능)*
+*   **successCallback**: `FileUploadResult` 개체를 전달 하는 콜백. *(기능)*
 
-*   **errorCallback**: 콜백 검색에 오류가 발생 하면 실행 되는 `Metadata` . 로 호출을 `FileTransferError` 개체. *(기능)*
+*   **errorCallback**: `FileUploadResult` 검색에 오류가 발생 하면 실행 되는 콜백. `FileTransferError` 개체와 함께 호출 됩니다. *(기능)*
 
 *   **옵션**: 선택적 매개 변수 *(개체)*. 유효한 키:
     
     *   **fileKey**: form 요소의 이름. 기본값은 `file` . (DOMString)
     *   **파일 이름**: 파일 이름을 서버에 파일을 저장할 때 사용 합니다. 기본값은 `image.jpg` . (DOMString)
-    *   **mimeType**: 업로드 데이터의 mime 형식을. 기본값은 `image/jpeg` . (DOMString)
+    *   **httpMethod**: `넣어` 또는 `게시물`-사용 하도록 HTTP 메서드. `게시물` 기본값입니다. (DOMString)
+    *   **mimeType**: 업로드 데이터의 mime 형식을. `이미지/jpeg`의 기본값입니다. (DOMString)
     *   **params**: HTTP 요청에 전달할 선택적 키/값 쌍의 집합. (개체)
-    *   **chunkedMode**: 청크 스트리밍 모드에서 데이터 업로드를 합니다. 기본값은 `true` . (부울)
-    *   **헤더**: 헤더 이름/헤더 값의 지도. 배열을 사용 하 여 하나 이상의 값을 지정 합니다. (개체)
+    *   **chunkedMode**: 청크 스트리밍 모드에서 데이터 업로드를 합니다. 기본값은 `true`입니다. (부울)
+    *   **headers**: 헤더 이름/헤더 값의 지도. 배열을 사용 하 여 하나 이상의 값을 지정 합니다. (개체)
 
 *   **trustAllHosts**: 선택적 매개 변수는 기본적으로 `false` . 만약 설정 `true` , 그것은 모든 보안 인증서를 허용 합니다. 이 안 드 로이드 자체 서명 된 보안 인증서를 거부 하기 때문에 유용 합니다. 프로덕션 환경에서 사용 권장 되지 않습니다. 안 드 로이드와 iOS에서 지원. *(부울)*
 
@@ -152,7 +162,7 @@
 
 ## FileUploadResult
 
-A `FileUploadResult` 개체의 성공 콜백에 전달 되는 `FileTransfer` 개체의 `upload()` 메서드.
+`FileUploadResult` 개체 `FileTransfer` 개체의 `원래` 방법의 성공 콜백에 전달 됩니다.
 
 ### 속성
 
@@ -160,9 +170,9 @@ A `FileUploadResult` 개체의 성공 콜백에 전달 되는 `FileTransfer` 개
 
 *   **responseCode**: 서버에서 반환 된 HTTP 응답 코드. (긴)
 
-*   **응답**: 서버에서 반환 되는 HTTP 응답. (DOMString)
+*   **response**: 서버에서 반환 되는 HTTP 응답. (DOMString)
 
-*   **머리글**: 서버에서 HTTP 응답 헤더. (개체)
+*   **headers**: 서버에서 HTTP 응답 헤더. (개체)
     
     *   현재 ios만 지원 합니다.
 
@@ -170,21 +180,21 @@ A `FileUploadResult` 개체의 성공 콜백에 전달 되는 `FileTransfer` 개
 
 *   지원 하지 않는 `responseCode` 또는`bytesSent`.
 
-## 다운로드
+## download
 
 **매개 변수**:
 
-*   **소스**: URL로 인코딩된 파일, 다운로드 서버`encodeURI()`.
+*   **source**: URL로 인코딩된 파일, 다운로드 서버`encodeURI()`.
 
-*   **대상**: 장치에 파일을 나타내는 파일 시스템 url. 에 대 한 이전 버전과 호환성을이 수도 장치에 있는 파일의 전체 경로 수. (참조 [거꾸로 호환성 노트] 아래)
+*   **target**: 장치에 파일을 나타내는 파일 시스템 url. 에 대 한 이전 버전과 호환성을이 수도 장치에 있는 파일의 전체 경로 수. (참조 [거꾸로 호환성 노트] 아래)
 
 *   **successCallback**: 콜백 전달 되는 `FileEntry` 개체. *(기능)*
 
-*   **errorCallback**: 콜백 검색할 때 오류가 발생 하면 실행 되는 `Metadata` . 로 호출을 `FileTransferError` 개체. *(기능)*
+*   **errorCallback**: `FileEntry`를 검색할 때 오류가 발생 하면 실행 되는 콜백. `FileTransferError` 개체와 함께 호출 됩니다. *(기능)*
 
 *   **trustAllHosts**: 선택적 매개 변수는 기본적으로 `false` . 만약 설정 `true` , 그것은 모든 보안 인증서를 허용 합니다. 안 드 로이드 자체 서명 된 보안 인증서를 거부 하기 때문에 유용 합니다. 프로덕션 환경에서 사용 권장 되지 않습니다. 안 드 로이드와 iOS에서 지원. *(부울)*
 
-*   **옵션**: 선택적 매개 변수를 현재 지 원하는 머리글만 (예: 인증 (기본 인증), 등).
+*   **options**: 선택적 매개 변수를 현재 지 원하는 머리글만 (예: 인증 (기본 인증), 등).
 
 ### 예를 들어
 
@@ -214,9 +224,9 @@ A `FileUploadResult` 개체의 성공 콜백에 전달 되는 `FileTransfer` 개
     );
     
 
-## 중단
+## abort
 
-진행 중인 전송을 중단합니다. Onerror 콜백 FileTransferError.ABORT_ERR의 오류 코드는 FileTransferError 개체를 전달 합니다.
+진행 중인 전송을 중단합니다. onerror 콜백 FileTransferError.ABORT_ERR의 오류 코드는 FileTransferError 개체를 전달 합니다.
 
 ### 예를 들어
 
@@ -246,19 +256,21 @@ A `FileUploadResult` 개체의 성공 콜백에 전달 되는 `FileTransfer` 개
 
 ## FileTransferError
 
-A `FileTransferError` 오류가 발생 하면 오류 콜백 개체 전달 됩니다.
+`FileTransferError` 개체 오류가 발생 하면 오류 콜백에 전달 됩니다.
 
 ### 속성
 
-*   **코드**: 미리 정의 된 오류 코드 중 하나가 아래에 나열 된. (수)
+*   **code**: 미리 정의 된 오류 코드 중 하나가 아래에 나열 된. (수)
 
-*   **소스**: 소스 URL. (문자열)
+*   **source**: 소스 URL. (문자열)
 
-*   **대상**: 대상 URL. (문자열)
+*   **target**: 대상 URL. (문자열)
 
 *   **http_status**: HTTP 상태 코드. 이 특성은 응답 코드를 HTTP 연결에서 수신에 사용할 수 있습니다. (수)
 
-*   **예외**: 어느 e.getMessage 또는 e.toString (문자열)
+*   **body** 응답 본문입니다. 이 특성은 HTTP 연결에서 응답을 받을 때에 사용할 수 있습니다. (문자열)
+
+*   **exception**: 어느 e.getMessage 또는 e.toString (문자열)
 
 ### 상수
 
@@ -278,13 +290,13 @@ A `FileTransferError` 오류가 발생 하면 오류 콜백 개체 전달 됩니
 
 대 한 뒤 호환성, 이러한 경로 여전히 허용, 그리고 응용 프로그램이 영구 저장소에서 이와 같은 경로 기록 했다, 그때 그들은 계속할 수 있다면 사용할 수.
 
-이 경로에 노출 되었던는 `fullPath` 속성의 `FileEntry` 및 `DirectoryEntry` 파일 플러그인에 의해 반환 된 개체. 그러나 파일 플러그인의,, 더 이상 새로운 버전 자바 스크립트이 경로 노출.
+이러한 경로 `FileEntry` 및 파일 플러그인에 의해 반환 된 `DirectoryEntry` 개체의 `fullPath` 속성에 노출 되었던. 그러나 파일 플러그인의,, 더 이상 새로운 버전 자바 스크립트이 경로 노출.
 
-새로 업그레이드 하는 경우 (1.0.0 이상) 파일의 버전을 사용 하고있다 이전 `entry.fullPath` 인수로 `download()` 또는 `upload()` , 다음 대신 파일 시스템 Url을 사용 하 여 코드를 변경 해야 합니다.
+새로 업그레이드 하는 경우 (1.0.0 이상) 버전의 파일, 및 이전 사용 하 고 `entry.fullPath` `download()` 또는 `upload()` 인수로 다음 대신 파일 시스템 Url을 사용 하 여 코드를 변경 해야 합니다.
 
-`FileEntry.toURL()`그리고 `DirectoryEntry.toURL()` 폼의 파일 URL을 반환
+폼의 파일 URL을 반환 하는 `FileEntry.toURL()` 및 `DirectoryEntry.toURL()`
 
     cdvfile://localhost/persistent/path/to/file
     
 
-둘 다에서 절대 파일 경로 대신 사용할 수 있는 `download()` 및 `upload()` 메서드.
+어떤 `download()` 및 `upload()` 방법에서 절대 파일 경로 대신 사용할 수 있습니다.

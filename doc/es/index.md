@@ -21,9 +21,17 @@
 
 Este plugin te permite cargar y descargar archivos.
 
+Este plugin define global `FileTransfer` , `FileUploadOptions` constructores.
+
+Aunque en el ámbito global, no están disponibles hasta después de la `deviceready` evento.
+
+    document.addEventListener ("deviceready", onDeviceReady, false);
+    function onDeviceReady() {console.log(FileTransfer)};
+    
+
 ## Instalación
 
-    cordova plugin add org.apache.cordova.file-transfer
+    Cordova plugin añade org.apache.cordova.file-transferencia
     
 
 ## Plataformas soportadas
@@ -31,17 +39,16 @@ Este plugin te permite cargar y descargar archivos.
 *   Amazon fire OS
 *   Android
 *   BlackBerry 10
+*   Explorador
 *   Firefox OS **
 *   iOS
 *   Windows Phone 7 y 8 *
-*   Windows 8 ***|
-*   Windows ***|
+*   Windows 8
+*   Windows
 
 * *No son compatibles con `onprogress` ni `abort()` *
 
 ** *No son compatibles con `onprogress` *
-
-Apoyo parcial de `onprogress` para subir método `onprogress` se llama con el evento progress vacía debido a Windows limitations_
 
 # FileTransfer
 
@@ -67,14 +74,15 @@ El `FileTransfer` objeto proporciona una manera de subir archivos mediante una s
 
 *   **servidor**: dirección URL del servidor para recibir el archivo, como codificada por`encodeURI()`.
 
-*   **successCallback**: una devolución de llamada que se pasa un `Metadata` objeto. *(Función)*
+*   **successCallback**: una devolución de llamada que se pasa un `FileUploadResult` objeto. *(Función)*
 
-*   **errorCallback**: una devolución de llamada que se ejecuta si se produce un error recuperar la `Metadata` . Invocado con un `FileTransferError` objeto. *(Función)*
+*   **errorCallback**: una devolución de llamada que se ejecuta si se produce un error recuperar la `FileUploadResult` . Invocado con un `FileTransferError` objeto. *(Función)*
 
 *   **Opciones**: parámetros opcionales *(objeto)*. Teclas válidas:
     
     *   **fileKey**: el nombre del elemento de formulario. Por defecto es `file` . (DOMString)
     *   **nombre de archivo**: el nombre del archivo a utilizar al guardar el archivo en el servidor. Por defecto es `image.jpg` . (DOMString)
+    *   **httpMethod**: método HTTP el utilizar - o `PUT` o `POST` . Por defecto es `POST` . (DOMString)
     *   **mimeType**: el tipo mime de los datos para cargar. Por defecto es `image/jpeg` . (DOMString)
     *   **params**: un conjunto de pares clave/valor opcional para pasar en la petición HTTP. (Objeto)
     *   **chunkedMode**: Si desea cargar los datos en modo de transmisión fragmentado. Por defecto es `true` . (Boolean)
@@ -84,70 +92,56 @@ El `FileTransfer` objeto proporciona una manera de subir archivos mediante una s
 
 ### Ejemplo
 
-    // !! Assumes variable fileURL contains a valid URL to a text file on the device,
-    //    for example, cdvfile://localhost/persistent/path/to/file.txt
+    // !! Asume fileURL variable contiene una dirección URL válida a un archivo de texto en el dispositivo, / / por ejemplo, ganar var cdvfile://localhost/persistent/path/to/file.txt = function (r) {console.log ("código =" + r.responseCode);
+        Console.log ("respuesta =" + r.response);
+        Console.log ("Sent =" + r.bytesSent);}
     
-    var win = function (r) {
-        console.log("Code = " + r.responseCode);
-        console.log("Response = " + r.response);
-        console.log("Sent = " + r.bytesSent);
-    }
+    var fallar = function (error) {alert ("ha ocurrido un error: código =" + error.code);
+        Console.log ("error al cargar el origen" + error.source);
+        Console.log ("upload error objetivo" + error.target);}
     
-    var fail = function (error) {
-        alert("An error has occurred: Code = " + error.code);
-        console.log("upload error source " + error.source);
-        console.log("upload error target " + error.target);
-    }
-    
-    var options = new FileUploadOptions();
+    var opciones = new FileUploadOptions();
     options.fileKey = "file";
     options.fileName = fileURL.substr(fileURL.lastIndexOf('/') + 1);
     options.mimeType = "text/plain";
     
     var params = {};
-    params.value1 = "test";
+    params.value1 = "prueba";
     params.value2 = "param";
     
     options.params = params;
     
     var ft = new FileTransfer();
-    ft.upload(fileURL, encodeURI("http://some.server.com/upload.php"), win, fail, options);
+    Ft.upload (fileURL, encodeURI ("http://some.server.com/upload.php"), win, fail, opciones);
     
 
 ### Ejemplo con cabeceras de subir y eventos de progreso (Android y iOS solamente)
 
-    function win(r) {
-        console.log("Code = " + r.responseCode);
-        console.log("Response = " + r.response);
-        console.log("Sent = " + r.bytesSent);
-    }
+    function win(r) {console.log ("código =" + r.responseCode);
+        Console.log ("respuesta =" + r.response);
+        Console.log ("Sent =" + r.bytesSent);}
     
-    function fail(error) {
-        alert("An error has occurred: Code = " + error.code);
-        console.log("upload error source " + error.source);
-        console.log("upload error target " + error.target);
-    }
+    function fail(error) {alert ("ha ocurrido un error: código =" + error.code);
+        Console.log ("error al cargar el origen" + error.source);
+        Console.log ("upload error objetivo" + error.target);}
     
-    var uri = encodeURI("http://some.server.com/upload.php");
+    var uri = encodeURI ("http://some.server.com/upload.php");
     
-    var options = new FileUploadOptions();
+    var opciones = new FileUploadOptions();
     options.fileKey="file";
     options.fileName=fileURL.substr(fileURL.lastIndexOf('/')+1);
     options.mimeType="text/plain";
     
-    var headers={'headerParam':'headerValue'};
+    cabeceras de var ={'headerParam':'headerValue'};
     
-    options.headers = headers;
+    options.headers = encabezados;
     
     var ft = new FileTransfer();
-    ft.onprogress = function(progressEvent) {
-        if (progressEvent.lengthComputable) {
-          loadingStatus.setPercentage(progressEvent.loaded / progressEvent.total);
-        } else {
-          loadingStatus.increment();
+    Ft.OnProgress = function(progressEvent) {si (progressEvent.lengthComputable) {loadingStatus.setPercentage(progressEvent.loaded / progressEvent.total);
+        } {loadingStatus.increment() más;
         }
     };
-    ft.upload(fileURL, uri, win, fail, options);
+    Ft.upload (fileURL, uri, win, fail, opciones);
     
 
 ## FileUploadResult
@@ -180,7 +174,7 @@ A `FileUploadResult` objeto se pasa a la devolución del éxito de la `FileTrans
 
 *   **successCallback**: una devolución de llamada que se pasa un `FileEntry` objeto. *(Función)*
 
-*   **errorCallback**: una devolución de llamada que se ejecuta si se produce un error al recuperar los `Metadata` . Invocado con un `FileTransferError` objeto. *(Función)*
+*   **errorCallback**: una devolución de llamada que se ejecuta si se produce un error al recuperar los `FileEntry` . Invocado con un `FileTransferError` objeto. *(Función)*
 
 *   **trustAllHosts**: parámetro opcional, por defecto es `false` . Si establece en `true` , acepta todos los certificados de seguridad. Esto es útil porque Android rechaza certificados autofirmados seguridad. No se recomienda para uso productivo. Compatible con iOS y Android. *(boolean)*
 
@@ -188,30 +182,14 @@ A `FileUploadResult` objeto se pasa a la devolución del éxito de la `FileTrans
 
 ### Ejemplo
 
-    // !! Assumes variable fileURL contains a valid URL to a path on the device,
-    //    for example, cdvfile://localhost/persistent/path/to/downloads/
+    // !! Asume fileURL variable contiene una dirección URL válida a un camino en el dispositivo, / / por ejemplo, File Transfer var cdvfile://localhost/persistent/path/to/downloads/ = new FileTransfer();
+    var uri = encodeURI ("http://some.server.com/download.php");
     
-    var fileTransfer = new FileTransfer();
-    var uri = encodeURI("http://some.server.com/download.php");
-    
-    fileTransfer.download(
-        uri,
-        fileURL,
-        function(entry) {
-            console.log("download complete: " + entry.toURL());
-        },
-        function(error) {
-            console.log("download error source " + error.source);
-            console.log("download error target " + error.target);
-            console.log("upload error code" + error.code);
-        },
-        false,
-        {
-            headers: {
-                "Authorization": "Basic dGVzdHVzZXJuYW1lOnRlc3RwYXNzd29yZA=="
-            }
-        }
-    );
+    fileTransfer.download (uri, fileURL, function(entry) {console.log ("descarga completa:" + entry.toURL());
+        }, function(error) {console.log ("error al descargar el origen" + error.source);
+            Console.log ("descargar error objetivo" + error.target);
+            Console.log ("código de error de carga" + error.code);
+        }, falso, {encabezados: {"Autorización": "Basic dGVzdHVzZXJuYW1lOnRlc3RwYXNzd29yZA =="}});
     
 
 ## abortar
@@ -220,28 +198,20 @@ Aborta a una transferencia en curso. El callback onerror se pasa un objeto FileT
 
 ### Ejemplo
 
-    // !! Assumes variable fileURL contains a valid URL to a text file on the device,
-    //    for example, cdvfile://localhost/persistent/path/to/file.txt
+    // !! Asume fileURL variable contiene una dirección URL válida a un archivo de texto en el dispositivo, / / por ejemplo, ganar cdvfile://localhost/persistent/path/to/file.txt var function(r) = {console.log ("no se debe llamar.");}
     
-    var win = function(r) {
-        console.log("Should not be called.");
-    }
+    var fallar = function(error) {/ / error.code == FileTransferError.ABORT_ERR alert ("ha ocurrido un error: código =" + error.code);
+        Console.log ("error al cargar el origen" + error.source);
+        Console.log ("upload error objetivo" + error.target);}
     
-    var fail = function(error) {
-        // error.code == FileTransferError.ABORT_ERR
-        alert("An error has occurred: Code = " + error.code);
-        console.log("upload error source " + error.source);
-        console.log("upload error target " + error.target);
-    }
-    
-    var options = new FileUploadOptions();
+    var opciones = new FileUploadOptions();
     options.fileKey="file";
     options.fileName="myphoto.jpg";
     options.mimeType="image/jpeg";
     
     var ft = new FileTransfer();
-    ft.upload(fileURL, encodeURI("http://some.server.com/upload.php"), win, fail, options);
-    ft.abort();
+    Ft.upload (fileURL, encodeURI ("http://some.server.com/upload.php"), win, fail, opciones);
+    Ft.Abort();
     
 
 ## FileTransferError
@@ -257,6 +227,8 @@ A `FileTransferError` objeto se pasa a un callback de error cuando se produce un
 *   **objetivo**: URL a la meta. (String)
 
 *   **HTTP_STATUS**: código de estado HTTP. Este atributo sólo está disponible cuando se recibe un código de respuesta de la conexión HTTP. (Número)
+
+*   **cuerpo** Cuerpo de la respuesta. Este atributo sólo está disponible cuando se recibe una respuesta de la conexión HTTP. (String)
 
 *   **excepción**: cualquier e.getMessage o e.toString (String)
 

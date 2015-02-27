@@ -21,6 +21,16 @@
 
 這個外掛程式允許你上傳和下載檔案。
 
+這個外掛程式定義全域 `FileTransfer`，`FileUploadOptions` 的建構函式。
+
+雖然在全球範圍內，他們不可用直到 `deviceready` 事件之後。
+
+    document.addEventListener("deviceready", onDeviceReady, false);
+    function onDeviceReady() {
+        console.log(FileTransfer);
+    }
+    
+
 ## 安裝
 
     cordova plugin add org.apache.cordova.file-transfer
@@ -31,21 +41,20 @@
 *   亞馬遜火 OS
 *   Android 系統
 *   黑莓 10
-*   火狐瀏覽器作業系統 * *
+*   瀏覽器
+*   火狐瀏覽器的作業系統 * *
 *   iOS
 *   Windows Phone 7 和 8 *
-*   Windows 8 * * *|
-*   Windows * * *|
+*   Windows 8
+*   Windows
 
-**不支援 `onprogress` ，也不 `abort()` *
+* *不支援 `onprogress` 也 `abort()`*
 
-* **不支援 `onprogress` *
+* * *不支援 `onprogress`*
 
-部分支援的 `onprogress` 為上傳方法。 `onprogress` 被稱為與 Windows limitations_ 空白進度事件
+# FileTransfer
 
-# 檔案傳輸
-
-`FileTransfer`物件提供一種方法使用 HTTP 多部分 POST 請求的檔上傳和下載檔案，以及。
+`FileTransfer` 物件提供一種使用 HTTP 多部分 POST 請求的檔上傳，下載檔案以及方式。
 
 ## 屬性
 
@@ -53,32 +62,33 @@
 
 ## 方法
 
-*   **上傳**： 將檔發送到伺服器。
+*   **upload**： 將檔發送到伺服器。
 
-*   **下載**： 從伺服器上下載檔案。
+*   **download**： 從伺服器上下載檔案。
 
-*   **中止**: 中止正在進行轉讓。
+*   **abort**: 中止正在進行轉讓。
 
-## 上傳
+## upload
 
 **參數**：
 
 *   **fileURL**： 表示檔在設備上的檔案系統 URL。 為向後相容性，這也可以將設備上的檔的完整路徑。 （請參見 [向後相容性注意到] 下面)
 
-*   **伺服器**： 伺服器以接收該檔，由編碼的 URL`encodeURI()`.
+*   **server**： 伺服器以接收該檔，由編碼的 URL`encodeURI()`.
 
-*   **successCallback**： 傳遞一個回檔 `Metadata` 物件。*（函數）*
+*   **successCallback**： 一個通過一個 `FileUploadResult` 物件的回檔。*（函數）*
 
-*   **errorCallback**： 回檔的執行如果出現檢索錯誤 `Metadata` 。調用與 `FileTransferError` 物件。*（函數）*
+*   **errorCallback**： 如果發生錯誤，檢索 `FileUploadResult` 執行一個回檔。使用 `FileTransferError` 物件調用。*（函數）*
 
-*   **選項**： 可選參數*（物件）*。有效的金鑰：
+*   **options**： 可選參數*（物件）*。有效的金鑰：
     
     *   **fileKey**： 表單元素的名稱。預設值為 `file` 。() DOMString
-    *   **檔案名**： 要保存在伺服器上的檔時使用的檔案名稱。預設值為 `image.jpg` 。() DOMString
-    *   **mimeType**： 要上傳的資料的 mime 類型。預設值為 `image/jpeg` 。() DOMString
-    *   **params**： 一組可選的鍵/值對在 HTTP 要求中傳遞。（物件）
-    *   **chunkedMode**： 是否要分塊流式處理模式中的資料上載。預設值為 `true` 。(布林值)
-    *   **標題**： 地圖的標頭名稱/標頭值。使用陣列來指定多個值。（物件）
+    *   **fileName**： 要保存在伺服器上的檔時使用的檔案名稱。預設值為 `image.jpg` 。() DOMString
+    *   **httpMethod**： HTTP 方法使用-`PUT` 或 `POST`。預設值為 `POST`。() DOMString
+    *   **mimeType**： 要上載的資料的 mime 類型。預設設置為 `image/jpeg`。() DOMString
+    *   **params**： 一組要在 HTTP 要求中傳遞的可選的鍵值對。（物件）
+    *   **chunkedMode**： 是否要分塊的流式處理模式中的資料上載。預設值為 `true`。(布林值)
+    *   **headers**： 地圖的標頭名稱/標頭值。使用陣列來指定多個值。（物件）
 
 *   **trustAllHosts**: 可選參數，預設值為 `false` 。 如果設置為 `true` ，它接受的所有安全證書。 這是有用的因為 android 系統拒絕自簽名的安全證書。 不建議供生產使用。 支援 Android 和 iOS。 *(布林值)*
 
@@ -152,17 +162,17 @@
 
 ## FileUploadResult
 
-A `FileUploadResult` 物件傳遞給成功回檔的 `FileTransfer` 物件的 `upload()` 方法。
+`FileUploadResult` 物件將傳遞給該 `檔案傳輸` 物件的 `upload()` 方法的成功回檔。
 
 ### 屬性
 
-*   **位元組發送**： 作為上載的一部分發送到伺服器的位元組數。(長)
+*   **bytesSent**： 作為上載的一部分發送到伺服器的位元組數。(長)
 
 *   **responseCode**： 由伺服器返回的 HTTP 回應代碼。(長)
 
-*   **回應**： 由伺服器返回的 HTTP 回應。() DOMString
+*   **response**： 由伺服器返回的 HTTP 回應。() DOMString
 
-*   **標題**： 由伺服器的 HTTP 回應標頭。（物件）
+*   **headers**： 由伺服器的 HTTP 回應標頭。（物件）
     
     *   目前支援的 iOS 只。
 
@@ -170,21 +180,21 @@ A `FileUploadResult` 物件傳遞給成功回檔的 `FileTransfer` 物件的 `up
 
 *   不支援 `responseCode` 或`bytesSent`.
 
-## 下載
+## download
 
 **參數**：
 
-*   **來源**： 要下載的檔，如由編碼的伺服器的 URL`encodeURI()`.
+*   **source**： 要下載的檔，如由編碼的伺服器的 URL`encodeURI()`.
 
-*   **目標**： 表示檔在設備上的檔案系統 url。 為向後相容性，這也可以將設備上的檔的完整路徑。 （請參見 [向後相容性注意到] 下面)
+*   **target**： 表示檔在設備上的檔案系統 url。 為向後相容性，這也可以將設備上的檔的完整路徑。 （請參見 [向後相容性注意到] 下面)
 
 *   **successCallback**： 傳遞一個回檔 `FileEntry` 物件。*（函數）*
 
-*   **errorCallback**： 如果錯誤發生在檢索時將執行的回檔 `Metadata` 。調用與 `FileTransferError` 物件。*（函數）*
+*   **errorCallback**： 如果檢索 `FileEntry` 時發生錯誤，則執行一個回檔。使用 `FileTransferError` 物件調用。*（函數）*
 
 *   **trustAllHosts**: 可選參數，預設值為 `false` 。 如果設置為 `true` ，它可以接受的所有安全證書。 這是有用的因為 Android 拒絕自行簽署式安全證書。 不建議供生產使用。 在 Android 和 iOS 上受支援。 *(布林值)*
 
-*   **選項**： 可選參數，目前只支援標題 （如授權 （基本驗證） 等）。
+*   **options**： 可選參數，目前只支援標題 （如授權 （基本驗證） 等）。
 
 ### 示例
 
@@ -214,9 +224,9 @@ A `FileUploadResult` 物件傳遞給成功回檔的 `FileTransfer` 物件的 `up
     );
     
 
-## 中止
+## abort
 
-中止正在進行轉讓。Onerror 回檔傳遞的錯誤代碼為 FileTransferError.ABORT_ERR 的 FileTransferError 物件。
+中止正在進行轉讓。Onerror 回檔傳遞一個 FileTransferError 物件具有 FileTransferError.ABORT_ERR 錯誤代碼。
 
 ### 示例
 
@@ -246,19 +256,21 @@ A `FileUploadResult` 物件傳遞給成功回檔的 `FileTransfer` 物件的 `up
 
 ## FileTransferError
 
-A `FileTransferError` 物件被傳遞給一個錯誤回呼函數時出現錯誤。
+當發生錯誤時，`FileTransferError` 物件將傳遞給錯誤回檔。
 
 ### 屬性
 
-*   **代碼**： 下面列出的預定義的錯誤代碼之一。（人數）
+*   **code**： 下面列出的預定義的錯誤代碼之一。（人數）
 
-*   **源**： 源的 URL。（字串）
+*   **source**： 源的 URL。（字串）
 
-*   **目標**： 到目標 URL。（字串）
+*   **target**： 到目標 URL。（字串）
 
 *   **HTTP_status**： HTTP 狀態碼。從 HTTP 連接收到一個回應代碼時，此屬性才可用。（人數）
 
-*   **例外**： 要麼 e.getMessage 或 e.toString （字串）
+*   **body**回應正文。此屬性只能是可用的當該 HTTP 連接收到答覆。（字串）
+
+*   **exception**： 要麼 e.getMessage 或 e.toString （字串）
 
 ### 常量
 
@@ -270,21 +282,21 @@ A `FileTransferError` 物件被傳遞給一個錯誤回呼函數時出現錯誤�
 
 ## 向後相容性注意到
 
-以前版本的這個外掛程式才會接受設備-絕對檔路徑的源上傳，或作為下載的目標。這些路徑通常會在表單
+以前版本的這個外掛程式才會接受設備-絕對檔路徑作為源對於上載，或用於下載的目標。這些路徑通常會在表單
 
     /var/mobile/Applications/<application UUID>/Documents/path/to/file  (iOS)
     /storage/emulated/0/path/to/file                                    (Android)
     
 
-為向後相容性，這些路徑仍被接受，和如果您的應用程式記錄了像這些在持久性存儲的路徑，然後他們可以繼續使用。
+為向後相容性，這些路徑仍會被接受，和如果您的應用程式已錄得像這些在持久性存儲的路徑，然後他們可以繼續使用。
 
-這些路徑被以前暴露在 `fullPath` 屬性的 `FileEntry` 和 `DirectoryEntry` 由檔外掛程式返回的物件。 新版本的檔的外掛程式，不過，不再公開這些 JavaScript 的路徑。
+這些路徑被以前暴露在 `FileEntry` 和由檔外掛程式返回的 `DirectoryEntry` 物件的 `fullPath` 屬性中。 新版本的檔的外掛程式，但是，不再公開這些 JavaScript 的路徑。
 
-如果您升級到一個新 (1.0.0 或更高版本） 版本的檔，和你以前一直在使用 `entry.fullPath` 作為的參數 `download()` 或 `upload()` ，那麼你將需要更改代碼以使用檔案系統的 Url 來代替。
+如果您要升級到新 (1.0.0 或更高版本） 版本的檔，和你以前一直在使用 `entry.fullPath` 作為參數到 `download()` 或 `upload()`，那麼你將需要更改代碼以使用檔案系統的 Url 來代替。
 
-`FileEntry.toURL()`和 `DirectoryEntry.toURL()` 返回的表單檔案系統 URL
+`FileEntry.toURL()` 和 `DirectoryEntry.toURL()` 返回的表單檔案 URL
 
     cdvfile://localhost/persistent/path/to/file
     
 
-其中可代替的絕對檔路徑在兩個 `download()` 和 `upload()` 的方法。
+它可以用在 `download()` 和 `upload()` 兩種方法中的絕對檔路徑位置。
