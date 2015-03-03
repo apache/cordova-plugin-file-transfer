@@ -19,4 +19,6 @@
 
 # org.apache.cordova.file-transfer
 
+[![Build Status](https://travis-ci.org/apache/cordova-plugin-file-transfer.svg)](https://travis-ci.org/apache/cordova-plugin-file-transfer)
+
 Plugin documentation: [doc/index.md](doc/index.md)
