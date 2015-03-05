@@ -361,7 +361,9 @@ exec(win, fail, 'FileTransfer', 'upload',
                         total: evt.progress.totalBytesToReceive,
                         target: evt.resultFile
                     });
-                    progressEvent.lengthComputable = true;
+                    // when bytesReceived == 0, BackgroundDownloader has not yet differentiated whether it could get file length or not,
+                    // when totalBytesToReceive == 0, BackgroundDownloader is unable to get file length
+                    progressEvent.lengthComputable = (evt.progress.bytesReceived > 0) && (evt.progress.totalBytesToReceive > 0);
 
                     successCallback(progressEvent, { keepCallback: true });
                 });
