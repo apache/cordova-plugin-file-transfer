@@ -28,10 +28,12 @@
 exports.defineAutoTests = function () {
 
     // constants
-    var GRACE_TIME_DELTA = 300; // in milliseconds
+    var GRACE_TIME_DELTA = 500; // in milliseconds
     var DEFAULT_FILESYSTEM_SIZE = 1024*50; //filesystem size in bytes
     var UNKNOWN_HOST = "http://foobar.apache.org";
     var HEADERS_ECHO = "http://whatheaders.com"; // NOTE: this site is very useful!
+    var ABORT_DELAY = 100; // for abort() tests
+    var DOWNLOAD_TIMEOUT = 10000; // download tests sometimes need a higher timeout to complete successfully
 
     // config for upload test server
     // NOTE:
@@ -305,8 +307,7 @@ exports.defineAutoTests = function () {
             //         - 'httpssss://example.com'
             //         - 'apache.org', with subdomains="true"
             //         - 'cordova-filetransfer.jitsu.com'
-            describe('download', function() {
-
+            describe('download', function () {
                 // helpers
                 var verifyDownload = function (fileEntry) {
                     expect(fileEntry.name).toBe(fileName);
@@ -342,7 +343,7 @@ exports.defineAutoTests = function () {
                     };
 
                     transfer.download(fileURL, localFilePath, downloadWin, unexpectedCallbacks.httpFail);
-                });
+                }, DOWNLOAD_TIMEOUT);
 
                 it('filetransfer.spec.5 should download a file using http basic auth', function (done) {
 
@@ -354,7 +355,7 @@ exports.defineAutoTests = function () {
                     };
 
                     transfer.download(fileURL, localFilePath, downloadWin, unexpectedCallbacks.httpFail);
-                });
+                }, DOWNLOAD_TIMEOUT);
 
                 it('filetransfer.spec.6 should get 401 status on http basic auth failure', function (done) {
 
@@ -369,7 +370,7 @@ exports.defineAutoTests = function () {
                     };
 
                     transfer.download(fileURL, localFilePath, unexpectedCallbacks.httpWin, downloadFail);
-                });
+                }, DOWNLOAD_TIMEOUT);
 
                 it("filetransfer.spec.7 should download a file using file:// (when hosted from file://)", function (done) {
 
@@ -394,7 +395,7 @@ exports.defineAutoTests = function () {
                     };
 
                     transfer.download(fileURL, localFilePath, downloadWin, unexpectedCallbacks.httpFail);
-                });
+                }, DOWNLOAD_TIMEOUT);
 
                 it("filetransfer.spec.8 should download a file using https://", function (done) {
 
@@ -419,15 +420,17 @@ exports.defineAutoTests = function () {
                     };
 
                     transfer.download(fileURL, localFilePath, downloadWin, unexpectedCallbacks.httpFail);
-                });
+                }, DOWNLOAD_TIMEOUT);
 
                 it("filetransfer.spec.11 should call the error callback on abort()", function (done) {
 
                     var fileURL = 'http://cordova.apache.org/downloads/BlueZedEx.mp3';
 
                     transfer.download(fileURL, localFilePath, unexpectedCallbacks.httpWin, done);
-                    transfer.abort();
-                });
+                    setTimeout(function () {
+                        transfer.abort();
+                    }, ABORT_DELAY);
+                }, DOWNLOAD_TIMEOUT);
 
                 it("filetransfer.spec.9 should not leave partial file due to abort", function (done) {
 
@@ -452,7 +455,7 @@ exports.defineAutoTests = function () {
                     spyOn(transfer, 'onprogress').and.callThrough();
 
                     transfer.download(fileURL, localFilePath, unexpectedCallbacks.httpWin, downloadFail);
-                });
+                }, DOWNLOAD_TIMEOUT);
 
                 it("filetransfer.spec.10 should be stopped by abort() right away", function (done) {
 
@@ -472,13 +475,15 @@ exports.defineAutoTests = function () {
                     };
 
                     transfer.download(fileURL, localFilePath, unexpectedCallbacks.httpWin, downloadFail);
-                    transfer.abort();
+                    setTimeout(function () {
+                        transfer.abort();
+                    }, ABORT_DELAY);
 
                     // call abort() again, after a time greater than the grace period
                     setTimeout(function () {
                         expect(transfer.abort).not.toThrow();
                     }, GRACE_TIME_DELTA);
-                });
+                }, DOWNLOAD_TIMEOUT);
 
                 it("filetransfer.spec.12 should get http status on failure", function (done) {
 
@@ -493,7 +498,7 @@ exports.defineAutoTests = function () {
                     };
 
                     transfer.download(fileURL, localFilePath, unexpectedCallbacks.httpWin, downloadFail);
-                });
+                }, DOWNLOAD_TIMEOUT);
 
                 it("filetransfer.spec.13 should get http body on failure", function (done) {
 
@@ -511,7 +516,7 @@ exports.defineAutoTests = function () {
                     };
 
                     transfer.download(fileURL, localFilePath, unexpectedCallbacks.httpWin, downloadFail);
-                });
+                }, DOWNLOAD_TIMEOUT);
 
                 it("filetransfer.spec.14 should handle malformed urls", function (done) {
 
@@ -531,33 +536,19 @@ exports.defineAutoTests = function () {
                     transfer.download(fileURL, localFilePath, unexpectedCallbacks.httpWin, downloadFail);
                 });
 
-                describe('unknown host:', function () {
-                    var originalTimeout = jasmine.DEFAULT_TIMEOUT_INTERVAL;
+                it("filetransfer.spec.15 should handle unknown host", function (done) {
+                    var fileURL = UNKNOWN_HOST;
 
-                    beforeEach(function() {
-                        jasmine.DEFAULT_TIMEOUT_INTERVAL = 30000;
-                    });
+                    var downloadFail = function (error) {
+                        expect(error.code).toBe(FileTransferError.CONNECTION_ERR);
+                        done();
+                    };
 
-                    afterEach(function() {
-                        jasmine.DEFAULT_TIMEOUT_INTERVAL = originalTimeout;
-                    });
+                    // turn off the onprogress handler
+                    transfer.onprogress = function () {};
 
-                    it("filetransfer.spec.15 should handle unknown host", function (done) {
-
-                        var fileURL = UNKNOWN_HOST;
-
-                        var downloadFail = function (error) {
-                            expect(error.code).toBe(FileTransferError.CONNECTION_ERR);
-                            done();
-                        };
-
-                        // turn off the onprogress handler
-                        transfer.onprogress = function () {};
-
-                        transfer.download(fileURL, localFilePath, unexpectedCallbacks.httpWin, downloadFail);
-                    });                    
-                });
-                
+                    transfer.download(fileURL, localFilePath, unexpectedCallbacks.httpWin, downloadFail);
+                }, 30000);
 
                 it("filetransfer.spec.16 should handle bad file path", function (done) {
                     var fileURL = SERVER;
@@ -580,7 +571,7 @@ exports.defineAutoTests = function () {
                     };
 
                     transfer.download(fileURL, localFilePath, downloadWin, unexpectedCallbacks.httpFail);
-                });
+                }, DOWNLOAD_TIMEOUT);
 
                 it("filetransfer.spec.30 downloaded file entries should have a toNativeURL method", function (done) {
 
@@ -613,7 +604,7 @@ exports.defineAutoTests = function () {
                     };
 
                     transfer.download(fileURL, localFilePath, downloadWin, unexpectedCallbacks.httpFail);
-                });
+                }, DOWNLOAD_TIMEOUT);
 
                 it("filetransfer.spec.28 (compatibility) should be able to download a file using local paths", function (done) {
 
@@ -757,7 +748,9 @@ exports.defineAutoTests = function () {
 
                         // NOTE: removing uploadOptions cause Android to timeout
                         transfer.upload(localFilePath, fileURL, unexpectedCallbacks.httpWin, uploadFail, uploadOptions);
-                        transfer.abort();
+                        setTimeout(function() {
+                            transfer.abort();
+                        }, ABORT_DELAY);
 
                         setTimeout(function () {
                             expect(transfer.abort).not.toThrow();
