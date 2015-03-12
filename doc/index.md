@@ -221,6 +221,10 @@ __Parameters__:
         }
     );
 
+### WP8 Quirks
+
+- Download requests is being cached by native implementation. To avoid caching, pass `if-Modified-Since` header to download method.
+
 ## abort
 
 Aborts an in-progress transfer. The onerror callback is passed a FileTransferError object which has an error code of FileTransferError.ABORT_ERR.
