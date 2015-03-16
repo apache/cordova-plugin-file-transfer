@@ -90,6 +90,9 @@ exec(win, fail, 'FileTransfer', 'upload',
             // Handle 'ms-appdata' scheme
             filePath = filePath.replace('ms-appdata:///local', appData.localFolder.path)
                                .replace('ms-appdata:///temp', appData.temporaryFolder.path);
+        } else if (filePath.indexOf('cdvfile://') === 0) {
+            filePath = filePath.replace('cdvfile://localhost/persistent', appData.localFolder.path)
+                               .replace('cdvfile://localhost/temporary', appData.temporaryFolder.path);
         }
         // normalize path separators
         filePath = cordovaPathToNative(filePath);
@@ -252,6 +255,9 @@ exec(win, fail, 'FileTransfer', 'upload',
             // Handle 'ms-appdata' scheme
             target = target.replace('ms-appdata:///local', appData.localFolder.path)
                            .replace('ms-appdata:///temp', appData.temporaryFolder.path);
+        } else if (target.indexOf('cdvfile://') === 0) {
+            target = target.replace('cdvfile://localhost/persistent', appData.localFolder.path)
+                           .replace('cdvfile://localhost/temporary', appData.temporaryFolder.path);
         }
         target = cordovaPathToNative(target);
 
