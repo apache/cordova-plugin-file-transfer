@@ -569,6 +569,9 @@ static CFIndex WriteDataToStream(NSData* data, CFWriteStreamRef stream)
 
     if (self.direction == CDV_TRANSFER_UPLOAD) {
         uploadResponse = [[NSString alloc] initWithData:self.responseData encoding:NSUTF8StringEncoding];
+        if (uploadResponse == nil) {
+            uploadResponse = [[NSString alloc] initWithData: self.responseData encoding:NSISOLatin1StringEncoding];
+        }
 
         if ((self.responseCode >= 200) && (self.responseCode < 300)) {
             // create dictionary to return FileUploadResult object
@@ -593,6 +596,10 @@ static CFIndex WriteDataToStream(NSData* data, CFWriteStreamRef stream)
             result = [CDVPluginResult resultWithStatus:CDVCommandStatus_OK messageAsDictionary:[self.filePlugin makeEntryForURL:self.targetURL]];
         } else {
             downloadResponse = [[NSString alloc] initWithData:self.responseData encoding:NSUTF8StringEncoding];
+            if (downloadResponse == nil) {
+                downloadResponse = [[NSString alloc] initWithData: self.responseData encoding:NSISOLatin1StringEncoding];
+            }
+
             CDVFileTransferError errorCode = self.responseCode == 404 ? FILE_NOT_FOUND_ERR
                 : (self.responseCode == 304 ? NOT_MODIFIED : CONNECTION_ERR);
             result = [CDVPluginResult resultWithStatus:CDVCommandStatus_ERROR messageAsDictionary:[command createFileTransferError:errorCode AndSource:source AndTarget:target AndHttpStatus:self.responseCode AndBody:downloadResponse]];
