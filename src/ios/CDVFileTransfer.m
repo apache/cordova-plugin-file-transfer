@@ -552,6 +552,8 @@ static CFIndex WriteDataToStream(NSData* data, CFWriteStreamRef stream)
 
     if (self.direction == CDV_TRANSFER_UPLOAD) {
         uploadResponse = [[NSString alloc] initWithData:self.responseData encoding:NSUTF8StringEncoding];
+        if (uploadResponse == nil)
+            uploadResponse = [[NSString alloc] initWithData: self.responseData encoding:NSISOLatin1StringEncoding];
 
         if ((self.responseCode >= 200) && (self.responseCode < 300)) {
             // create dictionary to return FileUploadResult object
