@@ -63,6 +63,20 @@ function getBasicAuthHeader(urlString) {
     return header;
 }
 
+function convertHeadersToArray(headers) {
+    var result = [];
+    for (var header in headers) {
+        if (headers.hasOwnProperty(header)) {
+            var headerValue = headers[header];
+            result.push({
+                name: header,
+                value: headerValue.toString()
+            });
+        }
+    }
+    return result;
+}
+
 var idCounter = 0;
 
 /**
@@ -125,6 +139,11 @@ FileTransfer.prototype.upload = function(filePath, server, successCallback, erro
         }
     }
 
+    if (cordova.platformId === "windowsphone") {
+        headers = headers && convertHeadersToArray(headers);
+        params = params && convertHeadersToArray(params);
+    }
+
     var fail = errorCallback && function(e) {
         var error = new FileTransferError(e.code, e.source, e.target, e.http_status, e.body, e.exception);
         errorCallback(error);
@@ -168,6 +187,10 @@ FileTransfer.prototype.download = function(source, target, successCallback, erro
     var headers = null;
     if (options) {
         headers = options.headers || null;
+    }
+
+    if (cordova.platformId === "windowsphone" && headers) {
+        headers = convertHeadersToArray(headers);
     }
 
     var win = function(result) {

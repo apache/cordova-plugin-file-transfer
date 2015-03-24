@@ -16,11 +16,13 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using System.IO.IsolatedStorage;
+using System.Linq;
 using System.Net;
 using System.Runtime.Serialization;
 using System.Windows;
 using System.Security;
 using System.Diagnostics;
+using WPCordovaClassLib.Cordova.JSON;
 
 namespace WPCordovaClassLib.Cordova.Commands
 {
@@ -210,6 +212,19 @@ namespace WPCordovaClassLib.Cordova.Commands
         }
 
         /// <summary>
+        /// Represents a request header passed from Javascript to upload/download operations
+        /// </summary>
+        [DataContract]
+        protected struct Header
+        {
+            [DataMember(Name = "name")]
+            public string Name;
+
+            [DataMember(Name = "value")]
+            public string Value;
+        }
+
+        /// <summary>
         /// Upload options
         /// </summary>
         //private TransferOptions uploadOptions;
@@ -311,34 +326,14 @@ namespace WPCordovaClassLib.Cordova.Commands
         {
             try
             {
-                Dictionary<string, string> result = new Dictionary<string, string>();
-
-                string temp = jsonHeaders.StartsWith("{") ? jsonHeaders.Substring(1) : jsonHeaders;
-                temp = temp.EndsWith("}") ? temp.Substring(0, temp.Length - 1) : temp;
-
-                string[] strHeaders = temp.Split(',');
-                for (int n = 0; n < strHeaders.Length; n++)
-                {
-                    // we need to use indexOf in order to WP7 compatible
-                    int splitIndex = strHeaders[n].IndexOf(':');
-                    if (splitIndex > 0)
-                    {
-                        string[] split = new string[2];
-                        split[0] = strHeaders[n].Substring(0, splitIndex);
-                        split[1] = strHeaders[n].Substring(splitIndex + 1);
-
-                        split[0] = JSON.JsonHelper.Deserialize<string>(split[0]);
-                        split[1] = JSON.JsonHelper.Deserialize<string>(split[1]);
-                        result[split[0]] = split[1];
-                    }
-                }
-                return result;
+                return JsonHelper.Deserialize<Header[]>(jsonHeaders)
+                    .ToDictionary(header => header.Name, header => header.Value);
             }
             catch (Exception)
             {
                 Debug.WriteLine("Failed to parseHeaders from string :: " + jsonHeaders);
             }
-            return null;
+            return new Dictionary<string, string>();
         }
 
         public void download(string options)
