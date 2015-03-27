@@ -818,7 +818,6 @@ namespace WPCordovaClassLib.Cordova.Commands
                             byte[] formItemBytes = System.Text.Encoding.UTF8.GetBytes(formItem);
                             requestStream.Write(formItemBytes, 0, formItemBytes.Length);
                         }
-                        requestStream.Write(boundaryBytes, 0, boundaryBytes.Length);
                     }
                     using (IsolatedStorageFile isoFile = IsolatedStorageFile.GetUserStoreForApplication())
                     {
