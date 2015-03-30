@@ -161,11 +161,18 @@ exec(win, fail, 'FileTransfer', 'upload',
                                 }
 
                                 var response = result.getResponseInformation();
-                                // creating a data reader, attached to response stream to get server's response
+                                var ftResult = new FileUploadResult(result.progress.bytesSent, response.statusCode, '');
+
+                                // if server's response doesn't contain any data, then resolve operation now
+                                if (result.progress.bytesReceived === 0) {
+                                    successCallback(ftResult);
+                                    return;
+                                }
+
+                                // otherwise create a data reader, attached to response stream to get server's response
                                 var reader = new Windows.Storage.Streams.DataReader(result.getResultStreamAt(0));
-                                reader.loadAsync(result.progress.bytesReceived).then(function(size) {
-                                    var responseText = reader.readString(size);
-                                    var ftResult = new FileUploadResult(size, response.statusCode, responseText);
+                                reader.loadAsync(result.progress.bytesReceived).then(function (size) {
+                                    ftResult.response = reader.readString(size);
                                     successCallback(ftResult);
                                     reader.close();
                                 });
