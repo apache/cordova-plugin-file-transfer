@@ -17,7 +17,7 @@
     under the License.
 -->
 
-# org.apache.cordova.file-transfer
+# cordova-plugin-file-transfer
 
 이 플러그인을 사용 하면 업로드 및 다운로드 파일 수 있습니다.
 
@@ -33,7 +33,7 @@
 
 ## 설치
 
-    cordova plugin add org.apache.cordova.file-transfer
+    cordova plugin add cordova-plugin-file-transfer
     
 
 ## 지원 되는 플랫폼

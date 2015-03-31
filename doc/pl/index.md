@@ -17,7 +17,7 @@
     under the License.
 -->
 
-# org.apache.cordova.file-transfer
+# cordova-plugin-file-transfer
 
 Plugin pozwala na przesyłanie i pobieranie plików.
 
@@ -33,7 +33,7 @@ Chociaż w globalnym zasięgu, są nie dostępne dopiero po `deviceready` imprez
 
 ## Instalacja
 
-    cordova plugin add org.apache.cordova.file-transfer
+    cordova plugin add cordova-plugin-file-transfer
     
 
 ## Obsługiwane platformy

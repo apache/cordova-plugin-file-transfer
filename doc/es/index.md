@@ -17,7 +17,7 @@
     under the License.
 -->
 
-# org.apache.cordova.file-transfer
+# cordova-plugin-file-transfer
 
 Este plugin te permite cargar y descargar archivos.
 
@@ -31,7 +31,7 @@ Aunque en el ámbito global, no están disponibles hasta después de la `devicer
 
 ## Instalación
 
-    Cordova plugin añade org.apache.cordova.file-transferencia
+    Cordova plugin añade cordova-plugin-file-transferencia
     
 
 ## Plataformas soportadas

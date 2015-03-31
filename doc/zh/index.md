@@ -17,7 +17,7 @@
     under the License.
 -->
 
-# org.apache.cordova.file-transfer
+# cordova-plugin-file-transfer
 
 這個外掛程式允許你上傳和下載檔案。
 
@@ -33,7 +33,7 @@
 
 ## 安裝
 
-    cordova plugin add org.apache.cordova.file-transfer
+    cordova plugin add cordova-plugin-file-transfer
     
 
 ## 支援的平臺

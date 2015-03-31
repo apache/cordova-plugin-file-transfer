@@ -17,13 +17,13 @@
     under the License.
 -->
 
-# org.apache.cordova.file-transfer
+# cordova-plugin-file-transfer
 
 Этот плагин позволяет вам загружать и скачивать файлы.
 
 ## Установка
 
-    cordova plugin add org.apache.cordova.file-transfer
+    cordova plugin add cordova-plugin-file-transfer
     
 
 ## Поддерживаемые платформы
