@@ -275,7 +275,7 @@ exec(win, fail, 'FileTransfer', 'upload',
         fileTransferOps[downloadId] = new FileTransferOperation(FileTransferOperation.PENDING, null);
 
         var downloadCallback = function(storageFolder) {
-            storageFolder.createFileAsync(fileName, Windows.Storage.CreationCollisionOption.generateUniqueName).then(function(storageFile) {
+            storageFolder.createFileAsync(fileName, Windows.Storage.CreationCollisionOption.replaceExisting).then(function(storageFile) {
 
                 // check if download isn't already cancelled
                 var downloadOp = fileTransferOps[downloadId];
