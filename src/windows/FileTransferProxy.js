@@ -24,10 +24,10 @@
 /*global module, require*/
 
 var FTErr = require('./FileTransferError'),
-    ProgressEvent = require('cordova-plugin-file.ProgressEvent'),
-    FileUploadResult = require('cordova-plugin-file.FileUploadResult'),
-    FileProxy = require('cordova-plugin-file.FileProxy'),
-    FileEntry = require('cordova-plugin-file.FileEntry');
+    ProgressEvent = require('org.apache.cordova.file.ProgressEvent'),
+    FileUploadResult = require('org.apache.cordova.file.FileUploadResult'),
+    FileProxy = require('org.apache.cordova.file.FileProxy'),
+    FileEntry = require('org.apache.cordova.file.FileEntry');
 
 var appData = Windows.Storage.ApplicationData.current;
 

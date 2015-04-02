@@ -18,7 +18,7 @@
 */
 
 #include "file-transfer.h"
-#include <plugins/cordova-plugin-file/file.h>
+#include <plugins/org.apache.cordova.file/file.h>
 #include <cassert>
 
 static void SetHeaders(QNetworkRequest &request, const QVariantMap &headers) {
