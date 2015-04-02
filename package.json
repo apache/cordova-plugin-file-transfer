@@ -3,7 +3,7 @@
   "version": "0.5.1-dev",
   "description": "Cordova File Transfer Plugin",
   "cordova": {
-    "id": "org.apache.cordova.file-transfer",
+    "id": "cordova-plugin-file-transfer",
     "platforms": [
       "android",
       "amazon-fireos",

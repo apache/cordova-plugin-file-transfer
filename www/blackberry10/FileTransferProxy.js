@@ -25,7 +25,7 @@
  * Register all FileTransfer exec calls to be handled by proxy
  */
 
-var xhrFileTransfer = require('org.apache.cordova.file-transfer.xhrFileTransfer');
+var xhrFileTransfer = require('cordova-plugin-file-transfer.xhrFileTransfer');
 
 module.exports = {
     abort: xhrFileTransfer.abort,
