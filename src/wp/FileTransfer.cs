@@ -513,7 +513,7 @@ namespace WPCordovaClassLib.Cordova.Commands
             string id = optionStrings[0];
             string callbackId = optionStrings[1];
 
-            if (InProcDownloads.ContainsKey(id))
+            if (id != null && InProcDownloads.ContainsKey(id))
             {
                 DownloadRequestState state = InProcDownloads[id];
                 if (!state.isCancelled)
