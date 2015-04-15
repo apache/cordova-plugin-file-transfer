@@ -157,3 +157,33 @@
 * Error callback should always be called with the FileTransferError object, and not just the code
 * windows: alias appData to Windows.Storage.ApplicationData.current
 * CB-8093 Fixes incorrect FileTransferError returned in case of download failure
+
+### 1.0.0 (Apr 15, 2015)
+* CB-8746 bumped version of file dependency
+* CB-8746 gave plugin major version bump
+* CB-8641 Fixed tests to pass on windows and wp8
+* CB-8583 Forces download to overwrite existing target file
+* CB-8589 Fixes upload failure when server's response doesn't contain any data
+* CB-8747 updated dependency, added peer dependency
+* CB-8683 changed plugin-id to pacakge-name
+* CB-8653 properly updated translated docs to use new id
+* CB-8653 updated translated docs to use new id
+* Use TRAVIS_BUILD_DIR, install paramedic by npm
+* CB-8653 Updated Readme
+* CB-8654 Note WP8 download requests caching in docs
+* CB-8590 (Windows) Fixed download.onprogress.lengthComputable
+* CB-8566 Integrate TravisCI
+* CB-8438 cordova-plugin-file-transfer documentation translation: cordova-plugin-file-transfer
+* CB-8538 Added package.json file
+* CB-8495 Fixed wp8 and wp81 test failures
+* CB-7957 Adds support for `browser` platform
+* CB-8429 Updated version and RELEASENOTES.md for release 0.5.0 (take 2)
+* Fixes typo, introduced in https://github.com/apache/cordova-plugin-file-transfer/commit/bc43b46
+* CB-8407 Use File proxy to construct valid FileEntry for download success callback
+* CB-8407 Removes excess path to native path conversion in download method
+* CB-8429 Updated version and RELEASENOTES.md for release 0.5.0
+* CB-7957 Adds support for `browser` platform
+* CB-8095 Fixes JSHint and formatting issues
+* CB-8095 Updates tests and documentation
+* CB-8095 Rewrite upload method to support progress events properly
+* android: Fix error reporting for unknown uri type on sourceUri instead of targetUri
