@@ -370,9 +370,12 @@ namespace WPCordovaClassLib.Cordova.Commands
                 if (!string.IsNullOrEmpty(uploadOptions.Headers))
                 {
                     Dictionary<string, string> headers = parseHeaders(uploadOptions.Headers);
-                    foreach (string key in headers.Keys)
+                    if (headers != null)
                     {
-                        webRequest.Headers[key] = headers[key];
+                        foreach (string key in headers.Keys)
+                        {
+                            webRequest.Headers[key] = headers[key];
+                        }
                     }
                 }
 
@@ -566,9 +569,12 @@ namespace WPCordovaClassLib.Cordova.Commands
                 if (!string.IsNullOrEmpty(downloadOptions.Headers))
                 {
                     Dictionary<string, string> headers = parseHeaders(downloadOptions.Headers);
-                    foreach (string key in headers.Keys)
+                    if (headers != null)
                     {
-                        webRequest.Headers[key] = headers[key];
+                        foreach (string key in headers.Keys)
+                        {
+                            webRequest.Headers[key] = headers[key];
+                        }
                     }
                 }
 
