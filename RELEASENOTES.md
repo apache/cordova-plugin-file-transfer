@@ -187,3 +187,9 @@
 * CB-8095 Updates tests and documentation
 * CB-8095 Rewrite upload method to support progress events properly
 * android: Fix error reporting for unknown uri type on sourceUri instead of targetUri
+
+### 1.1.0 (May 06, 2015)
+* CB-8951 Fixed crash related to headers parsing on **wp8**
+* CB-8933 Increased download and upload test timeout
+* CB-6313 **wp8**: Extra boundary in upload
+* CB-8761 **wp8**: Copy cookies from WebBrowser
