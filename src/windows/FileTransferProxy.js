@@ -319,7 +319,7 @@ exec(win, fail, 'FileTransfer', 'upload',
 
                     var nativeURI = storageFile.path.replace(appData.localFolder.path, 'ms-appdata:///local')
                         .replace(appData.temporaryFolder.path, 'ms-appdata:///temp')
-                        .replace('\\', '/');
+                        .replace(/\\/g, '/');
 
                     // Passing null as error callback here because downloaded file should exist in any case
                     // otherwise the error callback will be hit during file creation in another place
