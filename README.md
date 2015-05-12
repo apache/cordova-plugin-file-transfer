@@ -36,7 +36,7 @@ Although in the global scope, they are not available until after the `deviceread
 
 ## Installation
 
-    cordova plugin add cordova-plugin-file-transfer
+    cordova plugin add org.apache.cordova.file-transfer
 
 ## Supported Platforms
 
