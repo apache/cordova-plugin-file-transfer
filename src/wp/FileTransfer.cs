@@ -377,6 +377,11 @@ namespace WPCordovaClassLib.Cordova.Commands
                 webRequest.ContentType = "multipart/form-data; boundary=" + Boundary;
                 webRequest.Method = uploadOptions.Method;
 
+                DownloadRequestState reqState = new DownloadRequestState();
+                InProcDownloads[uploadOptions.Id] = reqState;
+                reqState.options = uploadOptions;
+                reqState.request = webRequest;
+
                 // Associate cookies with the request
                 // This is an async call, so we need to await it in order to preserve proper control flow
                 await CopyCookiesFromWebBrowser(webRequest);
@@ -392,12 +397,6 @@ namespace WPCordovaClassLib.Cordova.Commands
                         }
                     }
                 }
-
-                DownloadRequestState reqState = new DownloadRequestState();
-                reqState.options = uploadOptions;
-                reqState.request = webRequest;
-
-                InProcDownloads[uploadOptions.Id] = reqState;
 
                 webRequest.BeginGetRequestStream(uploadCallback, reqState);
             }
