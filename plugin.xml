@@ -31,6 +31,10 @@
 
     <!-- dependency id="org.apache.cordova.file@1" /-->
     <dependency id="cordova-plugin-file" version=">=2.0.0" />
+        
+    <engines>
+        <engine name="cordova-wp8" version="1.0.0" platform="android" scriptSrc="path_to_my_custom_framework_version"/>
+    </engines>
 
     <js-module src="www/FileTransferError.js" name="FileTransferError">
         <clobbers target="window.FileTransferError" />
