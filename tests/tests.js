@@ -114,7 +114,6 @@ exports.defineAutoTests = function () {
                 function (fileEntry) {
                     fileEntry.remove(
                         function () {
-                            console.log('deleted \'' + name + '\'');
                             done();
                         },
                         function () {
@@ -123,7 +122,6 @@ exports.defineAutoTests = function () {
                     );
                 },
                 function () {
-                    console.log('no \'' + name + '\' to delete; skipping deletion');
                     done();
                 }
             );
@@ -135,7 +133,6 @@ exports.defineAutoTests = function () {
                     fileEntry.createWriter(function (writer) {
 
                         writer.onwrite = function () {
-                            console.log('created test file \'' + name + '\'');
                             success(fileEntry);
                         };
 
