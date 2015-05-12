@@ -16,7 +16,7 @@
          specific language governing permissions and limitations
          under the License.
 -->
-
+ 
 # cordova-plugin-file-transfer
 
 [![Build Status](https://travis-ci.org/apache/cordova-plugin-file-transfer.svg)](https://travis-ci.org/apache/cordova-plugin-file-transfer)
