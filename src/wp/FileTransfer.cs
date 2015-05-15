@@ -94,6 +94,8 @@ namespace WPCordovaClassLib.Cordova.Commands
         // NOTE: Any access to this object needs to occur on the UI thread via the Dispatcher
         private WebBrowser browser;
 
+
+
         /// <summary>
         /// Uploading response info
         /// </summary>
@@ -228,6 +230,20 @@ namespace WPCordovaClassLib.Cordova.Commands
 
             [DataMember(Name = "value")]
             public string Value;
+        }
+
+        protected static bool HasJsonDotNet = false;
+        public FileTransfer()
+        {
+            // look for Newtonsoft.Json availability
+            foreach(System.Reflection.Assembly assembly in AppDomain.CurrentDomain.GetAssemblies() )
+            {
+                if (assembly.GetType("Newtonsoft.Json.ConstructorHandling") != null)
+                {
+                    FileTransfer.HasJsonDotNet = true;
+                    break;
+                }
+            }
         }
 
         /// Helper method to copy all relevant cookies from the WebBrowser control into a header on
@@ -411,8 +427,16 @@ namespace WPCordovaClassLib.Cordova.Commands
         {
             try
             {
-                return JsonHelper.Deserialize<Header[]>(jsonHeaders)
-                    .ToDictionary(header => header.Name, header => header.Value);
+                if (FileTransfer.HasJsonDotNet)
+                {
+                    return JsonHelper.Deserialize<Header[]>(jsonHeaders,true)
+                        .ToDictionary(header => header.Name, header => header.Value);
+                }
+                else
+                {
+                    return JsonHelper.Deserialize<Header[]>(jsonHeaders)
+                        .ToDictionary(header => header.Name, header => header.Value);
+                }
             }
             catch (Exception)
             {
