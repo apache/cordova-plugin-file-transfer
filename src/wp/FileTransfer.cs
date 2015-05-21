@@ -334,7 +334,7 @@ namespace WPCordovaClassLib.Cordova.Commands
         /// </summary>
         /// <param name="options">Upload options</param>
         /// exec(win, fail, 'FileTransfer', 'upload', [filePath, server, fileKey, fileName, mimeType, params, trustAllHosts, chunkedMode, headers, this._id, httpMethod]);
-        public async void upload(string options)
+        public void upload(string options)
         {
             options = options.Replace("{}", ""); // empty objects screw up the Deserializer
             string callbackId = "";
@@ -398,9 +398,19 @@ namespace WPCordovaClassLib.Cordova.Commands
                 reqState.options = uploadOptions;
                 reqState.request = webRequest;
 
-                // Associate cookies with the request
-                // This is an async call, so we need to await it in order to preserve proper control flow
-                await CopyCookiesFromWebBrowser(webRequest);
+                try
+                {
+                    // Associate cookies with the request
+                    // This is an async call, so we need to await it in order to preserve proper control flow
+                    Task cookieTask = CopyCookiesFromWebBrowser(webRequest);
+                    cookieTask.Wait();
+                }
+                catch (AggregateException ae)
+                {
+                    DispatchCommandResult(new PluginResult(PluginResult.Status.ERROR,
+                        new FileTransferError(FileTransfer.ConnectionError, uploadOptions.FilePath, uploadOptions.Server, 0, ae.InnerException.Message)));
+                    return;
+                }
 
                 if (!string.IsNullOrEmpty(uploadOptions.Headers))
                 {
@@ -445,7 +455,7 @@ namespace WPCordovaClassLib.Cordova.Commands
             return new Dictionary<string, string>();
         }
 
-        public async void download(string options)
+        public void download(string options)
         {
             TransferOptions downloadOptions = null;
             HttpWebRequest webRequest = null;
@@ -579,19 +589,26 @@ namespace WPCordovaClassLib.Cordova.Commands
                 state.request = webRequest;
                 InProcDownloads[downloadOptions.Id] = state;
 
-                // Associate cookies with the request
-                // This is an async call, so we need to await it in order to preserve proper control flow
-                await CopyCookiesFromWebBrowser(webRequest);
+                try
+                {
+                    // Associate cookies with the request
+                    // This is an async call, so we need to await it in order to preserve proper control flow
+                    Task cookieTask = CopyCookiesFromWebBrowser(webRequest);
+                    cookieTask.Wait();
+                }
+                catch (AggregateException ae) 
+                {
+                    DispatchCommandResult(new PluginResult(PluginResult.Status.ERROR,
+                        new FileTransferError(FileTransfer.ConnectionError, downloadOptions.Url, downloadOptions.FilePath, 0, ae.InnerException.Message)));
+                    return;
+                }
 
                 if (!string.IsNullOrEmpty(downloadOptions.Headers))
                 {
                     Dictionary<string, string> headers = parseHeaders(downloadOptions.Headers);
-                    if (headers != null)
+                    foreach (string key in headers.Keys)
                     {
-                        foreach (string key in headers.Keys)
-                        {
-                            webRequest.Headers[key] = headers[key];
-                        }
+                        webRequest.Headers[key] = headers[key];
                     }
                 }
 
