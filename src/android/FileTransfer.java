@@ -214,28 +214,22 @@ public class FileTransfer extends CordovaPlugin {
     }
 
     private String getCookies(final String target) {
-        boolean gotCookie = false;
         String cookie = null;
         Class webViewClass = webView.getClass();
         try {
             Method gcmMethod = webViewClass.getMethod("getCookieManager");
             Class iccmClass  = gcmMethod.getReturnType();
-            Method gcMethod  = iccmClass.getMethod("getCookie", String.class);
+            Method gcMethod  = iccmClass.getMethod("getCookie");
 
             cookie = (String)gcMethod.invoke(
                         iccmClass.cast(
                             gcmMethod.invoke(webView)
                         ), target);
 
-            gotCookie = true;
         } catch (NoSuchMethodException e) {
         } catch (IllegalAccessException e) {
         } catch (InvocationTargetException e) {
         } catch (ClassCastException e) {
-        }
-
-        if (!gotCookie) {
-            cookie = CookieManager.getInstance().getCookie(target);
         }
 
         return cookie;
