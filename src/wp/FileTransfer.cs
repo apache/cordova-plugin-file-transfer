@@ -594,6 +594,8 @@ namespace WPCordovaClassLib.Cordova.Commands
                 }
                 else
                 {
+                    Uri serverUri = new Uri(downloadOptions.Url);
+
                     // otherwise it is web-bound, we will actually download it
                     //Debug.WriteLine("Creating WebRequest for url : " + downloadOptions.Url);
                     if (downloadOptions.UseBrowserHttp)
@@ -601,11 +603,11 @@ namespace WPCordovaClassLib.Cordova.Commands
                         PropertyInfo browserHttp = typeof(System.Net.Browser.WebRequestCreator).GetProperty("BrowserHttp");
                         var requestFactory = browserHttp.GetValue(this.browser, null) as IWebRequestCreate;
 
-                        webRequest = (HttpWebRequest)requestFactory.Create(new Uri(downloadOptions.Url));
+                        webRequest = (HttpWebRequest)requestFactory.Create(serverUri);
                     }
                     else
                     {
-                        webRequest = (HttpWebRequest)WebRequest.Create(downloadOptions.Url);
+                        webRequest = (HttpWebRequest)WebRequest.Create(serverUri);
                     }
                 }
             }
