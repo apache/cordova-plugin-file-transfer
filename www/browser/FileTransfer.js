@@ -109,6 +109,7 @@ FileTransfer.prototype.upload = function(filePath, server, successCallback, erro
     var fileName = options.fileName || "image.jpg";
     var mimeType = options.mimeType || "image/jpeg";
     var params = options.params || {};
+    var withCredentials = options.withCredentials || false;
     // var chunkedMode = !!options.chunkedMode; // Not supported
     var headers = options.headers || {};
     var httpMethod = options.httpMethod && options.httpMethod.toUpperCase() === "PUT" ? "PUT" : "POST";
@@ -121,6 +122,9 @@ FileTransfer.prototype.upload = function(filePath, server, successCallback, erro
 
     var that = this;
     var xhr = transfers[this._id] = new XMLHttpRequest();
+    if (withCredentials) {
+        xhr.withCredentials = true;
+    }
 
     var fail = errorCallback && function(code, status, response) {
         transfers[this._id] && delete transfers[this._id];
@@ -222,6 +226,7 @@ FileTransfer.prototype.download = function(source, target, successCallback, erro
     options = options || {};
     
     var headers = options.headers || {};
+    var withCredentials = options.withCredentials || false;
 
     var basicAuthHeader = getBasicAuthHeader(source);
     if (basicAuthHeader) {
@@ -231,7 +236,9 @@ FileTransfer.prototype.download = function(source, target, successCallback, erro
 
     var that = this;
     var xhr = transfers[this._id] = new XMLHttpRequest();
-    
+    if (withCredentials) {
+        xhr.withCredentials = true;
+    }
     var fail = errorCallback && function(code, status, response) {
         transfers[that._id] && delete transfers[that._id];
         // In XHR GET reqests we're setting response type to Blob
