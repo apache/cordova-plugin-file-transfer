@@ -386,16 +386,7 @@ namespace WPCordovaClassLib.Cordova.Commands
                     return;
                 }
 
-                Uri serverUri;
-                try
-                {
-                    serverUri = new Uri(uploadOptions.Server);
-                }
-                catch (Exception)
-                {
-                    DispatchCommandResult(new PluginResult(PluginResult.Status.ERROR, new FileTransferError(InvalidUrlError, uploadOptions.Server, null, 0)));
-                    return;
-                }
+                Uri serverUri = new Uri(uploadOptions.Server);
 
                 if (uploadOptions.UseBrowserHttp)
                 {
@@ -445,9 +436,19 @@ namespace WPCordovaClassLib.Cordova.Commands
 
                 webRequest.BeginGetRequestStream(uploadCallback, reqState);
             }
-            catch (Exception /*ex*/)
+            catch (Exception ex)
             {
-                DispatchCommandResult(new PluginResult(PluginResult.Status.ERROR, new FileTransferError(ConnectionError)),callbackId);
+                // These can be thrown by the Uri constructor
+                if (ex is UriFormatException || ex is NotSupportedException || ex is ArgumentNullException)
+                {
+                    DispatchCommandResult(new PluginResult(PluginResult.Status.ERROR,
+                                          new FileTransferError(InvalidUrlError, uploadOptions.Server, null, 0)));
+                }
+                else
+                {
+                    DispatchCommandResult(new PluginResult(PluginResult.Status.ERROR,
+                                          new FileTransferError(ConnectionError)),callbackId);
+                }
             }
         }
 
