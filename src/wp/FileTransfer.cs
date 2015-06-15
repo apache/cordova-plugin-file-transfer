@@ -249,6 +249,29 @@ namespace WPCordovaClassLib.Cordova.Commands
             }
         }
 
+        /// <summary>
+        /// Create a new web request.
+        /// Optionally create a request that shares its cookie store with the browser. Note that this makes it
+        /// impossible to set cookies on the request itself, or to add any headers for downloading.
+        /// </summary>
+        /// <param name="serverUri">The URI to make the request for</param>
+        /// <param name="useBrowserHttp">Let the webview's browser perform HTTP requests on our behalf</param>
+        /// <returns>The new request</returns>
+        private HttpWebRequest CreateHttpWebRequest(Uri serverUri, bool useBrowserHttp)
+        {
+            if (useBrowserHttp)
+            {
+                PropertyInfo browserHttp = typeof(System.Net.Browser.WebRequestCreator).GetProperty("BrowserHttp");
+                var requestFactory = browserHttp.GetValue(this.browser, null) as IWebRequestCreate;
+
+                return (HttpWebRequest)requestFactory.Create(serverUri);
+            }
+            else
+            {
+                return (HttpWebRequest)WebRequest.Create(serverUri);
+            }
+        }
+
         /// Helper method to copy all relevant cookies from the WebBrowser control into a header on
         /// the HttpWebRequest
         /// </summary>
@@ -388,18 +411,7 @@ namespace WPCordovaClassLib.Cordova.Commands
 
                 Uri serverUri = new Uri(uploadOptions.Server);
 
-                if (uploadOptions.UseBrowserHttp)
-                {
-                    // See also http://stackoverflow.com/questions/4212713/grabbing-cookies-in-web-browser-control-wp7
-                    PropertyInfo browserHttp = typeof(System.Net.Browser.WebRequestCreator).GetProperty("BrowserHttp");
-                    var requestFactory = browserHttp.GetValue(this.browser, null) as IWebRequestCreate;
-
-                    webRequest = (HttpWebRequest)requestFactory.Create(serverUri);
-                }
-                else
-                {
-                    webRequest = (HttpWebRequest)WebRequest.Create(serverUri);
-                }
+                webRequest = CreateHttpWebRequest(serverUri, uploadOptions.UseBrowserHttp);
                 webRequest.ContentType = "multipart/form-data; boundary=" + Boundary;
                 webRequest.Method = uploadOptions.Method;
 
@@ -598,17 +610,7 @@ namespace WPCordovaClassLib.Cordova.Commands
 
                     // otherwise it is web-bound, we will actually download it
                     //Debug.WriteLine("Creating WebRequest for url : " + downloadOptions.Url);
-                    if (downloadOptions.UseBrowserHttp)
-                    {
-                        PropertyInfo browserHttp = typeof(System.Net.Browser.WebRequestCreator).GetProperty("BrowserHttp");
-                        var requestFactory = browserHttp.GetValue(this.browser, null) as IWebRequestCreate;
-
-                        webRequest = (HttpWebRequest)requestFactory.Create(serverUri);
-                    }
-                    else
-                    {
-                        webRequest = (HttpWebRequest)WebRequest.Create(serverUri);
-                    }
+                    webRequest = CreateHttpWebRequest(serverUri, downloadOptions.UseBrowserHttp);
                 }
             }
             catch (Exception /*ex*/)
