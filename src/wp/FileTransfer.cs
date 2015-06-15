@@ -25,6 +25,7 @@ using System.Security;
 using System.Diagnostics;
 using System.Threading.Tasks;
 using WPCordovaClassLib.Cordova.JSON;
+using System.Reflection;
 
 namespace WPCordovaClassLib.Cordova.Commands
 {
@@ -395,7 +396,19 @@ namespace WPCordovaClassLib.Cordova.Commands
                     DispatchCommandResult(new PluginResult(PluginResult.Status.ERROR, new FileTransferError(InvalidUrlError, uploadOptions.Server, null, 0)));
                     return;
                 }
-                webRequest = (HttpWebRequest)WebRequest.Create(serverUri);
+
+                if (uploadOptions.UseBrowserHttp)
+                {
+                    // See also http://stackoverflow.com/questions/4212713/grabbing-cookies-in-web-browser-control-wp7
+                    PropertyInfo browserHttp = typeof(System.Net.Browser.WebRequestCreator).GetProperty("BrowserHttp");
+                    var requestFactory = browserHttp.GetValue(this.browser, null) as IWebRequestCreate;
+
+                    webRequest = (HttpWebRequest)requestFactory.Create(serverUri);
+                }
+                else
+                {
+                    webRequest = (HttpWebRequest)WebRequest.Create(serverUri);
+                }
                 webRequest.ContentType = "multipart/form-data; boundary=" + Boundary;
                 webRequest.Method = uploadOptions.Method;
 
@@ -582,7 +595,17 @@ namespace WPCordovaClassLib.Cordova.Commands
                 {
                     // otherwise it is web-bound, we will actually download it
                     //Debug.WriteLine("Creating WebRequest for url : " + downloadOptions.Url);
-                    webRequest = (HttpWebRequest)WebRequest.Create(downloadOptions.Url);
+                    if (downloadOptions.UseBrowserHttp)
+                    {
+                        PropertyInfo browserHttp = typeof(System.Net.Browser.WebRequestCreator).GetProperty("BrowserHttp");
+                        var requestFactory = browserHttp.GetValue(this.browser, null) as IWebRequestCreate;
+
+                        webRequest = (HttpWebRequest)requestFactory.Create(new Uri(downloadOptions.Url));
+                    }
+                    else
+                    {
+                        webRequest = (HttpWebRequest)WebRequest.Create(downloadOptions.Url);
+                    }
                 }
             }
             catch (Exception /*ex*/)
