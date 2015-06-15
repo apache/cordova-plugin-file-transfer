@@ -106,6 +106,7 @@ FileTransfer.prototype.upload = function(filePath, server, successCallback, erro
     var mimeType = null;
     var params = null;
     var chunkedMode = true;
+    var useBrowserHttp = false;
     var headers = null;
     var httpMethod = null;
     var basicAuthHeader = getBasicAuthHeader(server);
@@ -130,6 +131,9 @@ FileTransfer.prototype.upload = function(filePath, server, successCallback, erro
         }
         if (options.chunkedMode !== null || typeof options.chunkedMode != "undefined") {
             chunkedMode = options.chunkedMode;
+        }
+        if (options.useBrowserHttp !== null || typeof options.useBrowserHttp != "undefined") {
+            useBrowserHttp = options.useBrowserHttp;
         }
         if (options.params) {
             params = options.params;
@@ -159,7 +163,7 @@ FileTransfer.prototype.upload = function(filePath, server, successCallback, erro
             successCallback && successCallback(result);
         }
     };
-    exec(win, fail, 'FileTransfer', 'upload', [filePath, server, fileKey, fileName, mimeType, params, trustAllHosts, chunkedMode, headers, this._id, httpMethod]);
+    exec(win, fail, 'FileTransfer', 'upload', [filePath, server, fileKey, fileName, mimeType, params, trustAllHosts, chunkedMode, useBrowserHttp, headers, this._id, httpMethod]);
 };
 
 /**
@@ -174,6 +178,7 @@ FileTransfer.prototype.upload = function(filePath, server, successCallback, erro
 FileTransfer.prototype.download = function(source, target, successCallback, errorCallback, trustAllHosts, options) {
     argscheck.checkArgs('ssFF*', 'FileTransfer.download', arguments);
     var self = this;
+    var useBrowserHttp = false;
 
     var basicAuthHeader = getBasicAuthHeader(source);
     if (basicAuthHeader) {
@@ -187,6 +192,10 @@ FileTransfer.prototype.download = function(source, target, successCallback, erro
     var headers = null;
     if (options) {
         headers = options.headers || null;
+
+        if (options.useBrowserHttp !== null || typeof options.useBrowserHttp != "undefined") {
+            useBrowserHttp = options.useBrowserHttp;
+        }
     }
 
     if (cordova.platformId === "windowsphone" && headers) {
@@ -221,7 +230,7 @@ FileTransfer.prototype.download = function(source, target, successCallback, erro
         errorCallback(error);
     };
 
-    exec(win, fail, 'FileTransfer', 'download', [source, target, trustAllHosts, this._id, headers]);
+    exec(win, fail, 'FileTransfer', 'download', [source, target, trustAllHosts, useBrowserHttp, this._id, headers]);
 };
 
 /**

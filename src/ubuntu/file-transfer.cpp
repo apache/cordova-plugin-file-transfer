@@ -37,7 +37,7 @@ static void SetHeaders(QNetworkRequest &request, const QVariantMap &headers) {
     }
 }
 
-void FileTransfer::download(int scId, int ecId, const QString& url, const QString &target, bool /*trustAllHost*/, int id, const QVariantMap &headers) {
+void FileTransfer::download(int scId, int ecId, const QString& url, const QString &target, bool /*trustAllHost*/, bool /*useBrowserHttp*/, int id, const QVariantMap &headers) {
     QSharedPointer<FileTransferRequest> request(new FileTransferRequest(_manager, scId, ecId, id, this));
 
     assert(_id2request.find(id) == _id2request.end());
@@ -58,7 +58,7 @@ void FileTransfer::download(int scId, int ecId, const QString& url, const QStrin
 }
 
 void FileTransfer::upload(int scId, int ecId, const QString &fileURI, const QString& url, const QString& fileKey, const QString& fileName, const QString& mimeType,
-                          const QVariantMap & params, bool /*trustAllHosts*/, bool /*chunkedMode*/, const QVariantMap &headers, int id, const QString &/*httpMethod*/) {
+                          const QVariantMap & params, bool /*trustAllHosts*/, bool /*chunkedMode*/, bool /*useBrowserHttp*/, const QVariantMap &headers, int id, const QString &/*httpMethod*/) {
     QSharedPointer<FileTransferRequest> request(new FileTransferRequest(_manager, scId, ecId, id, this));
 
     assert(_id2request.find(id) == _id2request.end());

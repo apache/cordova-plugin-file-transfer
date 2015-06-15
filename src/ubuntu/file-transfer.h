@@ -90,9 +90,9 @@ public:
 
 public slots:
     void abort(int scId, int ecId, int id);
-    void download(int scId, int ecId, const QString& url, const QString &target, bool /*trustAllHost*/, int id, const QVariantMap &/*headers*/);
+    void download(int scId, int ecId, const QString& url, const QString &target, bool /*trustAllHost*/, bool /*useBrowserHttp*/, int id, const QVariantMap &/*headers*/);
     void upload(int scId, int ecId, const QString &filePath, const QString& url, const QString& fileKey, const QString& fileName, const QString& mimeType,
-                const QVariantMap & params, bool /*trustAllHosts*/, bool /*chunkedMode*/, const QVariantMap &headers, int id, const QString &httpMethod);
+                const QVariantMap & params, bool /*trustAllHosts*/, bool /*chunkedMode*/, bool /*useBrowserHttp*/, const QVariantMap &headers, int id, const QString &httpMethod);
 
 private:
     QNetworkAccessManager _manager;

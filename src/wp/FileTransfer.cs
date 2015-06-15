@@ -68,6 +68,8 @@ namespace WPCordovaClassLib.Cordova.Commands
             /// Additional options
             public string Params { get; set; }
             public string Method { get; set; }
+            /// Use webview browser to perform HTTP requests
+            public bool UseBrowserHttp { get; set; }
 
             public TransferOptions()
             {
@@ -333,7 +335,7 @@ namespace WPCordovaClassLib.Cordova.Commands
         /// sends a file to a server
         /// </summary>
         /// <param name="options">Upload options</param>
-        /// exec(win, fail, 'FileTransfer', 'upload', [filePath, server, fileKey, fileName, mimeType, params, trustAllHosts, chunkedMode, headers, this._id, httpMethod]);
+        /// exec(win, fail, 'FileTransfer', 'upload', [filePath, server, fileKey, fileName, mimeType, params, trustAllHosts, chunkedMode, useBrowserHttp, headers, this._id, httpMethod]);
         public void upload(string options)
         {
             options = options.Replace("{}", ""); // empty objects screw up the Deserializer
@@ -363,15 +365,19 @@ namespace WPCordovaClassLib.Cordova.Commands
                     bool.TryParse(args[7], out doChunked);
                     uploadOptions.ChunkedMode = doChunked;
 
+                    bool useBrowserHttp = false;
+                    bool.TryParse(args[8], out useBrowserHttp);
+                    uploadOptions.UseBrowserHttp = useBrowserHttp;
+
                     //8 : Headers
                     //9 : id
                     //10: method
 
-                    uploadOptions.Headers = args[8];
-                    uploadOptions.Id = args[9];
-                    uploadOptions.Method = args[10];
+                    uploadOptions.Headers = args[9];
+                    uploadOptions.Id = args[10];
+                    uploadOptions.Method = args[11];
 
-                    uploadOptions.CallbackId = callbackId = args[11];
+                    uploadOptions.CallbackId = callbackId = args[12];
                 }
                 catch (Exception)
                 {
@@ -463,7 +469,7 @@ namespace WPCordovaClassLib.Cordova.Commands
 
             try
             {
-                // source, target, trustAllHosts, this._id, headers
+                // source, target, trustAllHosts, useBrowserHttp, this._id, headers
                 string[] optionStrings = JSON.JsonHelper.Deserialize<string[]>(options);
 
                 downloadOptions = new TransferOptions();
@@ -474,9 +480,13 @@ namespace WPCordovaClassLib.Cordova.Commands
                 bool.TryParse(optionStrings[2],out trustAll);
                 downloadOptions.TrustAllHosts = trustAll;
 
-                downloadOptions.Id = optionStrings[3];
-                downloadOptions.Headers = optionStrings[4];
-                downloadOptions.CallbackId = callbackId = optionStrings[5];
+                bool useBrowserHttp = false;
+                bool.TryParse(optionStrings[3],out useBrowserHttp);
+                downloadOptions.UseBrowserHttp = useBrowserHttp;
+
+                downloadOptions.Id = optionStrings[4];
+                downloadOptions.Headers = optionStrings[5];
+                downloadOptions.CallbackId = callbackId = optionStrings[6];
             }
             catch (Exception)
             {

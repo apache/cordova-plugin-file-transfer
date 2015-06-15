@@ -252,6 +252,12 @@ public class FileTransfer extends CordovaPlugin {
      * args[3] fileName      File name to be used on server
      * args[4] mimeType      Describes file content type
      * args[5] params        key:value pairs of user-defined parameters
+     * args[6] trustAllHosts Accept all security certificates
+     * args[7] chunkedMode   Whether to upload the data in chunked streaming mode
+     * args[8] useBrowserHttp   Use webview for HTTP request (unimplemented)
+     * args[9] headers       Headers to send with the request
+     * args[10] objectId     Unique id
+     * args[11] httpMethod   HTTP method for the request
      * @return FileUploadResult containing result of upload request
      */
     private void upload(final String source, final String target, JSONArray args, CallbackContext callbackContext) throws JSONException {
@@ -265,10 +271,12 @@ public class FileTransfer extends CordovaPlugin {
         final boolean trustEveryone = args.optBoolean(6);
         // Always use chunked mode unless set to false as per API
         final boolean chunkedMode = args.optBoolean(7) || args.isNull(7);
+        final boolean useBrowserHttp = args.optBoolean(8);
+
         // Look for headers on the params map for backwards compatibility with older Cordova versions.
-        final JSONObject headers = args.optJSONObject(8) == null ? params.optJSONObject("headers") : args.optJSONObject(8);
-        final String objectId = args.getString(9);
-        final String httpMethod = getArgument(args, 10, "POST");
+        final JSONObject headers = args.optJSONObject(9) == null ? params.optJSONObject("headers") : args.optJSONObject(9);
+        final String objectId = args.getString(10);
+        final String httpMethod = getArgument(args, 11, "POST");
         
         final CordovaResourceApi resourceApi = webView.getResourceApi();
 
@@ -278,6 +286,7 @@ public class FileTransfer extends CordovaPlugin {
         Log.d(LOG_TAG, "params: " + params);
         Log.d(LOG_TAG, "trustEveryone: " + trustEveryone);
         Log.d(LOG_TAG, "chunkedMode: " + chunkedMode);
+        Log.d(LOG_TAG, "useBrowserHttp: " + useBrowserHttp);
         Log.d(LOG_TAG, "headers: " + headers);
         Log.d(LOG_TAG, "objectId: " + objectId);
         Log.d(LOG_TAG, "httpMethod: " + httpMethod);
@@ -711,8 +720,9 @@ public class FileTransfer extends CordovaPlugin {
         final CordovaResourceApi resourceApi = webView.getResourceApi();
 
         final boolean trustEveryone = args.optBoolean(2);
-        final String objectId = args.getString(3);
-        final JSONObject headers = args.optJSONObject(4);
+        final boolean useBrowserHttp = args.optBoolean(3);
+        final String objectId = args.getString(4);
+        final JSONObject headers = args.optJSONObject(5);
         
         final Uri sourceUri = resourceApi.remapUri(Uri.parse(source));
         // Accept a path or a URI for the source.

@@ -65,7 +65,7 @@ module.exports = {
 
 /*
 exec(win, fail, 'FileTransfer', 'upload', 
-[filePath, server, fileKey, fileName, mimeType, params, trustAllHosts, chunkedMode, headers, this._id, httpMethod]);
+[filePath, server, fileKey, fileName, mimeType, params, trustAllHosts, chunkedMode, useBrowserHttp, headers, this._id, httpMethod]);
 */
     upload:function(successCallback, errorCallback, options) {
         var filePath = options[0];
@@ -75,9 +75,10 @@ exec(win, fail, 'FileTransfer', 'upload',
         var mimeType = options[4];
         var params = options[5];
         // var trustAllHosts = options[6]; // todo
-        // var chunkedMode = options[7]; // todo 
-        var headers = options[8] || {};
-        var uploadId = options[9];
+        // var chunkedMode = options[7]; // todo
+        // var useBrowserHttp = options[8]; // todo
+        var headers = options[9] || {};
+        var uploadId = options[10];
 
         if (!filePath || (typeof filePath !== 'string')) {
             errorCallback(new FTErr(FTErr.FILE_NOT_FOUND_ERR,null,server));
@@ -242,12 +243,12 @@ exec(win, fail, 'FileTransfer', 'upload',
         });
     },
 
-    // [source, target, trustAllHosts, id, headers]
+    // [source, target, trustAllHosts, useBrowserHttp, id, headers]
     download:function(successCallback, errorCallback, options) {
         var source = options[0];
         var target = options[1];
-        var downloadId = options[3];
-        var headers = options[4] || {};
+        var downloadId = options[4];
+        var headers = options[5] || {};
 
         if (!target) {
             errorCallback(new FTErr(FTErr.FILE_NOT_FOUND_ERR));
