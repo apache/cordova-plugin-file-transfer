@@ -182,6 +182,9 @@ A `FileUploadResult` object is passed to the success callback of the
 
 - Does not support `responseCode` or `bytesSent`.
 
+### Browser Quirks
+
+- __withCredentials__: _boolean_ that tells the browser to set the withCredentials flag on the XMLHttpRequest
 
 ## download
 
@@ -229,6 +232,10 @@ __Parameters__:
 ### WP8 Quirks
 
 - Download requests is being cached by native implementation. To avoid caching, pass `if-Modified-Since` header to download method.
+
+### Browser Quirks
+
+- __withCredentials__: _boolean_ that tells the browser to set the withCredentials flag on the XMLHttpRequest
 
 ## abort
 
