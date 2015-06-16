@@ -137,7 +137,7 @@ static CFIndex WriteDataToStream(NSData* data, CFWriteStreamRef stream)
 
 - (NSURLRequest*)requestForUploadCommand:(CDVInvokedUrlCommand*)command fileData:(NSData*)fileData
 {
-    // arguments order from js: [filePath, server, fileKey, fileName, mimeType, params, debug, chunkedMode]
+    // arguments order from js: [filePath, server, fileKey, fileName, mimeType, params, debug, chunkedMode, useBrowserHttp]
     // however, params is a JavaScript object and during marshalling is put into the options dict,
     // thus debug and chunkedMode are the 6th and 7th arguments
     NSString* target = [command argumentAtIndex:0];
@@ -148,11 +148,13 @@ static CFIndex WriteDataToStream(NSData* data, CFWriteStreamRef stream)
     NSDictionary* options = [command argumentAtIndex:5 withDefault:nil];
     //    BOOL trustAllHosts = [[command argumentAtIndex:6 withDefault:[NSNumber numberWithBool:YES]] boolValue]; // allow self-signed certs
     BOOL chunkedMode = [[command argumentAtIndex:7 withDefault:[NSNumber numberWithBool:YES]] boolValue];
-    NSDictionary* headers = [command argumentAtIndex:8 withDefault:nil];
+    BOOL useBrowserHttp = [[command argumentAtIndex:8 withDefault:[NSNumber numberWithBool:NO]] boolValue];
+
+    NSDictionary* headers = [command argumentAtIndex:9 withDefault:nil];
     // Allow alternative http method, default to POST. JS side checks
     // for allowed methods, currently PUT or POST (forces POST for
     // unrecognised values)
-    NSString* httpMethod = [command argumentAtIndex:10 withDefault:@"POST"];
+    NSString* httpMethod = [command argumentAtIndex:11 withDefault:@"POST"];
     CDVPluginResult* result = nil;
     CDVFileTransferError errorCode = 0;
 
@@ -390,8 +392,9 @@ static CFIndex WriteDataToStream(NSData* data, CFWriteStreamRef stream)
     NSString* source = [command argumentAtIndex:0];
     NSString* target = [command argumentAtIndex:1];
     BOOL trustAllHosts = [[command argumentAtIndex:2 withDefault:[NSNumber numberWithBool:NO]] boolValue]; // allow self-signed certs
-    NSString* objectId = [command argumentAtIndex:3];
-    NSDictionary* headers = [command argumentAtIndex:4 withDefault:nil];
+    BOOL useBrowserHttp = [[command argumentAtIndex:3 withDefault:[NSNumber numberWithBool:NO]] boolValue];
+    NSString* objectId = [command argumentAtIndex:4];
+    NSDictionary* headers = [command argumentAtIndex:5 withDefault:nil];
 
     CDVPluginResult* result = nil;
     CDVFileTransferError errorCode = 0;

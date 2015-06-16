@@ -25,6 +25,7 @@ using System.Security;
 using System.Diagnostics;
 using System.Threading.Tasks;
 using WPCordovaClassLib.Cordova.JSON;
+using System.Reflection;
 
 namespace WPCordovaClassLib.Cordova.Commands
 {
@@ -68,6 +69,8 @@ namespace WPCordovaClassLib.Cordova.Commands
             /// Additional options
             public string Params { get; set; }
             public string Method { get; set; }
+            /// Use webview browser to perform HTTP requests
+            public bool UseBrowserHttp { get; set; }
 
             public TransferOptions()
             {
@@ -246,6 +249,29 @@ namespace WPCordovaClassLib.Cordova.Commands
             }
         }
 
+        /// <summary>
+        /// Create a new web request.
+        /// Optionally create a request that shares its cookie store with the browser. Note that this makes it
+        /// impossible to set cookies on the request itself, or to add any headers for downloading.
+        /// </summary>
+        /// <param name="serverUri">The URI to make the request for</param>
+        /// <param name="useBrowserHttp">Let the webview's browser perform HTTP requests on our behalf</param>
+        /// <returns>The new request</returns>
+        private HttpWebRequest CreateHttpWebRequest(Uri serverUri, bool useBrowserHttp)
+        {
+            if (useBrowserHttp)
+            {
+                PropertyInfo browserHttp = typeof(System.Net.Browser.WebRequestCreator).GetProperty("BrowserHttp");
+                var requestFactory = browserHttp.GetValue(this.browser, null) as IWebRequestCreate;
+
+                return (HttpWebRequest)requestFactory.Create(serverUri);
+            }
+            else
+            {
+                return (HttpWebRequest)WebRequest.Create(serverUri);
+            }
+        }
+
         /// Helper method to copy all relevant cookies from the WebBrowser control into a header on
         /// the HttpWebRequest
         /// </summary>
@@ -333,7 +359,7 @@ namespace WPCordovaClassLib.Cordova.Commands
         /// sends a file to a server
         /// </summary>
         /// <param name="options">Upload options</param>
-        /// exec(win, fail, 'FileTransfer', 'upload', [filePath, server, fileKey, fileName, mimeType, params, trustAllHosts, chunkedMode, headers, this._id, httpMethod]);
+        /// exec(win, fail, 'FileTransfer', 'upload', [filePath, server, fileKey, fileName, mimeType, params, trustAllHosts, chunkedMode, useBrowserHttp, headers, this._id, httpMethod]);
         public void upload(string options)
         {
             options = options.Replace("{}", ""); // empty objects screw up the Deserializer
@@ -363,15 +389,19 @@ namespace WPCordovaClassLib.Cordova.Commands
                     bool.TryParse(args[7], out doChunked);
                     uploadOptions.ChunkedMode = doChunked;
 
+                    bool useBrowserHttp = false;
+                    bool.TryParse(args[8], out useBrowserHttp);
+                    uploadOptions.UseBrowserHttp = useBrowserHttp;
+
                     //8 : Headers
                     //9 : id
                     //10: method
 
-                    uploadOptions.Headers = args[8];
-                    uploadOptions.Id = args[9];
-                    uploadOptions.Method = args[10];
+                    uploadOptions.Headers = args[9];
+                    uploadOptions.Id = args[10];
+                    uploadOptions.Method = args[11];
 
-                    uploadOptions.CallbackId = callbackId = args[11];
+                    uploadOptions.CallbackId = callbackId = args[12];
                 }
                 catch (Exception)
                 {
@@ -379,17 +409,9 @@ namespace WPCordovaClassLib.Cordova.Commands
                     return;
                 }
 
-                Uri serverUri;
-                try
-                {
-                    serverUri = new Uri(uploadOptions.Server);
-                }
-                catch (Exception)
-                {
-                    DispatchCommandResult(new PluginResult(PluginResult.Status.ERROR, new FileTransferError(InvalidUrlError, uploadOptions.Server, null, 0)));
-                    return;
-                }
-                webRequest = (HttpWebRequest)WebRequest.Create(serverUri);
+                Uri serverUri = new Uri(uploadOptions.Server);
+
+                webRequest = CreateHttpWebRequest(serverUri, uploadOptions.UseBrowserHttp);
                 webRequest.ContentType = "multipart/form-data; boundary=" + Boundary;
                 webRequest.Method = uploadOptions.Method;
 
@@ -426,9 +448,19 @@ namespace WPCordovaClassLib.Cordova.Commands
 
                 webRequest.BeginGetRequestStream(uploadCallback, reqState);
             }
-            catch (Exception /*ex*/)
+            catch (Exception ex)
             {
-                DispatchCommandResult(new PluginResult(PluginResult.Status.ERROR, new FileTransferError(ConnectionError)),callbackId);
+                // These can be thrown by the Uri constructor
+                if (ex is UriFormatException || ex is NotSupportedException || ex is ArgumentNullException)
+                {
+                    DispatchCommandResult(new PluginResult(PluginResult.Status.ERROR,
+                                          new FileTransferError(InvalidUrlError, uploadOptions.Server, null, 0)));
+                }
+                else
+                {
+                    DispatchCommandResult(new PluginResult(PluginResult.Status.ERROR,
+                                          new FileTransferError(ConnectionError)),callbackId);
+                }
             }
         }
 
@@ -463,7 +495,7 @@ namespace WPCordovaClassLib.Cordova.Commands
 
             try
             {
-                // source, target, trustAllHosts, this._id, headers
+                // source, target, trustAllHosts, useBrowserHttp, this._id, headers
                 string[] optionStrings = JSON.JsonHelper.Deserialize<string[]>(options);
 
                 downloadOptions = new TransferOptions();
@@ -474,9 +506,13 @@ namespace WPCordovaClassLib.Cordova.Commands
                 bool.TryParse(optionStrings[2],out trustAll);
                 downloadOptions.TrustAllHosts = trustAll;
 
-                downloadOptions.Id = optionStrings[3];
-                downloadOptions.Headers = optionStrings[4];
-                downloadOptions.CallbackId = callbackId = optionStrings[5];
+                bool useBrowserHttp = false;
+                bool.TryParse(optionStrings[3],out useBrowserHttp);
+                downloadOptions.UseBrowserHttp = useBrowserHttp;
+
+                downloadOptions.Id = optionStrings[4];
+                downloadOptions.Headers = optionStrings[5];
+                downloadOptions.CallbackId = callbackId = optionStrings[6];
             }
             catch (Exception)
             {
@@ -570,9 +606,11 @@ namespace WPCordovaClassLib.Cordova.Commands
                 }
                 else
                 {
+                    Uri serverUri = new Uri(downloadOptions.Url);
+
                     // otherwise it is web-bound, we will actually download it
                     //Debug.WriteLine("Creating WebRequest for url : " + downloadOptions.Url);
-                    webRequest = (HttpWebRequest)WebRequest.Create(downloadOptions.Url);
+                    webRequest = CreateHttpWebRequest(serverUri, downloadOptions.UseBrowserHttp);
                 }
             }
             catch (Exception /*ex*/)
