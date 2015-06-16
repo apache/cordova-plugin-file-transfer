@@ -122,9 +122,7 @@ FileTransfer.prototype.upload = function(filePath, server, successCallback, erro
 
     var that = this;
     var xhr = transfers[this._id] = new XMLHttpRequest();
-    if (withCredentials) {
-        xhr.withCredentials = true;
-    }
+    xhr.withCredentials = withCredentials;
 
     var fail = errorCallback && function(code, status, response) {
         transfers[this._id] && delete transfers[this._id];
@@ -236,9 +234,7 @@ FileTransfer.prototype.download = function(source, target, successCallback, erro
 
     var that = this;
     var xhr = transfers[this._id] = new XMLHttpRequest();
-    if (withCredentials) {
-        xhr.withCredentials = true;
-    }
+    xhr.withCredentials = withCredentials;
     var fail = errorCallback && function(code, status, response) {
         transfers[that._id] && delete transfers[that._id];
         // In XHR GET reqests we're setting response type to Blob
