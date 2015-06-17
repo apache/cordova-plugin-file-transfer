@@ -20,7 +20,7 @@
   },
   "repository": {
     "type": "git",
-    "url": "https://git-wip-us.apache.org/repos/asf/cordova-plugin-file-transfer.git"
+    "url": "https://github.com/apache/cordova-plugin-file-transfer"
   },
   "keywords": [
     "cordova",
