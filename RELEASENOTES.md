@@ -193,3 +193,21 @@
 * CB-8933 Increased download and upload test timeout
 * CB-6313 **wp8**: Extra boundary in upload
 * CB-8761 **wp8**: Copy cookies from WebBrowser
+
+### 1.2.0 (Jun 17, 2015)
+* CB-9128 cordova-plugin-file-transfer documentation translation: cordova-plugin-file-transfer
+* CB-6503: Null pointer check for headers in upload (This closes #27)
+* CB-6503: Allow payload content-types other than multipart/form-data to be used for upload
+* Fix NoSuchMethodException looking up cookies.
+* fix npm md issue
+* CB-8951 (wp8) Handle exceptions in download() and upload() again
+* [wp8] Relaxed engine version requirement, using reflection to see if methods are available
+* Check for the existence of Json.net assembly to determin how we deserialize our headers.
+* relax engine requirement to allow -dev versions
+* Remove verbose console log messages
+* fix bad commit (mine) for cordova-wp8@4.0.0 engine req
+* bump required cordova-wp8 version to 4.0.0
+* This closes #80, This closes #12
+* fix failing test resulting from overlapping async calls
+* CB-8721 Fixes incorrect headers and upload params parsing on wp8
+* Replace all slashes in windows path
