@@ -25,6 +25,7 @@ using System.Security;
 using System.Diagnostics;
 using System.Threading.Tasks;
 using WPCordovaClassLib.Cordova.JSON;
+using System.IO.Compression;
 
 namespace WPCordovaClassLib.Cordova.Commands
 {
@@ -88,7 +89,7 @@ namespace WPCordovaClassLib.Cordova.Commands
         public const int ConnectionError = 3;
         public const int AbortError = 4; // not really an error, but whatevs
 
-        private static Dictionary<string, DownloadRequestState> InProcDownloads = new Dictionary<string,DownloadRequestState>();
+        private static Dictionary<string, DownloadRequestState> InProcDownloads = new Dictionary<string, DownloadRequestState>();
 
         // Private instance of the main WebBrowser instance
         // NOTE: Any access to this object needs to occur on the UI thread via the Dispatcher
@@ -236,7 +237,7 @@ namespace WPCordovaClassLib.Cordova.Commands
         public FileTransfer()
         {
             // look for Newtonsoft.Json availability
-            foreach(System.Reflection.Assembly assembly in AppDomain.CurrentDomain.GetAssemblies() )
+            foreach (System.Reflection.Assembly assembly in AppDomain.CurrentDomain.GetAssemblies())
             {
                 if (assembly.GetType("Newtonsoft.Json.ConstructorHandling") != null)
                 {
@@ -356,7 +357,7 @@ namespace WPCordovaClassLib.Cordova.Commands
                     uploadOptions.Params = args[5];
 
                     bool trustAll = false;
-                    bool.TryParse(args[6],out trustAll);
+                    bool.TryParse(args[6], out trustAll);
                     uploadOptions.TrustAllHosts = trustAll;
 
                     bool doChunked = false;
@@ -428,18 +429,18 @@ namespace WPCordovaClassLib.Cordova.Commands
             }
             catch (Exception /*ex*/)
             {
-                DispatchCommandResult(new PluginResult(PluginResult.Status.ERROR, new FileTransferError(ConnectionError)),callbackId);
+                DispatchCommandResult(new PluginResult(PluginResult.Status.ERROR, new FileTransferError(ConnectionError)), callbackId);
             }
         }
 
         // example : "{\"Authorization\":\"Basic Y29yZG92YV91c2VyOmNvcmRvdmFfcGFzc3dvcmQ=\"}"
-        protected Dictionary<string,string> parseHeaders(string jsonHeaders)
+        protected Dictionary<string, string> parseHeaders(string jsonHeaders)
         {
             try
             {
                 if (FileTransfer.HasJsonDotNet)
                 {
-                    return JsonHelper.Deserialize<Header[]>(jsonHeaders,true)
+                    return JsonHelper.Deserialize<Header[]>(jsonHeaders)
                         .ToDictionary(header => header.Name, header => header.Value);
                 }
                 else
@@ -471,7 +472,7 @@ namespace WPCordovaClassLib.Cordova.Commands
                 downloadOptions.FilePath = optionStrings[1];
 
                 bool trustAll = false;
-                bool.TryParse(optionStrings[2],out trustAll);
+                bool.TryParse(optionStrings[2], out trustAll);
                 downloadOptions.TrustAllHosts = trustAll;
 
                 downloadOptions.Id = optionStrings[3];
@@ -491,7 +492,7 @@ namespace WPCordovaClassLib.Cordova.Commands
                 {
                     using (IsolatedStorageFile isoFile = IsolatedStorageFile.GetUserStoreForApplication())
                     {
-                        string cleanUrl = downloadOptions.Url.Replace("x-wmapp0:", "").Replace("file:", "").Replace("//","");
+                        string cleanUrl = downloadOptions.Url.Replace("x-wmapp0:", "").Replace("file:", "").Replace("//", "");
 
                         // pre-emptively create any directories in the FilePath that do not exist
                         string directoryName = getDirectoryName(downloadOptions.FilePath);
@@ -714,31 +715,39 @@ namespace WPCordovaClassLib.Cordova.Commands
                     {
                         long totalBytes = response.ContentLength;
                         int bytesRead = 0;
-                        using (BinaryReader reader = new BinaryReader(response.GetResponseStream()))
-                        {
-                            using (BinaryWriter writer = new BinaryWriter(fileStream))
-                            {
-                                int BUFFER_SIZE = 1024;
-                                byte[] buffer;
 
-                                while (true)
+
+                        // Ambrogelli 4 gzip!
+                        string encodingHeader = response.Headers["Content-Encoding"] != null ? response.Headers["Content-Encoding"] : "";
+                        using (Stream responseStreamGz = encodingHeader.Contains("gzip") ? new GZipStream(response.GetResponseStream(), CompressionMode.Decompress) : response.GetResponseStream())
+                        {
+
+                            using (BinaryReader reader = new BinaryReader(responseStreamGz))
+                            {
+                                using (BinaryWriter writer = new BinaryWriter(fileStream))
                                 {
-                                    buffer = reader.ReadBytes(BUFFER_SIZE);
-                                    // fire a progress event ?
-                                    bytesRead += buffer.Length;
-                                    if (buffer.Length > 0 && !reqState.isCancelled)
+                                    int BUFFER_SIZE = 1024;
+                                    byte[] buffer;
+
+                                    while (true)
                                     {
-                                        writer.Write(buffer);
-                                        DispatchFileTransferProgress(bytesRead, totalBytes, callbackId);
+                                        buffer = reader.ReadBytes(BUFFER_SIZE);
+                                        // fire a progress event ?
+                                        bytesRead += buffer.Length;
+                                        if (buffer.Length > 0 && !reqState.isCancelled)
+                                        {
+                                            writer.Write(buffer);
+                                            DispatchFileTransferProgress(bytesRead, totalBytes, callbackId);
+                                        }
+                                        else
+                                        {
+                                            writer.Close();
+                                            reader.Close();
+                                            fileStream.Close();
+                                            break;
+                                        }
+                                        System.Threading.Thread.Sleep(1);
                                     }
-                                    else
-                                    {
-                                        writer.Close();
-                                        reader.Close();
-                                        fileStream.Close();
-                                        break;
-                                    }
-                                    System.Threading.Thread.Sleep(1);
                                 }
                             }
                         }

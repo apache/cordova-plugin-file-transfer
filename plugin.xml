@@ -134,7 +134,8 @@
         </config-file>
 
         <source-file src="src/wp/FileTransfer.cs" />
-
+      
+        <framework src="src/wp/System.IO.Compression.dll" custom="true" />
     </platform>
 
     <!-- windows8 -->
