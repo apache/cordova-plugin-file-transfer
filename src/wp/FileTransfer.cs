@@ -25,6 +25,7 @@ using System.Security;
 using System.Diagnostics;
 using System.Threading.Tasks;
 using WPCordovaClassLib.Cordova.JSON;
+using System.Reflection;
 
 namespace WPCordovaClassLib.Cordova.Commands
 {
@@ -232,16 +233,16 @@ namespace WPCordovaClassLib.Cordova.Commands
             public string Value;
         }
 
-        protected static bool HasJsonDotNet = false;
+        private static MethodInfo JsonDeserializeUsingJsonNet;
+
         public FileTransfer()
         {
-            // look for Newtonsoft.Json availability
-            foreach(System.Reflection.Assembly assembly in AppDomain.CurrentDomain.GetAssemblies() )
+            if (JsonDeserializeUsingJsonNet == null)
             {
-                if (assembly.GetType("Newtonsoft.Json.ConstructorHandling") != null)
+                var method = typeof(JsonHelper).GetMethod("Deserialize", new Type[] { typeof(string), typeof(bool) });
+                if (method != null) 
                 {
-                    FileTransfer.HasJsonDotNet = true;
-                    break;
+                    JsonDeserializeUsingJsonNet = method.MakeGenericMethod(new Type[] { typeof(Header[]) });
                 }
             }
         }
@@ -437,10 +438,10 @@ namespace WPCordovaClassLib.Cordova.Commands
         {
             try
             {
-                if (FileTransfer.HasJsonDotNet)
+                if (FileTransfer.JsonDeserializeUsingJsonNet != null)
                 {
-                    return JsonHelper.Deserialize<Header[]>(jsonHeaders,true)
-                        .ToDictionary(header => header.Name, header => header.Value);
+                    return ((Header[])FileTransfer.JsonDeserializeUsingJsonNet.Invoke(null, new object[] { jsonHeaders, true }))
+                         .ToDictionary(header => header.Name, header => header.Value);
                 }
                 else
                 {
