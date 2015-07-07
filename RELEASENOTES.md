@@ -211,3 +211,9 @@
 * fix failing test resulting from overlapping async calls
 * CB-8721 Fixes incorrect headers and upload params parsing on wp8
 * Replace all slashes in windows path
+
+### 1.2.1 (Jul 7, 2015)
+* CB-9275 [WP8] Fix build failure on WP8 by using reflection to detect presence of JSON.NET based serialization        
+* Updated code per code review.                                                                                        
+* Updated documentation for browser                                                                                    
+* Added option to allow for passing cookies automatically in the browser                                               
