@@ -912,7 +912,7 @@ exports.defineManualTests = function (contentEl, createActionButton) {
 
     function downloadImg(source, urlFn, element, directory) {
         var filename = source.substring(source.lastIndexOf("/") + 1);
-        filename = directory + filename || filename;
+        filename = (directory || '') + filename;
         function download(fileSystem) {
             var ft = new FileTransfer();
             console.log("Starting download");
@@ -928,7 +928,7 @@ exports.defineManualTests = function (contentEl, createActionButton) {
         clearResults();
         window.requestFileSystem(LocalFileSystem.TEMPORARY, 0, function (fileSystem) {
             console.log("Checking for existing file");
-            if (directory !== undefined) {
+            if (typeof directory !== 'undefined') {
                 console.log("Checking for existing directory.");
                 fileSystem.root.getDirectory(directory, {}, function (dirEntry) {
                     dirEntry.removeRecursively(function () {
