@@ -19,8 +19,6 @@
  
 # cordova-plugin-file-transfer
 
-Plugin documentation: [doc/index.md](doc/index.md)
-
 This plugin allows you to upload and download files.
 
 This plugin defines global `FileTransfer`, `FileUploadOptions` Constructors.
