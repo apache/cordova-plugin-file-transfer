@@ -88,7 +88,6 @@ __Parameters__:
   - __params__: A set of optional key/value pairs to pass in the HTTP request. (Object)
   - __chunkedMode__: Whether to upload the data in chunked streaming mode. Defaults to `true`. (Boolean)
   - __headers__: A map of header name/header values. Use an array to specify more than one value.  On iOS, FireOS, and Android, if a header named Content-Type is present, multipart form data will NOT be used. (Object)
-  - __httpMethod__: The HTTP method to use e.g. POST or PUT.  Defaults to `POST`. (DOMString)
 
 - __trustAllHosts__: Optional parameter, defaults to `false`. If set to `true`, it accepts all security certificates. This is useful since Android rejects self-signed security certificates. Not recommended for production use. Supported on Android and iOS. _(boolean)_
 
