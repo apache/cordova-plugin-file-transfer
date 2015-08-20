@@ -39,8 +39,8 @@ exports.defineAutoTests = function () {
     // config for upload test server
     // NOTE:
     //      more info at https://github.com/apache/cordova-labs/tree/cordova-filetransfer
-    var SERVER                  = "http://cordova-filetransfer.jitsu.com";
-    var SERVER_WITH_CREDENTIALS = "http://cordova_user:cordova_password@cordova-filetransfer.jitsu.com";
+    var SERVER                  = "http://cordova-vm.apache.org:5000";
+    var SERVER_WITH_CREDENTIALS = "http://cordova_user:cordova_password@cordova-vm.apache.org:5000";
 
     // flags
     var isWindows = cordova.platformId === 'windows8' || cordova.platformId === 'windows';
