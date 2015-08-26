@@ -219,7 +219,7 @@ public class FileTransfer extends CordovaPlugin {
                       */
 
                     String headerValue = headers.getString(headerKey);
-                    String finalValue = headerValue.replaceAll("\\s+", "").replaceAll("\\n","").replaceAll("[^\\x20-\\x7E]+", " ");;
+                    String finalValue = headerValue.replaceAll("\\s+", " ").replaceAll("\\n"," ").replaceAll("[^\\x20-\\x7E]+", " ");
                     headerValues.put(finalValue);
                 }
 
