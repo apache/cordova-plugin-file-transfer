@@ -214,6 +214,14 @@
 
 ### 1.2.1 (Jul 7, 2015)
 * CB-9275 [WP8] Fix build failure on WP8 by using reflection to detect presence of JSON.NET based serialization        
-* Updated code per code review.                                                                                        
-* Updated documentation for browser                                                                                    
+* Updated code per code review.                                                         
+* Updated documentation for browser                                                     
 * Added option to allow for passing cookies automatically in the browser                                               
+### 1.3.0 (Sep 18, 2015)
+* Found issue where : is accepted as a valid header, this is obviously wrong
+* CB-9562 Fixed incorrect headers handling on Android
+* Fixing headers so they don't accept non-ASCII
+* updated tests to use cordova apache vm
+* CB-9493 Fix file paths in file-transfer manual tests
+* CB-8816 Add cdvfile:// support on windows
+* CB-9376 Fix FileTransfer plugin manual tests issue - 'undefined' in paths
