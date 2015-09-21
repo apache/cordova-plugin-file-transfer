@@ -216,7 +216,8 @@
 * CB-9275 [WP8] Fix build failure on WP8 by using reflection to detect presence of JSON.NET based serialization        
 * Updated code per code review.                                                         
 * Updated documentation for browser                                                     
-* Added option to allow for passing cookies automatically in the browser                                               
+* Added option to allow for passing cookies automatically in the browser 
+                                              
 ### 1.3.0 (Sep 18, 2015)
 * Found issue where : is accepted as a valid header, this is obviously wrong
 * CB-9562 Fixed incorrect headers handling on Android
