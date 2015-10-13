@@ -32,8 +32,8 @@ exports.defineAutoTests = function () {
     var DEFAULT_FILESYSTEM_SIZE = 1024*50; //filesystem size in bytes
     var UNKNOWN_HOST = "http://foobar.apache.org";
     var HEADERS_ECHO = "http://whatheaders.com"; // NOTE: this site is very useful!
-    var DOWNLOAD_TIMEOUT = 2 * 60 * 1000; // download tests sometimes need a higher timeout to complete successfully
-    var UPLOAD_TIMEOUT = 2 * 60 * 1000; // upload tests sometimes need a higher timeout to complete successfully
+    var DOWNLOAD_TIMEOUT = 30 * 1000; // download tests sometimes need a higher timeout to complete successfully
+    var UPLOAD_TIMEOUT = 30 * 1000; // upload tests sometimes need a higher timeout to complete successfully
     var ABORT_DELAY = 100; // for abort() tests
 
     // config for upload test server
@@ -556,7 +556,7 @@ exports.defineAutoTests = function () {
                     transfer.onprogress = function () {};
 
                     transfer.download(fileURL, localFilePath, unexpectedCallbacks.httpWin, downloadFail);
-                }, 30000);
+                }, DOWNLOAD_TIMEOUT);
 
                 it("filetransfer.spec.16 should handle bad file path", function (done) {
                     var fileURL = SERVER;
@@ -805,7 +805,7 @@ exports.defineAutoTests = function () {
                     };
 
                     transfer.upload(localFilePath, fileURL, unexpectedCallbacks.httpWin, uploadFail, {});
-                }, 30000); // unknown host may need quite some time on some devices
+                }, UPLOAD_TIMEOUT);
 
                 it("filetransfer.spec.25 should handle missing file", function (done) {
 
