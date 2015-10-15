@@ -501,6 +501,7 @@ exports.defineAutoTests = function () {
 
                         expect(error.http_status).not.toBe(401, "Ensure " + fileURL + " is in the white list");
                         expect(error.http_status).toBe(404);
+                        expect(error.code).toBe(FileTransferError.FILE_NOT_FOUND_ERR);
 
                         done();
                     };
