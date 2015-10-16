@@ -980,7 +980,7 @@ public class FileTransfer extends CordovaPlugin {
                             try{
                                    context.connection.disconnect();
                             } catch (Exception e) {                              
-                                   Log.e(LOG_TAG, "Catch workaround for fatal exception", e);
+                                   Log.e(LOG_TAG, "CB-8431 Catch workaround for fatal exception", e);
                             }
                         }
                     }
