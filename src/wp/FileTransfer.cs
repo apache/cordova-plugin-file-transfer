@@ -775,11 +775,8 @@ namespace WPCordovaClassLib.Cordova.Commands
             }
             catch (WebException webex)
             {
-                // TODO: probably need better work here to properly respond with all http status codes back to JS
-                // Right now am jumping through hoops just to detect 404.
                 HttpWebResponse response = (HttpWebResponse)webex.Response;
-                if ((webex.Status == WebExceptionStatus.ProtocolError && response.StatusCode == HttpStatusCode.NotFound)
-                    || webex.Status == WebExceptionStatus.UnknownError)
+                if ((webex.Status == WebExceptionStatus.ProtocolError) || (webex.Status == WebExceptionStatus.UnknownError))
                 {
                     // Weird MSFT detection of 404... seriously... just give us the f(*&#$@ status code as a number ffs!!!
                     // "Numbers for HTTP status codes? Nah.... let's create our own set of enums/structs to abstract that stuff away."
@@ -795,7 +792,8 @@ namespace WPCordovaClassLib.Cordova.Commands
                             body = streamReader.ReadToEnd();
                         }
                     }
-                    FileTransferError ftError = new FileTransferError(ConnectionError, null, null, statusCode, body);
+                    int errorCode = response.StatusCode == HttpStatusCode.NotFound ? FileNotFoundError : ConnectionError;
+                    FileTransferError ftError = new FileTransferError(errorCode, null, null, statusCode, body);
                     DispatchCommandResult(new PluginResult(PluginResult.Status.ERROR, ftError),
                                           callbackId);
                 }
