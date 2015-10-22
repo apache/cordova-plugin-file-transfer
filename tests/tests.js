@@ -49,6 +49,7 @@ exports.defineAutoTests = function () {
 
     var isBrowser = cordova.platformId === 'browser';
     var isIE = isBrowser && navigator.userAgent.indexOf('Trident') >= 0;
+    var isWp8 = cordova.platformId === "windowsphone";
 
     describe('FileTransferError', function () {
 
@@ -552,7 +553,12 @@ exports.defineAutoTests = function () {
                     var fileURL = UNKNOWN_HOST;
 
                     var downloadFail = function (error) {
-                        expect(error.code).toBe(FileTransferError.CONNECTION_ERR);
+                        // wp8 does not make difference between 404 and unknown host
+                        if (isWp8) {
+                            expect(error.code).toBe(FileTransferError.FILE_NOT_FOUND_ERR);
+                        } else {
+                            expect(error.code).toBe(FileTransferError.CONNECTION_ERR);
+                        }
                         done();
                     };
 
