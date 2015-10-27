@@ -49,6 +49,7 @@ exports.defineAutoTests = function () {
 
     var isBrowser = cordova.platformId === 'browser';
     var isIE = isBrowser && navigator.userAgent.indexOf('Trident') >= 0;
+    var isWp8 = cordova.platformId === "windowsphone";
 
     describe('FileTransferError', function () {
 
@@ -504,7 +505,13 @@ exports.defineAutoTests = function () {
 
                         expect(error.http_status).not.toBe(401, "Ensure " + fileURL + " is in the white list");
                         expect(error.http_status).toBe(404);
-                        expect(error.code).toBe(FileTransferError.FILE_NOT_FOUND_ERR);
+
+                        // wp8 does not make difference between 404 and unknown host
+                        if (isWp8) {
+                            expect(error.code).toBe(FileTransferError.CONNECTION_ERR);
+                        } else {
+                            expect(error.code).toBe(FileTransferError.FILE_NOT_FOUND_ERR);
+                        }
 
                         done();
                     };
