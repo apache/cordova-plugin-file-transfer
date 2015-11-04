@@ -176,7 +176,7 @@ exports.defineAutoTests = function () {
                 if (isIE) {
                     expect(event.total).toBe(Math.pow(2, 64));
                 } else {
-                    expect(event.total).toBe(0);
+                    expect(event.total).toBeLessThan(1);
                 }
             }
         };
