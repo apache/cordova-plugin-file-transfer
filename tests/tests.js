@@ -845,10 +845,6 @@ exports.defineAutoTests = function () {
 
                 it("filetransfer.spec.27 should be able to set custom headers", function (done) {
 
-                    if (cordova.platformId === 'windowsphone') {
-                        pending();
-                    }
-
                     var fileURL = HEADERS_ECHO;
 
                     var uploadWin = function (uploadResult) {
