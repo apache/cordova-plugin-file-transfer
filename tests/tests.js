@@ -180,7 +180,7 @@ exports.defineAutoTests = function () {
                 } else if (isIOS) {
                     expect(event.total).toBe(-1);
                 } else {
-                    expect(event.total).toBe(0);
+                    expect(event.total).toBeLessThan(1);
                 }
             }
         };
