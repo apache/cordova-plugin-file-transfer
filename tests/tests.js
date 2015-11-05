@@ -45,11 +45,8 @@ exports.defineAutoTests = function () {
     // flags
     var isWindows = cordova.platformId === 'windows8' || cordova.platformId === 'windows';
     var isWP8 = cordova.platformId === 'windowsphone';
-    var isIOS = cordova.platformId === 'ios';
-
     var isBrowser = cordova.platformId === 'browser';
     var isIE = isBrowser && navigator.userAgent.indexOf('Trident') >= 0;
-    var isWp8 = cordova.platformId === "windowsphone";
 
     describe('FileTransferError', function () {
 
@@ -177,9 +174,8 @@ exports.defineAutoTests = function () {
                 // In IE, when lengthComputable === false, event.total somehow is equal to 2^64
                 if (isIE) {
                     expect(event.total).toBe(Math.pow(2, 64));
-                } else if (isIOS) {
-                    expect(event.total).toBe(-1);
                 } else {
+                    // iOS returns -1, and other platforms return 0
                     expect(event.total).toBeLessThan(1);
                 }
             }
