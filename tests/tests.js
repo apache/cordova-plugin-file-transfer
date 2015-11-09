@@ -503,7 +503,7 @@ exports.defineAutoTests = function () {
                         expect(error.http_status).toBe(404);
 
                         // wp8 does not make difference between 404 and unknown host
-                        if (isWp8) {
+                        if (isWP8) {
                             expect(error.code).toBe(FileTransferError.CONNECTION_ERR);
                         } else {
                             expect(error.code).toBe(FileTransferError.FILE_NOT_FOUND_ERR);
@@ -650,6 +650,30 @@ exports.defineAutoTests = function () {
                         transfer.download(fileURL, localPath, downloadWin, unexpectedCallbacks.httpFail);
                     }, unsupported, 'File', '_getLocalFilesystemPath', [internalFilePath]);
                 });
+
+                it('filetransfer.spec.31 should properly handle 304', function (done) {
+
+                    if(isWP8) {
+                        pending();
+                        return;
+                    }
+
+                    var imageURL = "http://apache.org/images/feather-small.gif";
+                    var lastModified = new Date();
+
+                    var downloadFail = function (error) {
+                        expect(error.http_status).toBe(304);
+                        expect(error.code).toBe(FileTransferError.NOT_MODIFIED_ERR);
+                        done();
+                    };
+
+                    transfer.download(imageURL, localFilePath, unexpectedCallbacks.httpWin, downloadFail, null,
+                        {
+                            headers: {
+                                'If-Modified-Since': lastModified.toUTCString()
+                            }
+                        });
+                }, DOWNLOAD_TIMEOUT);
             });
 
             describe('upload', function() {

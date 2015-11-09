@@ -60,6 +60,7 @@ FileTransferOperation.PENDING = 0;
 FileTransferOperation.DONE = 1;
 FileTransferOperation.CANCELLED = 2;
 
+var HTTP_E_STATUS_NOT_MODIFIED = -2145844944;
 
 module.exports = {
 
@@ -339,6 +340,8 @@ exec(win, fail, 'FileTransfer', 'upload',
                         // message property will be specified
                         if (error.message === 'Canceled') {
                             resolve(new FTErr(FTErr.ABORT_ERR, source, target, null, null, error));
+                        } else if (error && error.number === HTTP_E_STATUS_NOT_MODIFIED) {
+                            resolve(new FTErr(FTErr.NOT_MODIFIED_ERR, source, target, 304, null, error));
                         } else {
                             // in the other way, try to get response property
                             var response = download.getResponseInformation();
