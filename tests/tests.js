@@ -676,6 +676,60 @@ exports.defineAutoTests = function () {
                             }
                         });
                 }, DOWNLOAD_TIMEOUT);
+
+                it('filetransfer.spec.35 304 should not result in the deletion of a cached file', function (done) {
+
+                    if(isWP8) {
+                        pending();
+                        return;
+                    }
+
+                    var imageURL = "http://apache.org/images/feather-small.gif";
+                    var lastModified = new Date();
+
+                    var downloadFail = function (error) {
+                        expect(error.http_status).toBe(304);
+                        expect(error.code).toBe(FileTransferError.NOT_MODIFIED_ERR);
+
+                        persistentRoot.getFile(fileName, { create: false },
+                            function (entry) {
+                                var fileWin = function (file) {
+                                    var reader = new FileReader();
+
+                                    reader.onerror = unexpectedCallbacks.fileOperationFail;
+                                    reader.onloadend  = function () {
+
+                                        expect(reader.result).toBeTruthy();
+                                        if(reader.result != null) {
+                                            expect(reader.result.length).toBeGreaterThan(0);
+                                        }
+
+                                        done();
+                                    };
+
+                                    reader.readAsBinaryString(file);
+                                };
+
+                                entry.file(fileWin, unexpectedCallbacks.fileSystemFail);
+                            },
+                            function (err) {
+                                expect('Could not open test file \'' + fileName + '\': ' + JSON.stringify(err)).not.toBeDefined();
+                                done();
+                            }
+                        );
+                    };
+
+                    // Adding parameters to the requests to avoid caching on iOS, which leads to 200
+                    // instead of 304 in result of the second request. (a similar issue is described in CB-8606, CB-10088)
+                    transfer.download(imageURL + "?q=" + lastModified.getTime(), localFilePath, function () {
+                        transfer.download(imageURL + "?q=" + (lastModified.getTime() + 1), localFilePath, unexpectedCallbacks.httpWin, downloadFail, null,
+                        {
+                            headers: {
+                                'If-Modified-Since': lastModified.toUTCString()
+                            }
+                        });
+                    }, unexpectedCallbacks.httpFail);
+                }, DOWNLOAD_TIMEOUT);
             });
 
             describe('upload', function() {

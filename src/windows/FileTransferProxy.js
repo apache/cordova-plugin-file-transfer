@@ -286,6 +286,9 @@ exec(win, fail, 'FileTransfer', 'upload',
             errorCallback(new FTErr(FTErr.FILE_NOT_FOUND_ERR));
             return;
         }
+        // Download to a temp file to avoid the file deletion on 304 
+        // CB-7006 Empty file is created on file transfer if server response is 304
+        var tempFileName = '~' + fileName;
 
         var download = null;
 
@@ -293,7 +296,7 @@ exec(win, fail, 'FileTransfer', 'upload',
         fileTransferOps[downloadId] = new FileTransferOperation(FileTransferOperation.PENDING, null);
 
         var downloadCallback = function(storageFolder) {
-            storageFolder.createFileAsync(fileName, Windows.Storage.CreationCollisionOption.replaceExisting).then(function(storageFile) {
+            storageFolder.createFileAsync(tempFileName, Windows.Storage.CreationCollisionOption.replaceExisting).then(function (storageFile) {
 
                 // check if download isn't already cancelled
                 var downloadOp = fileTransferOps[downloadId];
@@ -335,13 +338,15 @@ exec(win, fail, 'FileTransfer', 'upload',
                         currentDownloadOp.promise = null;
                     }
 
-                    var nativeURI = storageFile.path.replace(appData.localFolder.path, 'ms-appdata:///local')
+                    storageFile.renameAsync(fileName, Windows.Storage.CreationCollisionOption.replaceExisting).done(function () {
+                        var nativeURI = storageFile.path.replace(appData.localFolder.path, 'ms-appdata:///local')
                         .replace(appData.temporaryFolder.path, 'ms-appdata:///temp')
                         .replace(/\\/g, '/');
 
-                    // Passing null as error callback here because downloaded file should exist in any case
-                    // otherwise the error callback will be hit during file creation in another place
-                    FileProxy.resolveLocalFileSystemURI(successCallback, null, [nativeURI]);
+                        // Passing null as error callback here because downloaded file should exist in any case
+                        // otherwise the error callback will be hit during file creation in another place
+                        FileProxy.resolveLocalFileSystemURI(successCallback, null, [nativeURI]);
+                    });
                 }, function(error) {
 
                     var getTransferError = new WinJS.Promise(function (resolve) {
