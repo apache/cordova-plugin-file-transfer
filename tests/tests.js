@@ -895,6 +895,33 @@ exports.defineAutoTests = function () {
                         transfer.upload(localPath, fileURL, uploadWin, unexpectedCallbacks.httpFail, uploadOptions);
                     }, unsupported, 'File', '_getLocalFilesystemPath', [internalFilePath]);
                 }, UPLOAD_TIMEOUT);
+
+                it("filetransfer.spec.31 should be able to upload a file using PUT method", function (done) {
+
+                    var fileURL = SERVER + '/upload';
+
+                    var uploadWin = function (uploadResult) {
+
+                        verifyUpload(uploadResult);
+
+                        if (cordova.platformId === 'ios') {
+                            expect(uploadResult.headers).toBeDefined('Expected headers to be defined.');
+                            expect(uploadResult.headers['Content-Type']).toBeDefined('Expected content-type header to be defined.');
+                        }
+
+                        done();
+                    };
+
+                    var uploadOptionsPut        = new FileUploadOptions();
+                    uploadOptionsPut.fileKey    = "file";
+                    uploadOptionsPut.fileName   = fileName;
+                    uploadOptionsPut.mimeType   = "text/plain";
+                    uploadOptionsPut.params     = uploadParams;
+                    uploadOptionsPut.httpMethod = "PUT";
+
+                    // NOTE: removing uploadOptions cause Android to timeout
+                    transfer.upload(localFilePath, fileURL, uploadWin, unexpectedCallbacks.httpFail, uploadOptionsPut);
+                }, UPLOAD_TIMEOUT);
             });
         });
     });

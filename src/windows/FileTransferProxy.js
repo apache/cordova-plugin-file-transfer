@@ -78,6 +78,7 @@ exec(win, fail, 'FileTransfer', 'upload',
         // var chunkedMode = options[7]; // todo 
         var headers = options[8] || {};
         var uploadId = options[9];
+        var httpMethod = options[10];
 
         if (!filePath || (typeof filePath !== 'string')) {
             errorCallback(new FTErr(FTErr.FILE_NOT_FOUND_ERR,null,server));
@@ -122,6 +123,7 @@ exec(win, fail, 'FileTransfer', 'upload',
 
             // setting request headers for uploader
             var uploader = new Windows.Networking.BackgroundTransfer.BackgroundUploader();
+            uploader.method = httpMethod;
             for (var header in headers) {
                 if (headers.hasOwnProperty(header)) {
                     uploader.setRequestHeader(header, headers[header]);
