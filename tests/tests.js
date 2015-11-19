@@ -993,9 +993,25 @@ exports.defineManualTests = function (contentEl, createActionButton) {
     function downloadImg(source, urlFn, element, directory) {
         var filename = source.substring(source.lastIndexOf("/") + 1);
         filename = (directory || '') + filename;
+
         function download(fileSystem) {
             var ft = new FileTransfer();
             console.log("Starting download");
+
+            var progress = document.getElementById("loadingStatus");
+            progress.value = 0;
+
+            ft.onprogress = function(progressEvent) {
+                if (progressEvent.lengthComputable) {
+                    var currPercents = parseInt(100 * (progressEvent.loaded / progressEvent.total), 10);
+                    if (currPercents > progress.value) {
+                        progress.value = currPercents;
+                    }
+                } else {
+                    progress.value = null;
+                }
+            };
+
             ft.download(source, fileSystem.root.toURL() + filename, function (entry) {
                 console.log("Download complete");
                 element.src = urlFn(entry);
@@ -1032,6 +1048,7 @@ exports.defineManualTests = function (contentEl, createActionButton) {
 
     /******************************************************************************/
 
+    var progress_tag = '<progress id="loadingStatus" value="0" max="100" style="width: 100%;"></progress>';
     var file_transfer_tests = '<h2>Image File Transfer Tests</h2>' +
         '<h3>The following tests should display an image of the Apache feather in the status box</h3>' +
         '<div id="cdv_image"></div>' +
@@ -1042,7 +1059,7 @@ exports.defineManualTests = function (contentEl, createActionButton) {
         '<div id="cdv_video"></div>' +
         '<div id="native_video"></div>';
 
-    contentEl.innerHTML = '<div id="info"></div>' +
+    contentEl.innerHTML = '<div id="info"></div>' + '<br>' + progress_tag +
         file_transfer_tests;
 
     createActionButton('Download and display img (cdvfile)', function () {
