@@ -20,6 +20,20 @@
 -->
 # Release Notes
                                               
+### 1.4.0 (Nov 18, 2015)
+* CB-10035 Updated `RELEASENOTES` to be newest to oldest
+* CB-9879 `getCookie`s can cause unhandled `NullPointerException`
+* CB-6928 Wrong behaviour transferring cacheable content
+* CB-51 FileTransfer - Support `PUT` Method
+* CB-9906 cleanup duplicate code, removed 2nd `isWP8` declaration.
+* CB-9950 Unpend Filetransfer spec.27 on **wp8** as custom headers are now supported
+* CB-9843 Added **wp8** quirk to test spec 12
+* Fixing contribute link.
+* CB-8431 File Transfer tests crash on **Android Lolipop**
+* CB-9790 Align `FileUploadOptions` `fileName` and `mimeType` default parameter values to the docs on **iOS**
+* CB-9385 Return `FILE_NOT_FOUND_ERR` when receiving `404` code on **iOS**
+* CB-9791 Decreased download and upload tests timeout
+
 ### 1.3.0 (Sep 18, 2015)
 * Found issue where : is accepted as a valid header, this is obviously wrong
 * CB-9562 Fixed incorrect headers handling on Android
