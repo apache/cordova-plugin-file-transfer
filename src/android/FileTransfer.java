@@ -291,6 +291,11 @@ public class FileTransfer extends CordovaPlugin {
         final JSONObject headers = args.optJSONObject(8) == null ? params.optJSONObject("headers") : args.optJSONObject(8);
         final String objectId = args.getString(9);
         final String httpMethod = getArgument(args, 10, "POST");
+        final String s_startByte = (args.isNull(11) ? "0" : getArgument(args, 11, "POST"));
+        final String s_endByte = (args.isNull(12) ? "-1" : getArgument(args, 12, "POST"));
+
+        final int startByte = Integer.parseInt(s_startByte);
+        final int endByte = Integer.parseInt(s_endByte);
         
         final CordovaResourceApi resourceApi = webView.getResourceApi();
 
@@ -416,7 +421,11 @@ public class FileTransfer extends CordovaPlugin {
                     
                     int stringLength = beforeDataBytes.length + tailParamsBytes.length;
                     if (readResult.length >= 0) {
-                        fixedLength = (int)readResult.length;
+                        if(endByte > 0){
+                          fixedLength = endByte-startByte;;
+                        }else{
+                          fixedLength = (int)readResult.length;
+                        }
                         if (multipartFormUpload)
                             fixedLength += stringLength;
                         progress.setLengthComputable(true);
@@ -455,33 +464,48 @@ public class FileTransfer extends CordovaPlugin {
                             sendStream.write(beforeDataBytes);
                             totalBytes += beforeDataBytes.length;
                         }
-                        
-                        // create a buffer of maximum size
-                        int bytesAvailable = readResult.inputStream.available();
-                        int bufferSize = Math.min(bytesAvailable, MAX_BUFFER_SIZE);
-                        byte[] buffer = new byte[bufferSize];
-    
-                        // read file and write it into form...
-                        int bytesRead = readResult.inputStream.read(buffer, 0, bufferSize);
-    
-                        long prevBytesRead = 0;
-                        while (bytesRead > 0) {
-                            result.setBytesSent(totalBytes);
-                            sendStream.write(buffer, 0, bytesRead);
-                            totalBytes += bytesRead;
-                            if (totalBytes > prevBytesRead + 102400) {
-                                prevBytesRead = totalBytes;
-                                Log.d(LOG_TAG, "Uploaded " + totalBytes + " of " + fixedLength + " bytes");
-                            }
-                            bytesAvailable = readResult.inputStream.available();
-                            bufferSize = Math.min(bytesAvailable, MAX_BUFFER_SIZE);
-                            bytesRead = readResult.inputStream.read(buffer, 0, bufferSize);
+                        if(endByte>0){ //This means we want to read just part of the file
+                          int byteRange = endByte-startByte;
+                          byte[] buffer = new byte[byteRange];
+                          if(startByte > 0){ //Start from offset
+                            readResult.inputStream.skip(startByte);
+                          }
+                          int bytesRead = readResult.inputStream.read(buffer, 0, byteRange);
+                          totalBytes += byteRange;
+                          result.setBytesSent(totalBytes);
+                          sendStream.write(buffer, 0, bytesRead);
+                          progress.setLoaded(totalBytes);
+                          PluginResult progressResult = new PluginResult(PluginResult.Status.OK, progress.toJSONObject());
+                          progressResult.setKeepCallback(true);
+                          context.sendPluginResult(progressResult);
+                        }else{
+                          // create a buffer of maximum size
+                          int bytesAvailable = readResult.inputStream.available();
+                          int bufferSize = Math.min(bytesAvailable, MAX_BUFFER_SIZE);
+                          byte[] buffer = new byte[bufferSize];
+      
+                          // read file and write it into form...
+                          int bytesRead = readResult.inputStream.read(buffer, 0, bufferSize);
+      
+                          long prevBytesRead = 0;
+                          while (bytesRead > 0) {
+                              result.setBytesSent(totalBytes);
+                              sendStream.write(buffer, 0, bytesRead);
+                              totalBytes += bytesRead;
+                              if (totalBytes > prevBytesRead + 102400) {
+                                  prevBytesRead = totalBytes;
+                                  Log.d(LOG_TAG, "Uploaded " + totalBytes + " of " + fixedLength + " bytes");
+                              }
+                              bytesAvailable = readResult.inputStream.available();
+                              bufferSize = Math.min(bytesAvailable, MAX_BUFFER_SIZE);
+                              bytesRead = readResult.inputStream.read(buffer, 0, bufferSize);
 
-                            // Send a progress event.
-                            progress.setLoaded(totalBytes);
-                            PluginResult progressResult = new PluginResult(PluginResult.Status.OK, progress.toJSONObject());
-                            progressResult.setKeepCallback(true);
-                            context.sendPluginResult(progressResult);
+                              // Send a progress event.
+                              progress.setLoaded(totalBytes);
+                              PluginResult progressResult = new PluginResult(PluginResult.Status.OK, progress.toJSONObject());
+                              progressResult.setKeepCallback(true);
+                              context.sendPluginResult(progressResult);
+                          }
                         }
     
                         if (multipartFormUpload) {
