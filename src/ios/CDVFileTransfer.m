@@ -259,13 +259,35 @@ static CFIndex WriteDataToStream(NSData* data, CFWriteStreamRef stream)
             CFRelease(writeStream);
         }];
     } else {
+        NSNumber* startByte = (NSNumber*)[command argumentAtIndex:11 withDefault:0];
+        NSNumber* endByte = (NSNumber*)[command argumentAtIndex:12 withDefault:0];
+        
+        NSInteger i_startByte = [startByte integerValue];
+        NSInteger i_endByte = [endByte integerValue];
+        
+        if(i_endByte == 0){
+            i_endByte = -1;
+        }
+        NSRange chunkRange = NSMakeRange(i_startByte, i_endByte-i_startByte);
+        NSData* chunkData = [fileData subdataWithRange:chunkRange];
+        
         if (multipartFormUpload) {
-            [postBodyBeforeFile appendData:fileData];
+            [postBodyBeforeFile appendData:chunkData];
+            //[postBodyBeforeFile appendData:fileData];
             [postBodyBeforeFile appendData:postBodyAfterFile];
             [req setHTTPBody:postBodyBeforeFile];
         } else {
-            [req setHTTPBody:fileData];
+            [req setHTTPBody:chunkData];
+            //[req setHTTPBody:fileData];
         }
+        
+        // if (multipartFormUpload) {
+        //     [postBodyBeforeFile appendData:fileData];
+        //     [postBodyBeforeFile appendData:postBodyAfterFile];
+        //     [req setHTTPBody:postBodyBeforeFile];
+        // } else {
+        //     [req setHTTPBody:fileData];
+        // }
     }
     return req;
 }
@@ -296,6 +318,15 @@ static CFIndex WriteDataToStream(NSData* data, CFWriteStreamRef stream)
     NSString* source = (NSString*)[command argumentAtIndex:0];
     NSString* server = [command argumentAtIndex:1];
     NSError* __autoreleasing err = nil;
+    NSNumber* startByte = (NSNumber*)[command argumentAtIndex:11 withDefault:0];
+    NSNumber* endByte = (NSNumber*)[command argumentAtIndex:12 withDefault:0];
+    
+    NSInteger i_startByte = [startByte integerValue];
+    NSInteger i_endByte = [endByte integerValue];
+    
+    if(i_endByte == 0){
+        i_endByte = -1;
+    }
 
     CDVFilesystemURL *sourceURL = [CDVFilesystemURL fileSystemURLWithString:source];
     NSObject<CDVFileSystem> *fs;
@@ -305,7 +336,7 @@ static CFIndex WriteDataToStream(NSData* data, CFWriteStreamRef stream)
         fs = [[self.commandDelegate getCommandInstance:@"File"] filesystemForURL:sourceURL];
     }
     if (fs) {
-        [fs readFileAtURL:sourceURL start:0 end:-1 callback:^(NSData *fileData, NSString *mimeType, CDVFileError err) {
+        [fs readFileAtURL:sourceURL start:i_startByte end:i_endByte callback:^(NSData *fileData, NSString *mimeType, CDVFileError err) {
             if (err) {
                 // We couldn't find the asset.  Send the appropriate error.
                 CDVPluginResult* result = [CDVPluginResult resultWithStatus:CDVCommandStatus_ERROR messageAsDictionary:[self createFileTransferError:NOT_FOUND_ERR AndSource:source AndTarget:server]];
