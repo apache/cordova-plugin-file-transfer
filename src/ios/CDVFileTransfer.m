@@ -273,21 +273,11 @@ static CFIndex WriteDataToStream(NSData* data, CFWriteStreamRef stream)
         
         if (multipartFormUpload) {
             [postBodyBeforeFile appendData:chunkData];
-            //[postBodyBeforeFile appendData:fileData];
             [postBodyBeforeFile appendData:postBodyAfterFile];
             [req setHTTPBody:postBodyBeforeFile];
         } else {
             [req setHTTPBody:chunkData];
-            //[req setHTTPBody:fileData];
         }
-        
-        // if (multipartFormUpload) {
-        //     [postBodyBeforeFile appendData:fileData];
-        //     [postBodyBeforeFile appendData:postBodyAfterFile];
-        //     [req setHTTPBody:postBodyBeforeFile];
-        // } else {
-        //     [req setHTTPBody:fileData];
-        // }
     }
     return req;
 }
