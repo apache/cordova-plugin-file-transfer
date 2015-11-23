@@ -936,15 +936,41 @@ exports.defineAutoTests = function () {
                         done();
                     };
 
-                    var uploadOptionsPut        = new FileUploadOptions();
-                    uploadOptionsPut.fileKey    = "file";
-                    uploadOptionsPut.fileName   = fileName;
-                    uploadOptionsPut.mimeType   = "text/plain";
-                    uploadOptionsPut.params     = uploadParams;
-                    uploadOptionsPut.httpMethod = "PUT";
+                    uploadOptions.httpMethod = "PUT";
 
                     // NOTE: removing uploadOptions cause Android to timeout
-                    transfer.upload(localFilePath, fileURL, uploadWin, unexpectedCallbacks.httpFail, uploadOptionsPut);
+                    transfer.upload(localFilePath, fileURL, uploadWin, unexpectedCallbacks.httpFail, uploadOptions);
+                }, UPLOAD_TIMEOUT);
+
+                it("filetransfer.spec.32 should be able to upload a file (non-multipart)", function (done) {
+
+                    var fileURL = SERVER + '/upload';
+
+                    var uploadWin = function (uploadResult) {
+
+                        expect(uploadResult.bytesSent).toBeGreaterThan(0);
+                        expect(uploadResult.responseCode).toBe(200);
+                        expect(uploadResult.response).toBeDefined();
+                        if (uploadResult.response) {
+                            expect(uploadResult.response).toEqual(fileContents + "\n");
+                        }
+                        expect(transfer.onprogress).toHaveBeenCalled();
+
+                        if (cordova.platformId === 'ios') {
+                            expect(uploadResult.headers).toBeDefined('Expected headers to be defined.');
+                            expect(uploadResult.headers['Content-Type']).toBeDefined('Expected content-type header to be defined.');
+                        }
+
+                        done();
+                    };
+
+                    // Content-Type header disables multipart
+                    uploadOptions.headers = {
+                        "Content-Type": "text/plain"
+                    };
+
+                    // NOTE: removing uploadOptions cause Android to timeout
+                    transfer.upload(localFilePath, fileURL, uploadWin, unexpectedCallbacks.httpFail, uploadOptions);
                 }, UPLOAD_TIMEOUT);
             });
         });

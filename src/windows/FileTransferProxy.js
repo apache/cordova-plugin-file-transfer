@@ -81,6 +81,8 @@ exec(win, fail, 'FileTransfer', 'upload',
         var uploadId = options[9];
         var httpMethod = options[10];
 
+        var isMultipart = typeof headers["Content-Type"] === 'undefined';
+
         if (!filePath || (typeof filePath !== 'string')) {
             errorCallback(new FTErr(FTErr.FILE_NOT_FOUND_ERR,null,server));
             return;
@@ -131,120 +133,129 @@ exec(win, fail, 'FileTransfer', 'upload',
                 }
             }
 
-            // adding params supplied to request payload
-            var transferParts = [];
-            for (var key in params) {
-                if (params.hasOwnProperty(key)) {
-                    var contentPart = new Windows.Networking.BackgroundTransfer.BackgroundTransferContentPart();
-                    contentPart.setHeader("Content-Disposition", "form-data; name=\"" + key + "\"");
-                    contentPart.setText(params[key]);
-                    transferParts.push(contentPart);
-                }
-            }
-
-            // Adding file to upload to request payload
-            var fileToUploadPart = new Windows.Networking.BackgroundTransfer.BackgroundTransferContentPart(fileKey, fileName);
-            fileToUploadPart.setFile(storageFile);
-            transferParts.push(fileToUploadPart);
-
             // create download object. This will throw an exception if URL is malformed
             var uri = new Windows.Foundation.Uri(server);
+
+            var createUploadOperation;
             try {
-                uploader.createUploadAsync(uri, transferParts).then(
-                    function (upload) {
-                        // update internal TransferOperation object with newly created promise
-                        var uploadOperation = upload.startAsync();
-                        fileTransferOps[uploadId].promise = uploadOperation;
-
-                        uploadOperation.then(
-                            function (result) {
-                                // Update TransferOperation object with new state, delete promise property
-                                // since it is not actual anymore
-                                var currentUploadOp = fileTransferOps[uploadId];
-                                if (currentUploadOp) {
-                                    currentUploadOp.state = FileTransferOperation.DONE;
-                                    currentUploadOp.promise = null;
-                                }
-
-                                var response = result.getResponseInformation();
-                                var ftResult = new FileUploadResult(result.progress.bytesSent, response.statusCode, '');
-
-                                // if server's response doesn't contain any data, then resolve operation now
-                                if (result.progress.bytesReceived === 0) {
-                                    successCallback(ftResult);
-                                    return;
-                                }
-
-                                // otherwise create a data reader, attached to response stream to get server's response
-                                var reader = new Windows.Storage.Streams.DataReader(result.getResultStreamAt(0));
-                                reader.loadAsync(result.progress.bytesReceived).then(function (size) {
-                                    ftResult.response = reader.readString(size);
-                                    successCallback(ftResult);
-                                    reader.close();
-                                });
-                            },
-                            function (error) {
-                                var source = nativePathToCordova(filePath);
-
-                                // Handle download error here.
-                                // Wrap this routines into promise due to some async methods
-                                var getTransferError = new WinJS.Promise(function(resolve) {
-                                    if (error.message === 'Canceled') {
-                                        // If download was cancelled, message property will be specified
-                                        resolve(new FTErr(FTErr.ABORT_ERR, source, server, null, null, error));
-                                    } else {
-                                        // in the other way, try to get response property
-                                        var response = upload.getResponseInformation();
-                                        if (!response) {
-                                            resolve(new FTErr(FTErr.CONNECTION_ERR, source, server));
-                                        } else {
-                                            var reader = new Windows.Storage.Streams.DataReader(upload.getResultStreamAt(0));
-                                            reader.loadAsync(upload.progress.bytesReceived).then(function (size) {
-                                                var responseText = reader.readString(size);
-                                                resolve(new FTErr(FTErr.FILE_NOT_FOUND_ERR, source, server, response.statusCode, responseText, error));
-                                                reader.close();
-                                            });
-                                        }
-                                    }
-                                });
-
-                                // Update TransferOperation object with new state, delete promise property
-                                // since it is not actual anymore
-                                var currentUploadOp = fileTransferOps[uploadId];
-                                if (currentUploadOp) {
-                                    currentUploadOp.state = FileTransferOperation.CANCELLED;
-                                    currentUploadOp.promise = null;
-                                }
-
-                                // Cleanup, remove incompleted file
-                                getTransferError.then(function(transferError) {
-                                    storageFile.deleteAsync().then(function() {
-                                        errorCallback(transferError);
-                                    });
-                                });
-                            },
-                            function (evt) {
-                                var progressEvent = new ProgressEvent('progress', {
-                                    loaded: evt.progress.bytesSent,
-                                    total: evt.progress.totalBytesToSend,
-                                    target: evt.resultFile
-                                });
-                                progressEvent.lengthComputable = true;
-                                successCallback(progressEvent, { keepCallback: true });
-                            }
-                        );
-                    },
-                    function (err) {
-                        var errorObj = new FTErr(FTErr.INVALID_URL_ERR);
-                        errorObj.exception = err;
-                        errorCallback(errorObj);
+                if (isMultipart) {
+                    // adding params supplied to request payload
+                    var transferParts = [];
+                    for (var key in params) {
+                        if (params.hasOwnProperty(key)) {
+                            var contentPart = new Windows.Networking.BackgroundTransfer.BackgroundTransferContentPart();
+                            contentPart.setHeader("Content-Disposition", "form-data; name=\"" + key + "\"");
+                            contentPart.setText(params[key]);
+                            transferParts.push(contentPart);
+                        }
                     }
-                );
+
+                    // Adding file to upload to request payload
+                    var fileToUploadPart = new Windows.Networking.BackgroundTransfer.BackgroundTransferContentPart(fileKey, fileName);
+                    fileToUploadPart.setFile(storageFile);
+                    transferParts.push(fileToUploadPart);
+
+                    createUploadOperation = uploader.createUploadAsync(uri, transferParts);
+                } else {
+                    createUploadOperation = WinJS.Promise.wrap(uploader.createUpload(uri, storageFile));
+                }
             } catch (e) {
                 errorCallback(new FTErr(FTErr.INVALID_URL_ERR));
+                return;
             }
+
+            createUploadOperation.then(
+                function (upload) {
+                    // update internal TransferOperation object with newly created promise
+                    var uploadOperation = upload.startAsync();
+                    fileTransferOps[uploadId].promise = uploadOperation;
+
+                    uploadOperation.then(
+                        function (result) {
+                            // Update TransferOperation object with new state, delete promise property
+                            // since it is not actual anymore
+                            var currentUploadOp = fileTransferOps[uploadId];
+                            if (currentUploadOp) {
+                                currentUploadOp.state = FileTransferOperation.DONE;
+                                currentUploadOp.promise = null;
+                            }
+
+                            var response = result.getResponseInformation();
+                            var ftResult = new FileUploadResult(result.progress.bytesSent, response.statusCode, '');
+
+                            // if server's response doesn't contain any data, then resolve operation now
+                            if (result.progress.bytesReceived === 0) {
+                                successCallback(ftResult);
+                                return;
+                            }
+
+                            // otherwise create a data reader, attached to response stream to get server's response
+                            var reader = new Windows.Storage.Streams.DataReader(result.getResultStreamAt(0));
+                            reader.loadAsync(result.progress.bytesReceived).then(function (size) {
+                                ftResult.response = reader.readString(size);
+                                successCallback(ftResult);
+                                reader.close();
+                            });
+                        },
+                        function (error) {
+                            var source = nativePathToCordova(filePath);
+
+                            // Handle download error here.
+                            // Wrap this routines into promise due to some async methods
+                            var getTransferError = new WinJS.Promise(function(resolve) {
+                                if (error.message === 'Canceled') {
+                                    // If download was cancelled, message property will be specified
+                                    resolve(new FTErr(FTErr.ABORT_ERR, source, server, null, null, error));
+                                } else {
+                                    // in the other way, try to get response property
+                                    var response = upload.getResponseInformation();
+                                    if (!response) {
+                                        resolve(new FTErr(FTErr.CONNECTION_ERR, source, server));
+                                    } else {
+                                        var reader = new Windows.Storage.Streams.DataReader(upload.getResultStreamAt(0));
+                                        reader.loadAsync(upload.progress.bytesReceived).then(function (size) {
+                                            var responseText = reader.readString(size);
+                                            resolve(new FTErr(FTErr.FILE_NOT_FOUND_ERR, source, server, response.statusCode, responseText, error));
+                                            reader.close();
+                                        });
+                                    }
+                                }
+                            });
+
+                            // Update TransferOperation object with new state, delete promise property
+                            // since it is not actual anymore
+                            var currentUploadOp = fileTransferOps[uploadId];
+                            if (currentUploadOp) {
+                                currentUploadOp.state = FileTransferOperation.CANCELLED;
+                                currentUploadOp.promise = null;
+                            }
+
+                            // Cleanup, remove incompleted file
+                            getTransferError.then(function(transferError) {
+                                storageFile.deleteAsync().then(function() {
+                                    errorCallback(transferError);
+                                });
+                            });
+                        },
+                        function (evt) {
+                            var progressEvent = new ProgressEvent('progress', {
+                                loaded: evt.progress.bytesSent,
+                                total: evt.progress.totalBytesToSend,
+                                target: evt.resultFile
+                            });
+                            progressEvent.lengthComputable = true;
+                            successCallback(progressEvent, { keepCallback: true });
+                        }
+                    );
+                },
+                function (err) {
+                    var errorObj = new FTErr(FTErr.INVALID_URL_ERR);
+                    errorObj.exception = err;
+                    errorCallback(errorObj);
+                }
+            );
         }, function(err) {
-            errorCallback(new FTErr(FTErr.FILE_NOT_FOUND_ERR, server, server, null, null, err));
+            errorCallback(new FTErr(FTErr.FILE_NOT_FOUND_ERR, fileName, server, null, null, err));
         });
     },
 
