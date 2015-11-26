@@ -651,7 +651,7 @@ exports.defineAutoTests = function () {
                     }, unsupported, 'File', '_getLocalFilesystemPath', [internalFilePath]);
                 });
 
-                it('filetransfer.spec.31 should properly handle 304', function (done) {
+                it('filetransfer.spec.33 should properly handle 304', function (done) {
 
                     if(isWP8) {
                         pending();
