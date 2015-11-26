@@ -631,7 +631,9 @@ static CFIndex WriteDataToStream(NSData* data, CFWriteStreamRef stream)
         delegate.backgroundTaskID = UIBackgroundTaskInvalid;
     }
 
-    [self removeTargetFile];
+    if (self.direction == CDV_TRANSFER_DOWNLOAD) {
+        [self removeTargetFile];
+    }
 }
 
 - (void)cancelTransferWithError:(NSURLConnection*)connection errorMessage:(NSString*)errorMessage

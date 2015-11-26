@@ -450,7 +450,7 @@ exports.defineAutoTests = function () {
                         expect(transfer.onprogress).toHaveBeenCalled();
 
                         // check that there is no file
-                        root.getFile(localFilePath, null, unexpectedCallbacks.fileSystemWin, done);
+                        root.getFile(fileName, null, unexpectedCallbacks.fileSystemWin, done);
                     };
 
                     // abort at the first onprogress event
@@ -971,6 +971,46 @@ exports.defineAutoTests = function () {
 
                     // NOTE: removing uploadOptions cause Android to timeout
                     transfer.upload(localFilePath, fileURL, uploadWin, unexpectedCallbacks.httpFail, uploadOptions);
+                }, UPLOAD_TIMEOUT);
+
+                it("filetransfer.spec.34 should not delete a file on upload error", function (done) {
+
+                    var fileURL = SERVER + '/upload';
+
+                    var uploadFail = function (e) {
+                        expect(e.code).toBe(FileTransferError.ABORT_ERR);
+                        expect(transfer.onprogress).toHaveBeenCalled();
+
+                        // check that the file is there
+                        root.getFile(fileName, null, function(entry) {
+                            expect(entry).toBeDefined();
+
+                            // delay calling done() to wait for the bogus abort()
+                            setTimeout(done, GRACE_TIME_DELTA * 2);
+                        }, function(err) {
+                            expect(err).not.toBeDefined(err && err.code);
+                            done();
+                        });
+                    };
+
+                    var fileWin = function () {
+
+                        expect(transfer.abort).not.toThrow();
+
+                        // NOTE: removing uploadOptions cause Android to timeout
+                        transfer.upload(localFilePath, fileURL, unexpectedCallbacks.httpWin, uploadFail, uploadOptions);
+
+                        // abort at the first onprogress event
+                        transfer.onprogress = function (event) {
+                            if (event.loaded > 0) {
+                                transfer.abort();
+                            }
+                        };
+
+                        spyOn(transfer, 'onprogress').and.callThrough();
+                    };
+
+                    writeFile(root, fileName, new Array(100000).join('aborttest!'), fileWin);
                 }, UPLOAD_TIMEOUT);
             });
         });

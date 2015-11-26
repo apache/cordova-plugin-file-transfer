@@ -230,11 +230,9 @@ exec(win, fail, 'FileTransfer', 'upload',
                                 currentUploadOp.promise = null;
                             }
 
-                            // Cleanup, remove incompleted file
+                            // Report the upload error back
                             getTransferError.then(function(transferError) {
-                                storageFile.deleteAsync().then(function() {
-                                    errorCallback(transferError);
-                                });
+                                errorCallback(transferError);
                             });
                         },
                         function (evt) {
