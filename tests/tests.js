@@ -433,6 +433,7 @@ exports.defineAutoTests = function () {
                 it("filetransfer.spec.11 should call the error callback on abort()", function (done) {
 
                     var fileURL = 'http://cordova.apache.org/downloads/BlueZedEx.mp3';
+                    fileURL = fileURL + '?q=' + (new Date()).getTime();
 
                     transfer.download(fileURL, localFilePath, unexpectedCallbacks.httpWin, done);
                     setTimeout(function() {
@@ -468,6 +469,7 @@ exports.defineAutoTests = function () {
                 it("filetransfer.spec.10 should be stopped by abort() right away", function (done) {
 
                     var fileURL = 'http://cordova.apache.org/downloads/BlueZedEx.mp3';
+                    fileURL = fileURL + '?q=' + (new Date()).getTime();
 
                     expect(transfer.abort).not.toThrow(); // should be a no-op.
 
