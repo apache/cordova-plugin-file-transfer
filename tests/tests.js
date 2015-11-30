@@ -669,7 +669,7 @@ exports.defineAutoTests = function () {
                         done();
                     };
 
-                    transfer.download(imageURL, localFilePath, unexpectedCallbacks.httpWin, downloadFail, null,
+                    transfer.download(imageURL + "?q=" + lastModified.getTime(), localFilePath, unexpectedCallbacks.httpWin, downloadFail, null,
                         {
                             headers: {
                                 'If-Modified-Since': lastModified.toUTCString()
