@@ -31,9 +31,11 @@ exports.defineAutoTests = function () {
     var ONE_SECOND = 1000; // in milliseconds
     var GRACE_TIME_DELTA = 600; // in milliseconds
     var DEFAULT_FILESYSTEM_SIZE = 1024 * 50; // filesystem size in bytes
+    var WINDOWS_GRACE_TIME_DELTA = 5 * ONE_SECOND; // Some Windows devices need a few seconds to create an upload/download operation.
     var UNKNOWN_HOST = "http://foobar.apache.org";
     var HEADERS_ECHO = "http://whatheaders.com"; // NOTE: this site is very useful!
     var DOWNLOAD_TIMEOUT = 7 * ONE_SECOND;
+    var WINDOWS_UNKNOWN_HOST_TIMEOUT = 35 * ONE_SECOND;
     var UPLOAD_TIMEOUT = 7 * ONE_SECOND;
     var ABORT_DELAY = 100; // for abort() tests
 
@@ -479,7 +481,7 @@ exports.defineAutoTests = function () {
                     var downloadFail = function (error) {
 
                         expect(error.code).toBe(FileTransferError.ABORT_ERR);
-                        expect(new Date() - startTime).toBeLessThan(GRACE_TIME_DELTA);
+                        expect(new Date() - startTime).toBeLessThan(isWindows ? WINDOWS_GRACE_TIME_DELTA : GRACE_TIME_DELTA);
 
                         // delay calling done() to wait for the bogus abort()
                         setTimeout(done, GRACE_TIME_DELTA * 2);
@@ -566,7 +568,7 @@ exports.defineAutoTests = function () {
                     transfer.onprogress = function () {};
 
                     transfer.download(fileURL, localFilePath, unexpectedCallbacks.httpWin, downloadFail);
-                }, DOWNLOAD_TIMEOUT);
+                }, isWindows ? WINDOWS_UNKNOWN_HOST_TIMEOUT : DOWNLOAD_TIMEOUT);
 
                 it("filetransfer.spec.16 should handle bad file path", function (done) {
                     var fileURL = SERVER;
@@ -830,7 +832,7 @@ exports.defineAutoTests = function () {
 
                     var uploadFail = function (e) {
                         expect(e.code).toBe(FileTransferError.ABORT_ERR);
-                        expect(new Date() - startTime).toBeLessThan(GRACE_TIME_DELTA);
+                        expect(new Date() - startTime).toBeLessThan(isWindows ? WINDOWS_GRACE_TIME_DELTA : GRACE_TIME_DELTA);
 
                         // delay calling done() to wait for the bogus abort()
                         setTimeout(done, GRACE_TIME_DELTA * 2);
@@ -853,7 +855,7 @@ exports.defineAutoTests = function () {
                         }, GRACE_TIME_DELTA);
                     };
 
-                    writeFile(root, fileName, new Array(100000).join("aborttest!"), fileWin);
+                    writeFile(root, fileName, new Array(200000).join("aborttest!"), fileWin);
                 }, UPLOAD_TIMEOUT);
 
                 it("filetransfer.spec.22 should get http status and body on failure", function (done) {

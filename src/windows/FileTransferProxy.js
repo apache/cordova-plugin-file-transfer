@@ -49,6 +49,11 @@ function nativePathToCordova(path) {
     return String(path).replace(/\\/g, '/');
 }
 
+function alreadyCancelled(opId) {
+    var op = fileTransferOps[opId];
+    return op && op.state === FileTransferOperation.CANCELLED;
+}
+
 var fileTransferOps = [];
 
 function FileTransferOperation(state, promise) {
@@ -116,10 +121,7 @@ exec(win, fail, 'FileTransfer', 'upload',
                 mimeType = storageFile.contentType;
             }
 
-            // check if download isn't already cancelled
-            var uploadOp = fileTransferOps[uploadId];
-            if (uploadOp && uploadOp.state === FileTransferOperation.CANCELLED) {
-                // Here we should call errorCB with ABORT_ERR error
+            if (alreadyCancelled(uploadId)) {
                 errorCallback(new FTErr(FTErr.ABORT_ERR, nativePathToCordova(filePath), server));
                 return;
             }
@@ -166,6 +168,11 @@ exec(win, fail, 'FileTransfer', 'upload',
 
             createUploadOperation.then(
                 function (upload) {
+                    if (alreadyCancelled(uploadId)) {
+                        errorCallback(new FTErr(FTErr.ABORT_ERR, nativePathToCordova(filePath), server));
+                        return;
+                    }
+
                     // update internal TransferOperation object with newly created promise
                     var uploadOperation = upload.startAsync();
                     fileTransferOps[uploadId].promise = uploadOperation;
@@ -298,10 +305,7 @@ exec(win, fail, 'FileTransfer', 'upload',
         var downloadCallback = function(storageFolder) {
             storageFolder.createFileAsync(tempFileName, Windows.Storage.CreationCollisionOption.replaceExisting).then(function (storageFile) {
 
-                // check if download isn't already cancelled
-                var downloadOp = fileTransferOps[downloadId];
-                if (downloadOp && downloadOp.state === FileTransferOperation.CANCELLED) {
-                    // Here we should call errorCB with ABORT_ERR error
+                if (alreadyCancelled(downloadId)) {
                     errorCallback(new FTErr(FTErr.ABORT_ERR, source, target));
                     return;
                 }
@@ -431,6 +435,9 @@ exec(win, fail, 'FileTransfer', 'upload',
         if (currentOp) {
             currentOp.state = FileTransferOperation.CANCELLED;
             currentOp.promise && currentOp.promise.cancel();
+        } else if (typeof fileTransferOpId !== 'undefined') {
+            // Create the operation in cancelled state to be aborted right away
+            fileTransferOps[fileTransferOpId] = new FileTransferOperation(FileTransferOperation.CANCELLED, null);
         }
     }
 

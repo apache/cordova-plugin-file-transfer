@@ -290,6 +290,10 @@ A `FileTransferError` object is passed to an error callback when an error occurs
 - 4 = `FileTransferError.ABORT_ERR`
 - 5 = `FileTransferError.NOT_MODIFIED_ERR`
 
+## Windows Quirks
+
+- The plugin implementation is based on [BackgroundDownloader](https://msdn.microsoft.com/en-us/library/windows/apps/windows.networking.backgroundtransfer.backgrounddownloader.aspx)/[BackgroundUploader](https://msdn.microsoft.com/en-us/library/windows/apps/windows.networking.backgroundtransfer.backgrounduploader.aspx), which entails the latency issues on Windows devices (creation/starting of an operation can take up to a few seconds). You can use XHR or [HttpClient](https://msdn.microsoft.com/en-us/library/windows/apps/windows.web.http.httpclient.aspx) as a quicker alternative for small downloads.
+
 ## Backwards Compatibility Notes
 
 Previous versions of this plugin would only accept device-absolute-file-paths as the source for uploads, or as the target for downloads. These paths would typically be of the form
