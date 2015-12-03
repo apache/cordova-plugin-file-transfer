@@ -19,21 +19,22 @@
 *
 */
 
-/*global exports, cordova, FileTransfer, FileTransferError,
-         FileUploadOptions, LocalFileSystem, requestFileSystem, TEMPORARY */
+/* global exports, cordova, FileTransfer, FileTransferError, FileUploadOptions, LocalFileSystem */
 
-/*global describe, it, expect, beforeEach, afterEach, spyOn,
-         jasmine, pending*/
+/* global describe, it, expect, beforeEach, afterEach, spyOn, jasmine, pending */
 
 exports.defineAutoTests = function () {
 
+    "use strict";
+
     // constants
+    var ONE_SECOND = 1000; // in milliseconds
     var GRACE_TIME_DELTA = 600; // in milliseconds
-    var DEFAULT_FILESYSTEM_SIZE = 1024*50; //filesystem size in bytes
+    var DEFAULT_FILESYSTEM_SIZE = 1024 * 50; // filesystem size in bytes
     var UNKNOWN_HOST = "http://foobar.apache.org";
     var HEADERS_ECHO = "http://whatheaders.com"; // NOTE: this site is very useful!
-    var DOWNLOAD_TIMEOUT = 30 * 1000; // download tests sometimes need a higher timeout to complete successfully
-    var UPLOAD_TIMEOUT = 30 * 1000; // upload tests sometimes need a higher timeout to complete successfully
+    var DOWNLOAD_TIMEOUT = 7 * ONE_SECOND;
+    var UPLOAD_TIMEOUT = 7 * ONE_SECOND;
     var ABORT_DELAY = 100; // for abort() tests
 
     // config for upload test server
@@ -43,23 +44,24 @@ exports.defineAutoTests = function () {
     var SERVER_WITH_CREDENTIALS = "http://cordova_user:cordova_password@cordova-vm.apache.org:5000";
 
     // flags
-    var isWindows = cordova.platformId === 'windows8' || cordova.platformId === 'windows';
-    var isWP8 = cordova.platformId === 'windowsphone';
-    var isBrowser = cordova.platformId === 'browser';
-    var isIE = isBrowser && navigator.userAgent.indexOf('Trident') >= 0;
+    var isWindows = cordova.platformId === "windows8" || cordova.platformId === "windows";
+    var isWP8 = cordova.platformId === "windowsphone";
+    var isBrowser = cordova.platformId === "browser";
+    var isIE = isBrowser && navigator.userAgent.indexOf("Trident") >= 0;
 
-    describe('FileTransferError', function () {
+    // tests
+    describe("FileTransferError", function () {
 
-        it('should exist', function () {
+        it("should exist", function () {
             expect(FileTransferError).toBeDefined();
         });
 
-        it('should be constructable', function () {
+        it("should be constructable", function () {
             var transferError = new FileTransferError();
             expect(transferError).toBeDefined();
         });
 
-        it('filetransfer.spec.3 should expose proper constants', function () {
+        it("filetransfer.spec.3 should expose proper constants", function () {
 
             expect(FileTransferError.FILE_NOT_FOUND_ERR).toBeDefined();
             expect(FileTransferError.INVALID_URL_ERR).toBeDefined();
@@ -75,19 +77,19 @@ exports.defineAutoTests = function () {
         });
     });
 
-    describe('FileUploadOptions', function () {
+    describe("FileUploadOptions", function () {
 
-        it('should exist', function () {
+        it("should exist", function () {
             expect(FileUploadOptions).toBeDefined();
         });
 
-        it('should be constructable', function () {
+        it("should be constructable", function () {
             var transferOptions = new FileUploadOptions();
             expect(transferOptions).toBeDefined();
         });
     });
 
-    describe('FileTransfer', function () {
+    describe("FileTransfer", function () {
 
         var persistentRoot, tempRoot;
 
@@ -103,7 +105,7 @@ exports.defineAutoTests = function () {
 
         var expectedCallbacks = {
             unsupportedOperation: function (response) {
-                console.log('spec called unsupported functionality; response:', response);
+                console.log("spec called unsupported functionality; response:", response);
             },
         };
 
@@ -116,7 +118,7 @@ exports.defineAutoTests = function () {
                             done();
                         },
                         function () {
-                            throw new Error('failed to delete: \'' + name + '\'');
+                            throw new Error("failed to delete: '" + name + "'");
                         }
                     );
                 },
@@ -136,17 +138,15 @@ exports.defineAutoTests = function () {
                         };
 
                         writer.onabort = function (evt) {
-                            throw new Error('aborted creating test file \'' + name + '\': ' + evt);
+                            throw new Error("aborted creating test file '" + name + "': " + evt);
                         };
 
                         writer.error = function (evt) {
-                            throw new Error('aborted creating test file \'' + name + '\': ' + evt);
+                            throw new Error("aborted creating test file '" + name + "': " + evt);
                         };
 
-                        if (cordova.platformId === 'browser') {
-                            // var builder = new BlobBuilder();
-                            // builder.append(content + '\n');
-                            var blob = new Blob([content + '\n'], { type: 'text/plain' });
+                        if (cordova.platformId === "browser") {
+                            var blob = new Blob([content + "\n"], { type: "text/plain" });
                             writer.write(blob);
                         } else {
                             writer.write(content + "\n");
@@ -155,7 +155,7 @@ exports.defineAutoTests = function () {
                     }, unexpectedCallbacks.fileOperationFail);
                 },
                 function () {
-                    throw new Error('could not create test file \'' + name + '\'');
+                    throw new Error("could not create test file '" + name + "'");
                 }
             );
         };
@@ -169,7 +169,7 @@ exports.defineAutoTests = function () {
                 expect(event.loaded).toBeGreaterThan(1);
                 expect(event.total).toBeGreaterThan(0);
                 expect(event.total).not.toBeLessThan(event.loaded);
-                expect(event.lengthComputable).toBe(true, 'lengthComputable');
+                expect(event.lengthComputable).toBe(true, "lengthComputable");
             } else {
                 // In IE, when lengthComputable === false, event.total somehow is equal to 2^64
                 if (isIE) {
@@ -182,7 +182,7 @@ exports.defineAutoTests = function () {
         };
 
         var getMalformedUrl = function () {
-            if (cordova.platformId === 'android' || cordova.platformId === 'amazon-fireos') {
+            if (cordova.platformId === "android" || cordova.platformId === "amazon-fireos") {
                 // bad protocol causes a MalformedUrlException on Android
                 return "httpssss://example.com";
             } else {
@@ -202,7 +202,7 @@ exports.defineAutoTests = function () {
                     done();
                 },
                 function () {
-                    throw new Error('Failed to initialize persistent file system.');
+                    throw new Error("Failed to initialize persistent file system.");
                 }
             );
         });
@@ -214,7 +214,7 @@ exports.defineAutoTests = function () {
                     done();
                 },
                 function () {
-                    throw new Error('Failed to initialize temporary file system.');
+                    throw new Error("Failed to initialize temporary file system.");
                 }
             );
         });
@@ -230,7 +230,7 @@ exports.defineAutoTests = function () {
             }
 
             // but run the implementations of the expected callbacks
-            for (callback in expectedCallbacks) { //jshint ignore: line
+            for (callback in expectedCallbacks) { // jshint ignore: line
                 if (expectedCallbacks.hasOwnProperty(callback)) {
                     spyOn(expectedCallbacks, callback).and.callThrough();
                 }
@@ -251,21 +251,21 @@ exports.defineAutoTests = function () {
             }
         });
 
-        it('should initialise correctly', function() {
+        it("should initialise correctly", function() {
             expect(persistentRoot).toBeDefined();
             expect(tempRoot).toBeDefined();
         });
 
-        it('should exist', function () {
+        it("should exist", function () {
             expect(FileTransfer).toBeDefined();
         });
 
-        it('filetransfer.spec.1 should be constructable', function () {
+        it("filetransfer.spec.1 should be constructable", function () {
             var transfer = new FileTransfer();
             expect(transfer).toBeDefined();
         });
 
-        it('filetransfer.spec.2 should expose proper functions', function () {
+        it("filetransfer.spec.2 should expose proper functions", function () {
 
             var transfer = new FileTransfer();
 
@@ -276,7 +276,7 @@ exports.defineAutoTests = function () {
             expect(transfer.download).toEqual(jasmine.any(Function));
         });
 
-        describe('methods', function() {
+        describe("methods", function() {
 
             var transfer;
 
@@ -292,10 +292,10 @@ exports.defineAutoTests = function () {
                 transfer.onprogress = isWP8 ? wp8OnProgressHandler : defaultOnProgressHandler;
 
                 // spy on the onprogress handler, but still call through to it
-                spyOn(transfer, 'onprogress').and.callThrough();
+                spyOn(transfer, "onprogress").and.callThrough();
 
                 root          = persistentRoot;
-                fileName      = 'testFile.txt';
+                fileName      = "testFile.txt";
                 localFilePath = root.toURL() + fileName;
             });
 
@@ -305,7 +305,7 @@ exports.defineAutoTests = function () {
             //         - 'httpssss://example.com'
             //         - 'apache.org', with subdomains="true"
             //         - 'cordova-filetransfer.jitsu.com'
-            describe('download', function () {
+            describe("download", function () {
 
                 // helpers
                 var verifyDownload = function (fileEntry) {
@@ -317,13 +317,13 @@ exports.defineAutoTests = function () {
                     deleteFile(root, fileName, done);
                 });
 
-                it('ensures that test file does not exist', function (done) {
+                it("ensures that test file does not exist", function (done) {
                     deleteFile(root, fileName, done);
                 });
 
-                it('filetransfer.spec.4 should download a file', function (done) {
+                it("filetransfer.spec.4 should download a file", function (done) {
 
-                    var fileURL = SERVER + '/robots.txt';
+                    var fileURL = SERVER + "/robots.txt";
 
                     var fileWin = function (blob) {
 
@@ -331,7 +331,7 @@ exports.defineAutoTests = function () {
                             var lastProgressEvent = transfer.onprogress.calls.mostRecent().args[0];
                             expect(lastProgressEvent.loaded).not.toBeGreaterThan(blob.size);
                         } else {
-                            console.log('no progress events were emitted');
+                            console.log("no progress events were emitted");
                         }
 
                         done();
@@ -348,9 +348,9 @@ exports.defineAutoTests = function () {
                     transfer.download(fileURL, localFilePath, downloadWin, unexpectedCallbacks.httpFail);
                 }, DOWNLOAD_TIMEOUT);
 
-                it('filetransfer.spec.5 should download a file using http basic auth', function (done) {
+                it("filetransfer.spec.5 should download a file using http basic auth", function (done) {
 
-                    var fileURL = SERVER_WITH_CREDENTIALS + '/download_basic_auth';
+                    var fileURL = SERVER_WITH_CREDENTIALS + "/download_basic_auth";
 
                     var downloadWin = function (entry) {
                         verifyDownload(entry);
@@ -360,11 +360,11 @@ exports.defineAutoTests = function () {
                     transfer.download(fileURL, localFilePath, downloadWin, unexpectedCallbacks.httpFail);
                 }, DOWNLOAD_TIMEOUT);
 
-                it('filetransfer.spec.6 should get 401 status on http basic auth failure', function (done) {
+                it("filetransfer.spec.6 should get 401 status on http basic auth failure", function (done) {
 
                     // NOTE:
                     //      using server without credentials
-                    var fileURL = SERVER + '/download_basic_auth';
+                    var fileURL = SERVER + "/download_basic_auth";
 
                     var downloadFail = function (error) {
                         expect(error.http_status).toBe(401);
@@ -375,7 +375,7 @@ exports.defineAutoTests = function () {
                     transfer.download(fileURL, localFilePath, unexpectedCallbacks.httpWin, downloadFail, null,
                         {
                             headers: {
-                                'If-Modified-Since': 'Thu, 19 Mar 2015 00:00:00 GMT'
+                                "If-Modified-Since": "Thu, 19 Mar 2015 00:00:00 GMT"
                             }
                         });
                 }, DOWNLOAD_TIMEOUT);
@@ -388,11 +388,12 @@ exports.defineAutoTests = function () {
                         return;
                     }
 
-                    var fileURL = window.location.protocol + '//' + window.location.pathname.replace(/ /g, '%20');
+                    var fileURL = window.location.protocol + "//" + window.location.pathname.replace(/ /g, "%20");
 
-                    if (!/^file:/.exec(fileURL) && cordova.platformId !== 'blackberry10') {
-                        if (cordova.platformId === 'windowsphone')
+                    if (!/^file:/.exec(fileURL) && cordova.platformId !== "blackberry10") {
+                        if (cordova.platformId === "windowsphone") {
                             expect(fileURL).toMatch(/^x-wmapp0:/);
+                        }
                         done();
                         return;
                     }
@@ -432,8 +433,8 @@ exports.defineAutoTests = function () {
 
                 it("filetransfer.spec.11 should call the error callback on abort()", function (done) {
 
-                    var fileURL = 'http://cordova.apache.org/downloads/BlueZedEx.mp3';
-                    fileURL = fileURL + '?q=' + (new Date()).getTime();
+                    var fileURL = "http://cordova.apache.org/downloads/BlueZedEx.mp3";
+                    fileURL = fileURL + "?q=" + (new Date()).getTime();
 
                     transfer.download(fileURL, localFilePath, unexpectedCallbacks.httpWin, done);
                     setTimeout(function() {
@@ -443,7 +444,7 @@ exports.defineAutoTests = function () {
 
                 it("filetransfer.spec.9 should not leave partial file due to abort", function (done) {
 
-                    var fileURL = 'http://cordova.apache.org/downloads/logos_2.zip';
+                    var fileURL = "http://cordova.apache.org/downloads/logos_2.zip";
 
                     var downloadFail = function (error) {
 
@@ -461,15 +462,15 @@ exports.defineAutoTests = function () {
                         }
                     };
 
-                    spyOn(transfer, 'onprogress').and.callThrough();
+                    spyOn(transfer, "onprogress").and.callThrough();
 
                     transfer.download(fileURL, localFilePath, unexpectedCallbacks.httpWin, downloadFail);
                 }, DOWNLOAD_TIMEOUT);
 
                 it("filetransfer.spec.10 should be stopped by abort() right away", function (done) {
 
-                    var fileURL = 'http://cordova.apache.org/downloads/BlueZedEx.mp3';
-                    fileURL = fileURL + '?q=' + (new Date()).getTime();
+                    var fileURL = "http://cordova.apache.org/downloads/BlueZedEx.mp3";
+                    fileURL = fileURL + "?q=" + (new Date()).getTime();
 
                     expect(transfer.abort).not.toThrow(); // should be a no-op.
 
@@ -527,7 +528,7 @@ exports.defineAutoTests = function () {
                         expect(error.http_status).toBe(404);
 
                         expect(error.body).toBeDefined();
-                        expect(error.body).toMatch('You requested a 404');
+                        expect(error.body).toMatch("You requested a 404");
 
                         done();
                     };
@@ -575,7 +576,7 @@ exports.defineAutoTests = function () {
                 it("filetransfer.spec.17 progress should work with gzip encoding", function (done) {
 
                     // lengthComputable false on bb10 when downloading gzip
-                    if (cordova.platformId === 'blackberry10') {
+                    if (cordova.platformId === "blackberry10") {
                         pending();
                         return;
                     }
@@ -592,7 +593,7 @@ exports.defineAutoTests = function () {
 
                 it("filetransfer.spec.30 downloaded file entries should have a toNativeURL method", function (done) {
 
-                    if (cordova.platformId === 'browser') {
+                    if (cordova.platformId === "browser") {
                         pending();
                         return;
                     }
@@ -610,11 +611,11 @@ exports.defineAutoTests = function () {
                         expect(nativeURL).toEqual(jasmine.any(String));
 
                         if (isWindows) {
-                            expect(nativeURL.substring(0, 14)).toBe('ms-appdata:///');
+                            expect(nativeURL.substring(0, 14)).toBe("ms-appdata:///");
                         } else if (isWP8) {
-                            expect(nativeURL.substring(0, 1)).toBe('/');
+                            expect(nativeURL.substring(0, 1)).toBe("/");
                         } else {
-                            expect(nativeURL.substring(0, 7)).toBe('file://');
+                            expect(nativeURL.substring(0, 7)).toBe("file://");
                         }
 
                         done();
@@ -650,12 +651,12 @@ exports.defineAutoTests = function () {
                     // paths are still valid.
                     cordova.exec(function (localPath) {
                         transfer.download(fileURL, localPath, downloadWin, unexpectedCallbacks.httpFail);
-                    }, unsupported, 'File', '_getLocalFilesystemPath', [internalFilePath]);
+                    }, unsupported, "File", "_getLocalFilesystemPath", [internalFilePath]);
                 });
 
-                it('filetransfer.spec.33 should properly handle 304', function (done) {
+                it("filetransfer.spec.33 should properly handle 304", function (done) {
 
-                    if(isWP8) {
+                    if (isWP8) {
                         pending();
                         return;
                     }
@@ -672,14 +673,14 @@ exports.defineAutoTests = function () {
                     transfer.download(imageURL + "?q=" + lastModified.getTime(), localFilePath, unexpectedCallbacks.httpWin, downloadFail, null,
                         {
                             headers: {
-                                'If-Modified-Since': lastModified.toUTCString()
+                                "If-Modified-Since": lastModified.toUTCString()
                             }
                         });
                 }, DOWNLOAD_TIMEOUT);
 
-                it('filetransfer.spec.35 304 should not result in the deletion of a cached file', function (done) {
+                it("filetransfer.spec.35 304 should not result in the deletion of a cached file", function (done) {
 
-                    if(isWP8) {
+                    if (isWP8) {
                         pending();
                         return;
                     }
@@ -700,7 +701,7 @@ exports.defineAutoTests = function () {
                                     reader.onloadend  = function () {
 
                                         expect(reader.result).toBeTruthy();
-                                        if(reader.result != null) {
+                                        if (reader.result !== null) {
                                             expect(reader.result.length).toBeGreaterThan(0);
                                         }
 
@@ -713,7 +714,7 @@ exports.defineAutoTests = function () {
                                 entry.file(fileWin, unexpectedCallbacks.fileSystemFail);
                             },
                             function (err) {
-                                expect('Could not open test file \'' + fileName + '\': ' + JSON.stringify(err)).not.toBeDefined();
+                                expect("Could not open test file '" + fileName + "': " + JSON.stringify(err)).not.toBeDefined();
                                 done();
                             }
                         );
@@ -725,14 +726,14 @@ exports.defineAutoTests = function () {
                         transfer.download(imageURL + "?q=" + (lastModified.getTime() + 1), localFilePath, unexpectedCallbacks.httpWin, downloadFail, null,
                         {
                             headers: {
-                                'If-Modified-Since': lastModified.toUTCString()
+                                "If-Modified-Since": lastModified.toUTCString()
                             }
                         });
                     }, unexpectedCallbacks.httpFail);
                 }, DOWNLOAD_TIMEOUT);
             });
 
-            describe('upload', function() {
+            describe("upload", function() {
 
                 var uploadParams;
                 var uploadOptions;
@@ -754,7 +755,7 @@ exports.defineAutoTests = function () {
                         expect(obj.fields.value1).toBe("test");
                         expect(obj.fields.value2).toBe("param");
                     } catch (e) {
-                        expect(obj).not.toBeNull('returned data from server should be valid json');
+                        expect(obj).not.toBeNull("returned data from server should be valid json");
                     }
 
                     expect(transfer.onprogress).toHaveBeenCalled();
@@ -762,8 +763,8 @@ exports.defineAutoTests = function () {
 
                 beforeEach(function(done) {
 
-                    fileName      = 'fileToUpload.txt';
-                    fileContents  = 'upload test file';
+                    fileName      = "fileToUpload.txt";
+                    fileContents  = "upload test file";
 
                     uploadParams        = {};
                     uploadParams.value1 = "test";
@@ -791,15 +792,15 @@ exports.defineAutoTests = function () {
 
                 it("filetransfer.spec.18 should be able to upload a file", function (done) {
 
-                    var fileURL = SERVER + '/upload';
+                    var fileURL = SERVER + "/upload";
 
                     var uploadWin = function (uploadResult) {
 
                         verifyUpload(uploadResult);
 
-                        if (cordova.platformId === 'ios') {
-                            expect(uploadResult.headers).toBeDefined('Expected headers to be defined.');
-                            expect(uploadResult.headers['Content-Type']).toBeDefined('Expected content-type header to be defined.');
+                        if (cordova.platformId === "ios") {
+                            expect(uploadResult.headers).toBeDefined("Expected headers to be defined.");
+                            expect(uploadResult.headers["Content-Type"]).toBeDefined("Expected content-type header to be defined.");
                         }
 
                         done();
@@ -824,7 +825,7 @@ exports.defineAutoTests = function () {
 
                 it("filetransfer.spec.21 should be stopped by abort() right away", function (done) {
 
-                    var fileURL = SERVER + '/upload';
+                    var fileURL = SERVER + "/upload";
                     var startTime;
 
                     var uploadFail = function (e) {
@@ -852,12 +853,12 @@ exports.defineAutoTests = function () {
                         }, GRACE_TIME_DELTA);
                     };
 
-                    writeFile(root, fileName, new Array(100000).join('aborttest!'), fileWin);
+                    writeFile(root, fileName, new Array(100000).join("aborttest!"), fileWin);
                 }, UPLOAD_TIMEOUT);
 
                 it("filetransfer.spec.22 should get http status and body on failure", function (done) {
 
-                    var fileURL = SERVER + '/403';
+                    var fileURL = SERVER + "/403";
 
                     var uploadFail = function (error) {
                         expect(error.http_status).toBe(403);
@@ -904,7 +905,7 @@ exports.defineAutoTests = function () {
                         done();
                     };
 
-                    transfer.upload('does_not_exist.txt', fileURL, unexpectedCallbacks.httpWin, uploadFail);
+                    transfer.upload("does_not_exist.txt", fileURL, unexpectedCallbacks.httpWin, uploadFail);
                 }, UPLOAD_TIMEOUT);
 
                 it("filetransfer.spec.26 should handle bad file path", function (done) {
@@ -973,20 +974,20 @@ exports.defineAutoTests = function () {
                     // paths are still valid.
                     cordova.exec(function (localPath) {
                         transfer.upload(localPath, fileURL, uploadWin, unexpectedCallbacks.httpFail, uploadOptions);
-                    }, unsupported, 'File', '_getLocalFilesystemPath', [internalFilePath]);
+                    }, unsupported, "File", "_getLocalFilesystemPath", [internalFilePath]);
                 }, UPLOAD_TIMEOUT);
 
                 it("filetransfer.spec.31 should be able to upload a file using PUT method", function (done) {
 
-                    var fileURL = SERVER + '/upload';
+                    var fileURL = SERVER + "/upload";
 
                     var uploadWin = function (uploadResult) {
 
                         verifyUpload(uploadResult);
 
-                        if (cordova.platformId === 'ios') {
-                            expect(uploadResult.headers).toBeDefined('Expected headers to be defined.');
-                            expect(uploadResult.headers['Content-Type']).toBeDefined('Expected content-type header to be defined.');
+                        if (cordova.platformId === "ios") {
+                            expect(uploadResult.headers).toBeDefined("Expected headers to be defined.");
+                            expect(uploadResult.headers["Content-Type"]).toBeDefined("Expected content-type header to be defined.");
                         }
 
                         done();
@@ -1000,7 +1001,7 @@ exports.defineAutoTests = function () {
 
                 it("filetransfer.spec.32 should be able to upload a file (non-multipart)", function (done) {
 
-                    var fileURL = SERVER + '/upload';
+                    var fileURL = SERVER + "/upload";
 
                     var uploadWin = function (uploadResult) {
 
@@ -1012,9 +1013,9 @@ exports.defineAutoTests = function () {
                         }
                         expect(transfer.onprogress).toHaveBeenCalled();
 
-                        if (cordova.platformId === 'ios') {
-                            expect(uploadResult.headers).toBeDefined('Expected headers to be defined.');
-                            expect(uploadResult.headers['Content-Type']).toBeDefined('Expected content-type header to be defined.');
+                        if (cordova.platformId === "ios") {
+                            expect(uploadResult.headers).toBeDefined("Expected headers to be defined.");
+                            expect(uploadResult.headers["Content-Type"]).toBeDefined("Expected content-type header to be defined.");
                         }
 
                         done();
@@ -1031,7 +1032,7 @@ exports.defineAutoTests = function () {
 
                 it("filetransfer.spec.34 should not delete a file on upload error", function (done) {
 
-                    var fileURL = SERVER + '/upload';
+                    var fileURL = SERVER + "/upload";
 
                     var uploadFail = function (e) {
                         expect(e.code).toBe(FileTransferError.ABORT_ERR);
@@ -1063,10 +1064,10 @@ exports.defineAutoTests = function () {
                             }
                         };
 
-                        spyOn(transfer, 'onprogress').and.callThrough();
+                        spyOn(transfer, "onprogress").and.callThrough();
                     };
 
-                    writeFile(root, fileName, new Array(100000).join('aborttest!'), fileWin);
+                    writeFile(root, fileName, new Array(100000).join("aborttest!"), fileWin);
                 }, UPLOAD_TIMEOUT);
             });
         });
@@ -1078,17 +1079,20 @@ exports.defineAutoTests = function () {
 /******************************************************************************/
 
 exports.defineManualTests = function (contentEl, createActionButton) {
+
+    "use strict";
+
     var imageURL = "http://apache.org/images/feather-small.gif";
     var videoURL = "http://techslides.com/demos/sample-videos/small.mp4";
 
     function clearResults() {
         var results = document.getElementById("info");
-        results.innerHTML = '';
+        results.innerHTML = "";
     }
 
     function downloadImg(source, urlFn, element, directory) {
         var filename = source.substring(source.lastIndexOf("/") + 1);
-        filename = (directory || '') + filename;
+        filename = (directory || "") + filename;
 
         function download(fileSystem) {
             var ft = new FileTransfer();
@@ -1120,7 +1124,7 @@ exports.defineManualTests = function (contentEl, createActionButton) {
         clearResults();
         window.requestFileSystem(LocalFileSystem.TEMPORARY, 0, function (fileSystem) {
             console.log("Checking for existing file");
-            if (typeof directory !== 'undefined') {
+            if (typeof directory !== "undefined") {
                 console.log("Checking for existing directory.");
                 fileSystem.root.getDirectory(directory, {}, function (dirEntry) {
                     dirEntry.removeRecursively(function () {
@@ -1144,41 +1148,41 @@ exports.defineManualTests = function (contentEl, createActionButton) {
 
     /******************************************************************************/
 
-    var progress_tag = '<progress id="loadingStatus" value="0" max="100" style="width: 100%;"></progress>';
-    var file_transfer_tests = '<h2>Image File Transfer Tests</h2>' +
-        '<h3>The following tests should display an image of the Apache feather in the status box</h3>' +
-        '<div id="cdv_image"></div>' +
-        '<div id="native_image"></div>' +
-        '<div id="non-existent_dir"></div>' +
-        '<h2>Video File Transfer Tests</h2>' +
-        '<h3>The following tests should display a video in the status box. The video should play when play is pressed</h3>' +
-        '<div id="cdv_video"></div>' +
-        '<div id="native_video"></div>';
+    var progress_tag = "<progress id=\"loadingStatus\" value=\"0\" max=\"100\" style=\"width: 100%;\"></progress>";
+    var file_transfer_tests = "<h2>Image File Transfer Tests</h2>" +
+        "<h3>The following tests should display an image of the Apache feather in the status box</h3>" +
+        "<div id=\"cdv_image\"></div>" +
+        "<div id=\"native_image\"></div>" +
+        "<div id=\"non-existent_dir\"></div>" +
+        "<h2>Video File Transfer Tests</h2>" +
+        "<h3>The following tests should display a video in the status box. The video should play when play is pressed</h3>" +
+        "<div id=\"cdv_video\"></div>" +
+        "<div id=\"native_video\"></div>";
 
-    contentEl.innerHTML = '<div id="info"></div>' + '<br>' + progress_tag +
+    contentEl.innerHTML = "<div id=\"info\"></div>" + "<br>" + progress_tag +
         file_transfer_tests;
 
-    createActionButton('Download and display img (cdvfile)', function () {
+    createActionButton("Download and display img (cdvfile)", function () {
         downloadImg(imageURL, function (entry) { return entry.toInternalURL(); }, new Image());
-    }, 'cdv_image');
+    }, "cdv_image");
 
-    createActionButton('Download and display img (native)', function () {
+    createActionButton("Download and display img (native)", function () {
         downloadImg(imageURL, function (entry) { return entry.toURL(); }, new Image());
-    }, 'native_image');
+    }, "native_image");
 
-    createActionButton('Download to a non-existent dir (should work)', function () {
-        downloadImg(imageURL, function (entry) { return entry.toURL(); }, new Image(), '/nonExistentDirTest/');
-    }, 'non-existent_dir');
+    createActionButton("Download to a non-existent dir (should work)", function () {
+        downloadImg(imageURL, function (entry) { return entry.toURL(); }, new Image(), "/nonExistentDirTest/");
+    }, "non-existent_dir");
 
-    createActionButton('Download and play video (cdvfile)', function () {
-        var videoElement = document.createElement('video');
+    createActionButton("Download and play video (cdvfile)", function () {
+        var videoElement = document.createElement("video");
         videoElement.controls = "controls";
         downloadImg(videoURL, function (entry) { return entry.toInternalURL(); }, videoElement);
-    }, 'cdv_video');
+    }, "cdv_video");
 
-    createActionButton('Download and play video (native)', function () {
-        var videoElement = document.createElement('video');
+    createActionButton("Download and play video (native)", function () {
+        var videoElement = document.createElement("video");
         videoElement.controls = "controls";
         downloadImg(videoURL, function (entry) { return entry.toURL(); }, videoElement);
-    }, 'native_video');
+    }, "native_video");
 };
