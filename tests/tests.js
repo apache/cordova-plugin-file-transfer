@@ -38,6 +38,7 @@ exports.defineAutoTests = function () {
     var WINDOWS_UNKNOWN_HOST_TIMEOUT = 35 * ONE_SECOND;
     var UPLOAD_TIMEOUT = 7 * ONE_SECOND;
     var ABORT_DELAY = 100; // for abort() tests
+    var LATIN1_SYMBOLS = '¥§©ÆÖÑøøø¼';
 
     // config for upload test server
     // NOTE:
@@ -50,6 +51,7 @@ exports.defineAutoTests = function () {
     var isWP8 = cordova.platformId === "windowsphone";
     var isBrowser = cordova.platformId === "browser";
     var isIE = isBrowser && navigator.userAgent.indexOf("Trident") >= 0;
+    var isIos = cordova.platformId === "ios";
 
     // tests
     describe("FileTransferError", function () {
@@ -733,6 +735,48 @@ exports.defineAutoTests = function () {
                         });
                     }, unexpectedCallbacks.httpFail);
                 }, DOWNLOAD_TIMEOUT);
+
+                it("filetransfer.spec.36 should handle non-UTF8 encoded download response", function (done) {
+
+                    // Only iOS is supported: https://issues.apache.org/jira/browse/CB-9840
+                    if (!isIos) {
+                        pending();
+                    }
+
+                    var fileURL = SERVER + '/download_non_utf';
+
+                    var fileWin = function (blob) {
+
+                        if (transfer.onprogress.calls.any()) {
+                            var lastProgressEvent = transfer.onprogress.calls.mostRecent().args[0];
+                            expect(lastProgressEvent.loaded).not.toBeGreaterThan(blob.size);
+                        } else {
+                            console.log("no progress events were emitted");
+                        }
+
+                        expect(blob.size).toBeGreaterThan(0);
+
+                        var reader = new FileReader();
+
+                        reader.onerror = unexpectedCallbacks.fileOperationFail;
+                        reader.onloadend  = function () {
+                            expect(reader.result.indexOf(LATIN1_SYMBOLS)).not.toBe(-1);
+                            done();
+                        };
+
+                        reader.readAsBinaryString(blob);
+                    };
+
+                    var downloadWin = function (entry) {
+
+                        verifyDownload(entry);
+
+                        // verify the FileEntry representing this file
+                        entry.file(fileWin, unexpectedCallbacks.fileSystemFail);
+                    };
+
+                    transfer.download(fileURL, localFilePath, downloadWin, unexpectedCallbacks.httpFail);
+                }, UPLOAD_TIMEOUT);
             });
 
             describe("upload", function() {
@@ -1070,6 +1114,39 @@ exports.defineAutoTests = function () {
                     };
 
                     writeFile(root, fileName, new Array(100000).join("aborttest!"), fileWin);
+                }, UPLOAD_TIMEOUT);
+
+                it("filetransfer.spec.37 should handle non-UTF8 encoded upload response", function (done) {
+
+                    // Only iOS is supported: https://issues.apache.org/jira/browse/CB-9840
+                    if (!isIos) {
+                        pending();
+                    }
+
+                    var fileURL = SERVER + '/upload_non_utf';
+
+                    var uploadWin = function (uploadResult) {
+
+                        verifyUpload(uploadResult);
+
+                        var obj = null;
+                        try {
+                            obj = JSON.parse(uploadResult.response);
+                            expect(obj.latin1Symbols).toBe(LATIN1_SYMBOLS);
+                        } catch (e) {
+                            expect(obj).not.toBeNull("returned data from server should be valid json");
+                        }
+
+                        if (cordova.platformId === 'ios') {
+                            expect(uploadResult.headers).toBeDefined('Expected headers to be defined.');
+                            expect(uploadResult.headers['Content-Type']).toBeDefined('Expected content-type header to be defined.');
+                        }
+
+                        done();
+                    };
+
+                    // NOTE: removing uploadOptions cause Android to timeout
+                    transfer.upload(localFilePath, fileURL, uploadWin, unexpectedCallbacks.httpFail, uploadOptions);
                 }, UPLOAD_TIMEOUT);
             });
         });
