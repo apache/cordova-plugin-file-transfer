@@ -244,6 +244,11 @@ static CFIndex WriteDataToStream(NSData* data, CFWriteStreamRef stream)
                     int numChunks = sizeof(chunks) / sizeof(chunks[0]);
 
                     for (int i = 0; i < numChunks; ++i) {
+                        // Allow uploading of an empty file
+                        if (chunks[i].length == 0) {
+                            continue;
+                        }
+
                         CFIndex result = WriteDataToStream(chunks[i], writeStream);
                         if (result <= 0) {
                             break;
@@ -296,6 +301,28 @@ static CFIndex WriteDataToStream(NSData* data, CFWriteStreamRef stream)
     NSString* source = (NSString*)[command argumentAtIndex:0];
     NSString* server = [command argumentAtIndex:1];
     NSError* __autoreleasing err = nil;
+
+    if ([source hasPrefix:@"data:"] && [source rangeOfString:@"base64"].location != NSNotFound) {
+        NSRange commaRange = [source rangeOfString: @","];
+        if (commaRange.location == NSNotFound) {
+            // Return error is there is no comma
+            __weak CDVFileTransfer* weakSelf = self;
+            CDVPluginResult* result = [CDVPluginResult resultWithStatus:CDVCommandStatus_ERROR messageAsDictionary:[weakSelf createFileTransferError:INVALID_URL_ERR AndSource:source AndTarget:server]];
+            [weakSelf.commandDelegate sendPluginResult:result callbackId:command.callbackId];
+            return;
+        }
+
+        if (commaRange.location + 1 > source.length - 1) {
+            // Init as an empty data
+            NSData *fileData = [[NSData alloc] init];
+            [self uploadData:fileData command:command];
+            return;
+        }
+
+        NSData *fileData = [[NSData alloc] initWithBase64EncodedString:[source substringFromIndex:(commaRange.location + 1)] options:NSDataBase64DecodingIgnoreUnknownCharacters];
+        [self uploadData:fileData command:command];
+        return;
+    }
 
     CDVFilesystemURL *sourceURL = [CDVFilesystemURL fileSystemURLWithString:source];
     NSObject<CDVFileSystem> *fs;

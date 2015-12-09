@@ -74,7 +74,7 @@ multi-part POST or PUT request, and to download files as well.
 
 __Parameters__:
 
-- __fileURL__: Filesystem URL representing the file on the device. For backwards compatibility, this can also be the full path of the file on the device. (See [Backwards Compatibility Notes] below)
+- __fileURL__: Filesystem URL representing the file on the device or a [data: URI](https://en.wikipedia.org/wiki/Data_URI_scheme). For backwards compatibility, this can also be the full path of the file on the device. (See [Backwards Compatibility Notes](#backwards-compatibility-notes) below)
 
 - __server__: URL of the server to receive the file, as encoded by `encodeURI()`.
 

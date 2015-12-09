@@ -39,6 +39,9 @@ exports.defineAutoTests = function () {
     var UPLOAD_TIMEOUT = 7 * ONE_SECOND;
     var ABORT_DELAY = 100; // for abort() tests
     var LATIN1_SYMBOLS = '¥§©ÆÖÑøøø¼';
+    var DATA_URI_PREFIX = "data:image/png;base64,";
+    var DATA_URI_CONTENT = "iVBORw0KGgoAAAANSUhEUgAAAAUAAAAFCAYAAACNbyblAAAAHElEQVQI12P4//8/w38GIAXDIBKE0DHxgljNBAAO9TXL0Y4OHwAAAABJRU5ErkJggg==";
+    var DATA_URI_CONTENT_LENGTH = 85; // bytes. (This is the raw file size: used https://en.wikipedia.org/wiki/File:Red-dot-5px.png from https://en.wikipedia.org/wiki/Data_URI_scheme)
 
     // config for upload test server
     // NOTE:
@@ -734,7 +737,7 @@ exports.defineAutoTests = function () {
                             }
                         });
                     }, unexpectedCallbacks.httpFail);
-                }, DOWNLOAD_TIMEOUT);
+                }, DOWNLOAD_TIMEOUT * 2);
 
                 it("filetransfer.spec.36 should handle non-UTF8 encoded download response", function (done) {
 
@@ -1147,6 +1150,92 @@ exports.defineAutoTests = function () {
 
                     // NOTE: removing uploadOptions cause Android to timeout
                     transfer.upload(localFilePath, fileURL, uploadWin, unexpectedCallbacks.httpFail, uploadOptions);
+                }, UPLOAD_TIMEOUT);
+
+                it("filetransfer.spec.38 should be able to upload a file using data: source uri", function (done) {
+
+                    var fileURL = SERVER + "/upload";
+
+                    var uploadWin = function (uploadResult) {
+
+                        verifyUpload(uploadResult);
+
+                        var obj = null;
+                        try {
+                            obj = JSON.parse(uploadResult.response);
+                            expect(obj.files.file.size).toBe(DATA_URI_CONTENT_LENGTH);
+                        } catch (e) {
+                            expect(obj).not.toBeNull("returned data from server should be valid json");
+                        }
+
+                        if (cordova.platformId === "ios") {
+                            expect(uploadResult.headers).toBeDefined("Expected headers to be defined.");
+                            expect(uploadResult.headers["Content-Type"]).toBeDefined("Expected content-type header to be defined.");
+                        }
+
+                        done();
+                    };
+
+                    var dataUri = DATA_URI_PREFIX + DATA_URI_CONTENT;
+                    // NOTE: removing uploadOptions cause Android to timeout
+                    transfer.upload(dataUri, fileURL, uploadWin, function (err) {
+                        console.error('err: ' + JSON.stringify(err));
+                        expect(err).not.toBeDefined();
+                        done();
+                    }, uploadOptions);
+                }, UPLOAD_TIMEOUT);
+
+                it("filetransfer.spec.39 should be able to upload a file using data: source uri (non-multipart)", function (done) {
+
+                    var fileURL = SERVER + "/upload";
+
+                    var uploadWin = function (uploadResult) {
+
+                        expect(uploadResult.responseCode).toBe(200);
+                        expect(uploadResult.bytesSent).toBeGreaterThan(0);
+
+                        if (cordova.platformId === "ios") {
+                            expect(uploadResult.headers).toBeDefined("Expected headers to be defined.");
+                            expect(uploadResult.headers["Content-Type"]).toBeDefined("Expected content-type header to be defined.");
+                        }
+
+                        done();
+                    };
+
+                    // Content-Type header disables multipart
+                    uploadOptions.headers = {
+                        "Content-Type": "image/png"
+                    };
+
+                    var dataUri = DATA_URI_PREFIX + DATA_URI_CONTENT;
+                    // NOTE: removing uploadOptions cause Android to timeout
+                    transfer.upload(dataUri, fileURL, uploadWin, unexpectedCallbacks.httpFail, uploadOptions);
+                }, UPLOAD_TIMEOUT);
+
+                it("filetransfer.spec.40 should not fail to upload a file using data: source uri when the data is empty", function (done) {
+
+                    var fileURL = SERVER + "/upload";
+
+                    var dataUri = DATA_URI_PREFIX;
+                    // NOTE: removing uploadOptions cause Android to timeout
+                    transfer.upload(dataUri, fileURL, done, unexpectedCallbacks.httpFail, uploadOptions);
+                }, UPLOAD_TIMEOUT);
+
+                it("filetransfer.spec.41 should not fail to upload a file using data: source uri when the data is empty (non-multipart)", function (done) {
+
+                    var fileURL = SERVER + "/upload";
+
+                    // Content-Type header disables multipart
+                    uploadOptions.headers = {
+                        "Content-Type": "image/png"
+                    };
+
+                    // turn off the onprogress handler
+                    transfer.onprogress = function () { };
+
+                    var dataUri = DATA_URI_PREFIX;
+                    // NOTE: removing uploadOptions cause Android to timeout
+                    transfer.upload(dataUri, fileURL, done, unexpectedCallbacks.httpFail, uploadOptions);
                 }, UPLOAD_TIMEOUT);
             });
         });
