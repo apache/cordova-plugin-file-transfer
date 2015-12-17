@@ -237,7 +237,7 @@ exec(win, fail, 'FileTransfer', 'upload',
                 multipartFile += " filename=\"" + fileName + "\"" + LINE_END;
                 multipartFile += "Content-Type: " + mimeType + LINE_END + LINE_END;
 
-                var bound = LINE_END + LINE_START + BOUNDARY + LINE_END;
+                var bound = LINE_END + LINE_START + BOUNDARY + LINE_START + LINE_END;
 
                 uploader.setRequestHeader("Content-Type", "multipart/form-data; boundary=" + BOUNDARY);
                 writer.writeString(multipartParams);
