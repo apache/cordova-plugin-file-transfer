@@ -741,11 +741,6 @@ public class FileTransfer extends CordovaPlugin {
         final JSONObject headers = args.optJSONObject(4);
 
         final Uri sourceUri = resourceApi.remapUri(Uri.parse(source));
-        // Accept a path or a URI for the source.
-        Uri tmpTarget = Uri.parse(target);
-        final Uri targetUri = resourceApi.remapUri(
-            tmpTarget.getScheme() != null ? tmpTarget : Uri.fromFile(new File(target)));
-
         int uriType = CordovaResourceApi.getUriType(sourceUri);
         final boolean useHttps = uriType == CordovaResourceApi.URI_TYPE_HTTPS;
         final boolean isLocalTransfer = !useHttps && uriType != CordovaResourceApi.URI_TYPE_HTTP;
@@ -805,6 +800,11 @@ public class FileTransfer extends CordovaPlugin {
                 if (context.aborted) {
                     return;
                 }
+
+                // Accept a path or a URI for the source.
+                Uri tmpTarget = Uri.parse(target);
+                Uri targetUri = resourceApi.remapUri(
+                        tmpTarget.getScheme() != null ? tmpTarget : Uri.fromFile(new File(target)));
                 HttpURLConnection connection = null;
                 HostnameVerifier oldHostnameVerifier = null;
                 SSLSocketFactory oldSocketFactory = null;
