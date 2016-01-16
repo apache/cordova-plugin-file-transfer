@@ -20,6 +20,25 @@
 -->
 # Release Notes
                                               
+### 1.5.0 (Jan 15, 2016)
+* CB-10208 Fix `file-transfer` multipart form data upload format on **Windows**
+* CB-9837 Add data `URI` support to `file-transfer` upload on **iOS**
+* CB-9600 `FileUploadOptions` params not posted on **iOS**
+* CB-9840 Fallback `file-transfer` `uploadResponse` encoding to `latin1` in case not encoded with `UTF-8` on **iOS**
+* CB-9840 Fallback `file-transfer` upload/download response encoding to `latin1` in case not encoded with `UTF-8` on **iOS**
+* CB-8641 **Windows Phone 8.1** Some `file-transfer` plugin tests occasionally fail in `mobilespec`
+* Adding linting and fixing linter warnings. Reducing timeouts to 7 seconds.
+* CB-10100 updated file dependency to not grab new majors
+* CB-7006 Empty file is created on file transfer if server response is 304
+* CB-10098 `filetransfer.spec.33` is faulty
+* CB-9969 Filetransfer upload error deletes original file
+* CB-10088 `filetransfer spec.10` and `spec.11` test is faulty
+* CB-9969 Filetransfer upload error deletes original file
+* CB-10086 There are two `spec.31` tests for `file-transfer` tests
+* CB-10037 Add progress indicator to file-transfer manual tests
+* CB-9563 Mulptipart form data is used even a header named `Content-Type` is present
+* CB-8863 fix block usage of self
+
 ### 1.4.0 (Nov 18, 2015)
 * [CB-10035](https://issues.apache.org/jira/browse/CB-10035) Updated `RELEASENOTES` to be newest to oldest
 * [CB-9879](https://issues.apache.org/jira/browse/CB-9879) `getCookie`s can cause unhandled `NullPointerException`
