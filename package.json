@@ -20,8 +20,8 @@
   },
   "scripts": {
     "test": "npm run lint && npm run style",
-    "style": "node_modules/.bin/jscs tests/tests.js",
-    "lint": "node_modules/.bin/jshint tests/tests.js"
+    "lint": "jshint www && jshint src && jshint tests",
+    "style": "jscs tests/tests.js"
   },
   "repository": {
     "type": "git",

@@ -17,6 +17,8 @@
 #         under the License.
 -->
 
+[![Build Status](https://travis-ci.org/apache/cordova-plugin-file-transfer.svg?branch=master)](https://travis-ci.org/apache/cordova-plugin-file-transfer)
+
 # cordova-plugin-file-transfer
 
 This plugin allows you to upload and download files.

@@ -1,7 +1,6 @@
 {
     "disallowMixedSpacesAndTabs": true,
     "disallowTrailingWhitespace": true,
-    "validateLineBreaks": "CRLF",
     "validateIndentation": 4,
     "requireLineFeedAtFileEnd": true,
 
