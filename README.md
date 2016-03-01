@@ -23,16 +23,14 @@
 
 This plugin allows you to upload and download files.
 
-This plugin defines global `FileTransfer`, `FileUploadOptions` Constructors.
-
-Although in the global scope, they are not available until after the `deviceready` event.
+This plugin defines global `FileTransfer`, `FileUploadOptions` constructors. Although in the global scope, they are not available until after the `deviceready` event.
 
     document.addEventListener("deviceready", onDeviceReady, false);
     function onDeviceReady() {
         console.log(FileTransfer);
     }
 
-:warning: Report issues on the [Apache Cordova issue tracker](https://issues.apache.org/jira/issues/?jql=project%20%3D%20CB%20AND%20status%20in%20%28Open%2C%20%22In%20Progress%22%2C%20Reopened%29%20AND%20resolution%20%3D%20Unresolved%20AND%20component%20%3D%20%22Plugin%20File%20Transfer%22%20ORDER%20BY%20priority%20DESC%2C%20summary%20ASC%2C%20updatedDate%20DESC)
+Report issues with this plugin on the [Apache Cordova issue tracker](https://issues.apache.org/jira/issues/?jql=project%20%3D%20CB%20AND%20status%20in%20%28Open%2C%20%22In%20Progress%22%2C%20Reopened%29%20AND%20resolution%20%3D%20Unresolved%20AND%20component%20%3D%20%22Plugin%20File%20Transfer%22%20ORDER%20BY%20priority%20DESC%2C%20summary%20ASC%2C%20updatedDate%20DESC)
 
 ## Installation
 
@@ -47,7 +45,6 @@ Although in the global scope, they are not available until after the `deviceread
 - Firefox OS**
 - iOS
 - Windows Phone 7 and 8*
-- Windows 8
 - Windows
 
 \* _Do not support `onprogress` nor `abort()`_
@@ -57,7 +54,7 @@ Although in the global scope, they are not available until after the `deviceread
 # FileTransfer
 
 The `FileTransfer` object provides a way to upload files using an HTTP
-multi-part POST or PUT request, and to download files as well.
+multi-part POST or PUT request, and to download files.
 
 ## Properties
 
@@ -65,9 +62,9 @@ multi-part POST or PUT request, and to download files as well.
 
 ## Methods
 
-- __upload__: sends a file to a server.
+- __upload__: Sends a file to a server.
 
-- __download__: downloads a file from server.
+- __download__: Downloads a file from server.
 
 - __abort__: Aborts an in-progress transfer.
 
@@ -76,7 +73,7 @@ multi-part POST or PUT request, and to download files as well.
 
 __Parameters__:
 
-- __fileURL__: Filesystem URL representing the file on the device or a [data: URI](https://en.wikipedia.org/wiki/Data_URI_scheme). For backwards compatibility, this can also be the full path of the file on the device. (See [Backwards Compatibility Notes](#backwards-compatibility-notes) below)
+- __fileURL__: Filesystem URL representing the file on the device or a [data URI](https://en.wikipedia.org/wiki/Data_URI_scheme). For backwards compatibility, this can also be the full path of the file on the device. (See [Backwards Compatibility Notes](#backwards-compatibility-notes) below)
 
 - __server__: URL of the server to receive the file, as encoded by `encodeURI()`.
 
@@ -191,7 +188,7 @@ __Parameters__:
 
 - __source__: URL of the server to download the file, as encoded by `encodeURI()`.
 
-- __target__: Filesystem url representing the file on the device. For backwards compatibility, this can also be the full path of the file on the device. (See [Backwards Compatibility Notes] below)
+- __target__: Filesystem url representing the file on the device. For backwards compatibility, this can also be the full path of the file on the device. (See [Backwards Compatibility Notes](#backwards-compatibility-notes) below)
 
 - __successCallback__: A callback that is passed  a `FileEntry` object. _(Function)_
 
@@ -238,7 +235,7 @@ __Parameters__:
 
 ## abort
 
-Aborts an in-progress transfer. The onerror callback is passed a FileTransferError object which has an error code of FileTransferError.ABORT_ERR.
+Aborts an in-progress transfer. The onerror callback is passed a FileTransferError object which has an error code of `FileTransferError.ABORT_ERR`.
 
 ### Example
 
@@ -298,18 +295,18 @@ A `FileTransferError` object is passed to an error callback when an error occurs
 
 ## Backwards Compatibility Notes
 
-Previous versions of this plugin would only accept device-absolute-file-paths as the source for uploads, or as the target for downloads. These paths would typically be of the form
+Previous versions of this plugin would only accept device-absolute-file-paths as the source for uploads, or as the target for downloads. These paths would typically be of the form:
 
     /var/mobile/Applications/<application UUID>/Documents/path/to/file  (iOS)
     /storage/emulated/0/path/to/file                                    (Android)
 
 For backwards compatibility, these paths are still accepted, and if your application has recorded paths like these in persistent storage, then they can continue to be used.
 
-These paths were previously exposed in the `fullPath` property of `FileEntry` and `DirectoryEntry` objects returned by the File plugin. New versions of the File plugin, however, no longer expose these paths to JavaScript.
+These paths were previously exposed in the `fullPath` property of `FileEntry` and `DirectoryEntry` objects returned by the File plugin. New versions of the File plugin however, no longer expose these paths to JavaScript.
 
 If you are upgrading to a new (1.0.0 or newer) version of File, and you have previously been using `entry.fullPath` as arguments to `download()` or `upload()`, then you will need to change your code to use filesystem URLs instead.
 
-`FileEntry.toURL()` and `DirectoryEntry.toURL()` return a filesystem URL of the form
+`FileEntry.toURL()` and `DirectoryEntry.toURL()` return a filesystem URL of the form:
 
     cdvfile://localhost/persistent/path/to/file
 
