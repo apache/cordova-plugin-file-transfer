@@ -699,10 +699,10 @@ namespace WPCordovaClassLib.Cordova.Commands
                         long totalBytes = response.ContentLength;
                         int bytesRead = 0;
 
-
-                        // Ambrogelli 4 gzip!
                         string encodingHeader = response.Headers["Content-Encoding"] != null ? response.Headers["Content-Encoding"] : "";
-                        using (Stream responseStreamGz = encodingHeader.Contains("gzip") ? new GZipStream(response.GetResponseStream(), CompressionMode.Decompress) : response.GetResponseStream())
+                        
+                        bool useGzip = encodingHeader.Contains("gzip");
+                        using (Stream responseStreamGz = useGzip ? new GZipStream(response.GetResponseStream(), CompressionMode.Decompress) : response.GetResponseStream())
                         {
 
                             using (BinaryReader reader = new BinaryReader(responseStreamGz))
@@ -717,11 +717,20 @@ namespace WPCordovaClassLib.Cordova.Commands
                                         buffer = reader.ReadBytes(BUFFER_SIZE);
                                         // fire a progress event ?
                                         bytesRead += buffer.Length;
+                                        
                                         if (buffer.Length > 0 && !reqState.isCancelled)
-                                        {
-                                            writer.Write(buffer);
-                                            DispatchFileTransferProgress(bytesRead, totalBytes, callbackId);
-                                        }
+					{
+					    writer.Write(buffer);
+					
+					    if (useGzip)
+					    {
+					        DispatchFileTransferProgress(0, 0, callbackId);
+					    }
+					    else
+					    {
+					        DispatchFileTransferProgress(bytesRead, totalBytes, callbackId);
+					    }
+					}
                                         else
                                         {
                                             writer.Close();
