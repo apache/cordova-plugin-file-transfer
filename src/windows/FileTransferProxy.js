@@ -232,7 +232,7 @@ exec(win, fail, 'FileTransfer', 'upload',
                 }
 
                 var multipartFile = LINE_START + BOUNDARY + LINE_END;
-                multipartFile += "Content-Disposition: form-data; name=\"file\";";
+                multipartFile += "Content-Disposition: form-data; name=\"" + fileKey +"\";";
                 multipartFile += " filename=\"" + fileName + "\"" + LINE_END;
                 multipartFile += "Content-Type: " + mimeType + LINE_END + LINE_END;
 
