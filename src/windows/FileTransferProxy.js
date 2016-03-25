@@ -356,7 +356,8 @@ exec(win, fail, 'FileTransfer', 'upload',
                     // adding params supplied to request payload
                     var transferParts = [];
                     for (var key in params) {
-                        if (params.hasOwnProperty(key)) {
+                        // Create content part for params only if value is specified because CreateUploadAsync fails otherwise
+                        if (params.hasOwnProperty(key) && params[key] !== null && params[key] !== undefined && params[key].toString() !== "") {
                             var contentPart = new Windows.Networking.BackgroundTransfer.BackgroundTransferContentPart();
                             contentPart.setHeader("Content-Disposition", "form-data; name=\"" + key + "\"");
                             contentPart.setText(params[key]);
