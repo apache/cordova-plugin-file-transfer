@@ -182,6 +182,10 @@ A `FileUploadResult` object is passed to the success callback of the
 
 - __withCredentials__: _boolean_ that tells the browser to set the withCredentials flag on the XMLHttpRequest
 
+### Windows Quirks
+
+- An option parameter with empty/null value is excluded in the upload operation due to the Windows API design.
+
 ## download
 
 __Parameters__:
