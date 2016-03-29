@@ -770,7 +770,7 @@ exports.defineAutoTests = function () {
                     var downloadFail = function() {
                         unexpectedCallbacks.httpFail();
                         done();
-                    }
+                    };
 
                     // This is an undocumented interface to File which exists only for testing
                     // backwards compatibilty. By obtaining the raw filesystem path of the download
@@ -1223,7 +1223,7 @@ exports.defineAutoTests = function () {
                     var uploadFail = function() {
                         unexpectedCallbacks.httpFail();
                         done();
-                    }
+                    };
 
                     var internalFilePath;
                     if (specContext.root.toInternalURL) {
