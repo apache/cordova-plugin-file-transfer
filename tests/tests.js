@@ -1313,12 +1313,10 @@ exports.defineAutoTests = function () {
 
                     var uploadFail = function (e) {
                         expect(e.code).toBe(FileTransferError.ABORT_ERR);
-                        expect(specContext.transfer.onprogress).toHaveBeenCalled();
 
                         // check that the file is there
                         specContext.root.getFile(specContext.fileName, null, function(entry) {
                             expect(entry).toBeDefined();
-
                             // delay calling done() to wait for the bogus abort()
                             setTimeout(done, GRACE_TIME_DELTA * 2);
                         }, function(err) {
@@ -1342,8 +1340,6 @@ exports.defineAutoTests = function () {
                                 specContext.transfer.abort();
                             }
                         };
-
-                        spyOn(specContext.transfer, "onprogress").and.callThrough();
 
                         // NOTE: removing uploadOptions cause Android to timeout
                         specContext.transfer.upload(specContext.localFilePath, fileURL, uploadWin, uploadFail, specContext.uploadOptions);
