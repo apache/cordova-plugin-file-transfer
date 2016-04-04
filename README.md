@@ -441,12 +441,12 @@ function writeFile(fileEntry, dataObj) {
     fileEntry.createWriter(function (fileWriter) {
 
         fileWriter.onwriteend = function (e) {
-            console.log("Successful file read...");
+            console.log("Successful file write...");
             upload(fileEntry);
         };
 
         fileWriter.onerror = function (e) {
-            console.log("Failed file read: " + e.toString());
+            console.log("Failed file write: " + e.toString());
         };
 
         if (!dataObj) {
@@ -494,7 +494,7 @@ function upload(fileEntry) {
 
 ## Download the uploaded file
 
-To download the image you just uploaded, you will need a valid URL that can handle the request, for example, http://some.server.com/download.php. Again, the success handler for the FileTransfer.download method receives a FileEntry object. The main difference here from previous examples is that we can call FileReader.readAsText to read the result of the download operation, because we uploaded a file with text content.
+To download the image you just uploaded, you will need a valid URL that can handle the request, for example, http://some.server.com/download.php. Again, the success handler for the FileTransfer.download method receives a FileEntry object. The main difference here from previous examples is that we call FileReader.readAsText to read the result of the download operation, because we uploaded a file with text content.
 
 ```
 function download(fileEntry, uri) {
