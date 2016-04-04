@@ -326,32 +326,26 @@ Use the File-Transfer plugin to upload and download files. In these examples, we
 
 ## Download a Binary File to the application cache
 
-Use the File plugin with the File-Transfer plugin to provide a target for the files that you download (the target must be a FileEntry object). Before you download the file, create a DirectoryEntry object using `resolveLocalFileSystemURL`, passing in a Cordova file URL like `cordova.file.cacheDirectory`. Use the `getFile` method of DirectoryEntry to create the target file.
+Use the File plugin with the File-Transfer plugin to provide a target for the files that you download (the target must be a FileEntry object). Before you download the file, create a DirectoryEntry object by using `resolveLocalFileSystemURL` and calling `fs.root` in the success callback. Use the `getFile` method of DirectoryEntry to create the target file.
 
 ```
 window.requestFileSystem(window.TEMPORARY, 5 * 1024 * 1024, function (fs) {
 
     console.log('file system open: ' + fs.name);
-    // Return a DirectoryEntry using Cordova file URLs.
-    window.resolveLocalFileSystemURL(cordova.file.cacheDirectory, function (dirEntry) {
 
-        // Make sure you add the domain name to the Content-Security-Policy <meta> element.
-        var url = 'http://cordova.apache.org/static/img/cordova_bot.png';
-        var fileName = 'downloaded-image.png';
+    // Make sure you add the domain name to the Content-Security-Policy <meta> element.
+    var url = 'http://cordova.apache.org/static/img/cordova_bot.png';
+    fs.root.getFile('downloaded-image.png', { create: true, exclusive: false }, function (fileEntry) {
+        download(fileEntry, url, true);
 
-        dirEntry.getFile(fileName, { create: true, exclusive: false }, function (fileEntry) {
-            download(fileEntry, url);
-
-        }, onErrorCreateFile);
-
-    }, onErrorResolveUrl);
+    }, onErrorCreateFile);
 
 }, onErrorLoadFs);
 ```
 
->*Note* For persistent storage, use cordova.file.dataDirectory and pass LocalFileSystem.PERSISTENT to requestFileSystem.
+>*Note* For persistent storage, pass LocalFileSystem.PERSISTENT to requestFileSystem.
 
-When you have the FileEntry object, download the file using the `download` method of the FileTransfer object. The 3rd argument to the function is the success handler, which you can use to call the app's readBinaryFile function. In this code example, the `entry` variable is a new FileEntry object that receives the result of the download operation.
+When you have the FileEntry object, download the file using the `download` method of the FileTransfer object. The 3rd argument to the function is the success handler, which you can use to call the app's `readBinaryFile` function. In this code example, the `entry` variable is a new FileEntry object that receives the result of the download operation.
 
 ```
 function download(fileEntry, uri) {
@@ -381,7 +375,7 @@ function download(fileEntry, uri) {
 }
 ```
 
-To support operations with binary files, FileReader supports two methods, `readAsBinaryString` and `readAsArrayBuffer`. In this example, use readAsArrayBuffer and pass the FileEntry object to the method. Once you read the file successfully, construct a Blob object using the result of the read.
+To support operations with binary files, FileReader supports two methods, `readAsBinaryString` and `readAsArrayBuffer`. In this example, use `readAsArrayBuffer` and pass the FileEntry object to the method. Once you read the file successfully, construct a Blob object using the result of the read.
 
 ```
 function readBinaryFile(fileEntry) {
@@ -419,7 +413,7 @@ function displayImageData(blob) {
 
 ## Upload a File
 
-When you upload a File using the File-Transfer plugin, use the File plugin to provide files for upload (again, they must be FileEntry objects). Before you can upload anything, create a file for upload using the `getFile` method of DirectoryEntry. In this example, create the file in the application's root folder (fs.root). Then call the app's writeFile function so you have some content to upload.
+When you upload a File using the File-Transfer plugin, use the File plugin to provide files for upload (again, they must be FileEntry objects). Before you can upload anything, create a file for upload using the `getFile` method of DirectoryEntry. In this example, create the file in the application's cache (fs.root). Then call the app's writeFile function so you have some content to upload.
 
 ```
 function onUploadFile() {
@@ -464,7 +458,7 @@ function writeFile(fileEntry, dataObj) {
 }
 ```
 
-Forward the FileEntry object to the upload function. To perform the actual upload, use the upload function of the Filetransfer object.
+Forward the FileEntry object to the upload function. To perform the actual upload, use the upload function of the FileTransfer object.
 
 ```
 function upload(fileEntry) {
