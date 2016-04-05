@@ -545,15 +545,13 @@ exports.defineAutoTests = function () {
                     specContext.transfer.download(fileURL, specContext.localFilePath, downloadWin, downloadFail);
                 }, DOWNLOAD_TIMEOUT);
 
-                it("filetransfer.spec.10 should be stopped by abort() right away", function (done) {
+                it("filetransfer.spec.10 should be stopped by abort()", function (done) {
 
                     var fileURL = "http://cordova.apache.org/downloads/BlueZedEx.mp3";
                     fileURL = fileURL + "?q=" + (new Date()).getTime();
                     var specContext = this;
 
                     expect(specContext.transfer.abort).not.toThrow(); // should be a no-op.
-
-                    var startTime = +new Date();
 
                     var downloadWin = function() {
                         unexpectedCallbacks.httpWin();
@@ -563,7 +561,6 @@ exports.defineAutoTests = function () {
                     var downloadFail = function (error) {
 
                         expect(error.code).toBe(FileTransferError.ABORT_ERR);
-                        expect(new Date() - startTime).toBeLessThan(isWindows ? WINDOWS_GRACE_TIME_DELTA : GRACE_TIME_DELTA);
 
                         // delay calling done() to wait for the bogus abort()
                         setTimeout(done, GRACE_TIME_DELTA * 2);
@@ -1045,15 +1042,13 @@ exports.defineAutoTests = function () {
                     specContext.transfer.upload(specContext.localFilePath, fileURL, uploadWin, uploadFail, specContext.uploadOptions);
                 }, UPLOAD_TIMEOUT);
 
-                it("filetransfer.spec.21 should be stopped by abort() right away", function (done) {
+                it("filetransfer.spec.21 should be stopped by abort()", function (done) {
 
                     var fileURL = SERVER + "/upload";
-                    var startTime;
                     var specContext = this;
 
                     var uploadFail = function (e) {
                         expect(e.code).toBe(FileTransferError.ABORT_ERR);
-                        expect(new Date() - startTime).toBeLessThan(isWindows ? WINDOWS_GRACE_TIME_DELTA : GRACE_TIME_DELTA);
 
                         // delay calling done() to wait for the bogus abort()
                         setTimeout(done, GRACE_TIME_DELTA * 2);
@@ -1065,8 +1060,6 @@ exports.defineAutoTests = function () {
                     };
 
                     var fileWin = function () {
-
-                        startTime = +new Date();
 
                         expect(specContext.transfer.abort).not.toThrow();
 
