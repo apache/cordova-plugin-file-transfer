@@ -31,7 +31,6 @@ exports.defineAutoTests = function () {
     var ONE_SECOND = 1000; // in milliseconds
     var GRACE_TIME_DELTA = 600; // in milliseconds
     var DEFAULT_FILESYSTEM_SIZE = 1024 * 50; // filesystem size in bytes
-    var WINDOWS_GRACE_TIME_DELTA = 5 * ONE_SECOND; // Some Windows devices need a few seconds to create an upload/download operation.
     var UNKNOWN_HOST = "http://foobar.apache.org";
     var HEADERS_ECHO = "http://whatheaders.com"; // NOTE: this site is very useful!
     var DOWNLOAD_TIMEOUT = 7 * ONE_SECOND;
