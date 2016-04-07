@@ -382,7 +382,7 @@ function readBinaryFile(fileEntry) {
     fileEntry.file(function (file) {
         var reader = new FileReader();
 
-        reader.onloadend = function (e) {
+        reader.onloadend = function() {
 
             console.log("Successful file read: " + this.result);
             displayFileData(fileEntry.fullPath + ": " + this.result);
@@ -440,7 +440,7 @@ function writeFile(fileEntry, dataObj) {
     // Create a FileWriter object for our FileEntry (log.txt).
     fileEntry.createWriter(function (fileWriter) {
 
-        fileWriter.onwriteend = function (e) {
+        fileWriter.onwriteend = function () {
             console.log("Successful file write...");
             upload(fileEntry);
         };
@@ -531,7 +531,7 @@ function readFile(fileEntry) {
     fileEntry.file(function (file) {
         var reader = new FileReader();
 
-        reader.onloadend = function (e) {
+        reader.onloadend = function () {
 
             console.log("Successful file read: " + this.result);
             displayFileData(fileEntry.fullPath + ": " + this.result);
