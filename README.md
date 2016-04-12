@@ -403,7 +403,7 @@ function readBinaryFile(fileEntry) {
         reader.onloadend = function() {
 
             console.log("Successful file read: " + this.result);
-            displayFileData(fileEntry.fullPath + ": " + this.result);
+            // displayFileData(fileEntry.fullPath + ": " + this.result);
 
             var blob = new Blob([new Uint8Array(this.result)], { type: "image/png" });
             displayImage(blob);
@@ -556,7 +556,7 @@ function readFile(fileEntry) {
         reader.onloadend = function () {
 
             console.log("Successful file read: " + this.result);
-            displayFileData(fileEntry.fullPath + ": " + this.result);
+            // displayFileData(fileEntry.fullPath + ": " + this.result);
 
         };
 
