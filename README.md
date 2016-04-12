@@ -320,11 +320,11 @@ which can be used in place of the absolute file path in both `download()` and `u
 
 Use the File-Transfer plugin to upload and download files. In these examples, we demonstrate several tasks like:
 
-* Downloading a binary file to the application cache
-* Uploading a file created in your application's root
-* Downloading the uploaded file
+* [Downloading a binary file to the application cache](#binaryFile)
+* [Uploading a file created in your application's root](#uploadFile)
+* [Downloading the uploaded file](#downloadFile)
 
-## Download a Binary File to the application cache
+## Download a Binary File to the application cache <a name="binaryFile"></a>
 
 Use the File plugin with the File-Transfer plugin to provide a target for the files that you download (the target must be a FileEntry object). Before you download the file, create a DirectoryEntry object by using `resolveLocalFileSystemURL` and calling `fs.root` in the success callback. Use the `getFile` method of DirectoryEntry to create the target file.
 
@@ -335,6 +335,7 @@ window.requestFileSystem(window.TEMPORARY, 5 * 1024 * 1024, function (fs) {
 
     // Make sure you add the domain name to the Content-Security-Policy <meta> element.
     var url = 'http://cordova.apache.org/static/img/cordova_bot.png';
+    // Parameters passed to getFile create a new file or return the file if it already exists.
     fs.root.getFile('downloaded-image.png', { create: true, exclusive: false }, function (fileEntry) {
         download(fileEntry, url, true);
 
@@ -345,10 +346,10 @@ window.requestFileSystem(window.TEMPORARY, 5 * 1024 * 1024, function (fs) {
 
 >*Note* For persistent storage, pass LocalFileSystem.PERSISTENT to requestFileSystem.
 
-When you have the FileEntry object, download the file using the `download` method of the FileTransfer object. The 3rd argument to the function is the success handler, which you can use to call the app's `readBinaryFile` function. In this code example, the `entry` variable is a new FileEntry object that receives the result of the download operation.
+When you have the FileEntry object, download the file using the `download` method of the FileTransfer object. The 3rd argument to the `download` function of FileTransfer is the success callback, which you can use to call the app's `readBinaryFile` function. In this code example, the `entry` variable is a new FileEntry object that receives the result of the download operation.
 
 ```js
-function download(fileEntry, uri) {
+function download(fileEntry, uri, readBinaryData) {
 
     var fileTransfer = new FileTransfer();
     var fileURL = fileEntry.toURL();
@@ -357,8 +358,16 @@ function download(fileEntry, uri) {
         uri,
         fileURL,
         function (entry) {
+            console.log("Successful download...");
             console.log("download complete: " + entry.toURL());
-            readBinaryFile(entry);
+            if (readBinaryData) {
+              // Read the file...
+              readBinaryFile(entry);
+            }
+            else {
+              // Or just display it.
+              displayImageByFileURL(entry);
+            }
         },
         function (error) {
             console.log("download error source " + error.source);
@@ -375,7 +384,16 @@ function download(fileEntry, uri) {
 }
 ```
 
-To support operations with binary files, FileReader supports two methods, `readAsBinaryString` and `readAsArrayBuffer`. In this example, use `readAsArrayBuffer` and pass the FileEntry object to the method. Once you read the file successfully, construct a Blob object using the result of the read.
+If you just need to display the image, take the FileEntry to call its toURL() function.
+
+```js
+function displayImageByFileURL(fileEntry) {
+    var elem = document.getElementById('imageFile');
+    elem.src = fileEntry.toURL();
+}
+```
+
+Depending on your app requirements, you may want to read the file. To support operations with binary files, FileReader supports two methods, `readAsBinaryString` and `readAsArrayBuffer`. In this example, use `readAsArrayBuffer` and pass the FileEntry object to the method. Once you read the file successfully, construct a Blob object using the result of the read.
 
 ```js
 function readBinaryFile(fileEntry) {
@@ -397,7 +415,7 @@ function readBinaryFile(fileEntry) {
 }
 ```
 
-Once you read the file successfully, create a DOM URL string using `createObjectURL`, and then display the image.
+Once you read the file successfully, you can create a DOM URL string using `createObjectURL`, and then display the image.
 
 ```js
 function displayImage(blob) {
@@ -411,7 +429,9 @@ function displayImage(blob) {
 }
 ```
 
-## Upload a File
+As you saw previously, you can call FileEntry.toURL() instead to just display the downloaded image (skip the file read).
+
+## Upload a File <a name="uploadFile"></a>
 
 When you upload a File using the File-Transfer plugin, use the File plugin to provide files for upload (again, they must be FileEntry objects). Before you can upload anything, create a file for upload using the `getFile` method of DirectoryEntry. In this example, create the file in the application's cache (fs.root). Then call the app's writeFile function so you have some content to upload.
 
@@ -466,6 +486,7 @@ function upload(fileEntry) {
     var fileURL = fileEntry.toURL();
 
     var success = function (r) {
+        console.log("Successful upload...");
         console.log("Code = " + r.responseCode);
         displayFileData(fileEntry.fullPath + " (content uploaded to server)");
     }
@@ -492,7 +513,7 @@ function upload(fileEntry) {
 };
 ```
 
-## Download the uploaded file
+## Download the uploaded file <a name="downloadFile"></a>
 
 To download the image you just uploaded, you will need a valid URL that can handle the request, for example, http://some.server.com/download.php. Again, the success handler for the FileTransfer.download method receives a FileEntry object. The main difference here from previous examples is that we call FileReader.readAsText to read the result of the download operation, because we uploaded a file with text content.
 
@@ -506,6 +527,7 @@ function download(fileEntry, uri) {
         uri,
         fileURL,
         function (entry) {
+            console.log("Successful download...");
             console.log("download complete: " + entry.toURL());
             readFile(entry);
         },
