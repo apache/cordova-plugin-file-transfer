@@ -190,6 +190,8 @@ A `FileUploadResult` object is passed to the success callback of the
 
 - Does not support `responseCode` or `bytesSent`.
 
+- Does not support uploads of an empty file with __chunkedMode=true__ and `multipartMode=false`.
+
 ### Browser Quirks
 
 - __withCredentials__: _boolean_ that tells the browser to set the withCredentials flag on the XMLHttpRequest
@@ -197,6 +199,8 @@ A `FileUploadResult` object is passed to the success callback of the
 ### Windows Quirks
 
 - An option parameter with empty/null value is excluded in the upload operation due to the Windows API design.
+
+- __chunkedMode__ is not supported and all uploads are set to non-chunked mode.
 
 ## download
 
