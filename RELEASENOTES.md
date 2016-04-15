@@ -20,6 +20,14 @@
 -->
 # Release Notes
                                               
+### 1.5.1 (Apr 15, 2016)
+* CB-10536 Removing flaky test assertions about abort callback latency
+* Removing the expectation in `spec.34` for the transfer method to be called.
+* CB-10978 Fix `file-transfer.tests` JSHint issues
+* CB-10782 Occasional failure in file transfer tests causing mobilespec crash
+* CB-10771 Fixing failure when empty string passed as a value for option parameter in upload function
+* CB-10636 Add `JSHint` for plugins
+
 ### 1.5.0 (Jan 15, 2016)
 * CB-10208 Fix `file-transfer` multipart form data upload format on **Windows**
 * CB-9837 Add data `URI` support to `file-transfer` upload on **iOS**
