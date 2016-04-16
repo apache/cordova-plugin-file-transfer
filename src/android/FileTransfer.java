@@ -80,7 +80,7 @@ public class FileTransfer extends CordovaPlugin {
     public static int NOT_MODIFIED_ERR = 5;
 
     private static HashMap<String, RequestContext> activeRequests = new HashMap<String, RequestContext>();
-    private static final int MAX_BUFFER_SIZE = 16 * 1024;
+    private static final int MAX_BUFFER_SIZE = 64 * 1024;  
 
     private static final class RequestContext {
         String source;
@@ -276,7 +276,7 @@ public class FileTransfer extends CordovaPlugin {
      * args[5] params        key:value pairs of user-defined parameters
      * @return FileUploadResult containing result of upload request
      */
-    private void upload(final String source, final String target, JSONArray args, CallbackContext callbackContext) throws JSONException {
+     private void upload(final String source, final String target, JSONArray args, CallbackContext callbackContext) throws JSONException {
         Log.d(LOG_TAG, "upload " + source + " to " +  target);
 
         // Setup the options
@@ -303,8 +303,10 @@ public class FileTransfer extends CordovaPlugin {
         Log.d(LOG_TAG, "headers: " + headers);
         Log.d(LOG_TAG, "objectId: " + objectId);
         Log.d(LOG_TAG, "httpMethod: " + httpMethod);
-
+        
+        final String metadata = fileKey; // multipart/related file-id based json message.
         final Uri targetUri = resourceApi.remapUri(Uri.parse(target));
+        Log.d(LOG_TAG, "targetUri: " + targetUri);
         // Accept a path or a URI for the source.
         Uri tmpSrc = Uri.parse(source);
         final Uri sourceUri = resourceApi.remapUri(
@@ -364,10 +366,9 @@ public class FileTransfer extends CordovaPlugin {
                     // Use a post method.
                     conn.setRequestMethod(httpMethod);
 
-                    // if we specified a Content-Type header, don't do multipart form upload
-                    boolean multipartFormUpload = (headers == null) || !headers.has("Content-Type");
+                    boolean multipartFormUpload = true; // setting it true, as it forces multipart/related
                     if (multipartFormUpload) {
-                        conn.setRequestProperty("Content-Type", "multipart/form-data; boundary=" + BOUNDARY);
+                        conn.setRequestProperty("Content-Type", "multipart/related; boundary=" + BOUNDARY);
                     }
 
                     // Set the cookies on the response
@@ -387,26 +388,11 @@ public class FileTransfer extends CordovaPlugin {
                         * to the contentSize, since it is part of the body of the HTTP request.
                         */
                     StringBuilder beforeData = new StringBuilder();
-                    try {
-                        for (Iterator<?> iter = params.keys(); iter.hasNext();) {
-                            Object key = iter.next();
-                            if(!String.valueOf(key).equals("headers"))
-                            {
-                              beforeData.append(LINE_START).append(BOUNDARY).append(LINE_END);
-                              beforeData.append("Content-Disposition: form-data; name=\"").append(key.toString()).append('"');
-                              beforeData.append(LINE_END).append(LINE_END);
-                              beforeData.append(params.getString(key.toString()));
-                              beforeData.append(LINE_END);
-                            }
-                        }
-                    } catch (JSONException e) {
-                        Log.e(LOG_TAG, e.getMessage(), e);
-                    }
-
-                    beforeData.append(LINE_START).append(BOUNDARY).append(LINE_END);
-                    beforeData.append("Content-Disposition: form-data; name=\"").append(fileKey).append("\";");
-                    beforeData.append(" filename=\"").append(fileName).append('"').append(LINE_END);
-                    beforeData.append("Content-Type: ").append(mimeType).append(LINE_END).append(LINE_END);
+                    beforeData.append(LINE_START).append(BOUNDARY).append(LINE_END).append(LINE_END);
+                    beforeData.append(metadata);
+                    beforeData.append(LINE_END);
+                    beforeData.append(LINE_START).append(BOUNDARY).append(LINE_END).append(LINE_END);
+                              
                     byte[] beforeDataBytes = beforeData.toString().getBytes("UTF-8");
                     byte[] tailParamsBytes = (LINE_END + LINE_START + BOUNDARY + LINE_START + LINE_END).getBytes("UTF-8");
 
@@ -428,7 +414,7 @@ public class FileTransfer extends CordovaPlugin {
                     // It also causes OOM if HTTPS is used, even on newer devices.
                     boolean useChunkedMode = chunkedMode && (Build.VERSION.SDK_INT < Build.VERSION_CODES.FROYO || useHttps);
                     useChunkedMode = useChunkedMode || (fixedLength == -1);
-
+                    
                     if (useChunkedMode) {
                         conn.setChunkedStreamingMode(MAX_BUFFER_SIZE);
                         // Although setChunkedStreamingMode sets this header, setting it explicitly here works
@@ -439,7 +425,6 @@ public class FileTransfer extends CordovaPlugin {
                     }
 
                     conn.connect();
-
                     OutputStream sendStream = null;
                     try {
                         sendStream = conn.getOutputStream();
@@ -460,23 +445,23 @@ public class FileTransfer extends CordovaPlugin {
                         int bytesAvailable = readResult.inputStream.available();
                         int bufferSize = Math.min(bytesAvailable, MAX_BUFFER_SIZE);
                         byte[] buffer = new byte[bufferSize];
-
                         // read file and write it into form...
                         int bytesRead = readResult.inputStream.read(buffer, 0, bufferSize);
-
+                        
                         long prevBytesRead = 0;
                         while (bytesRead > 0) {
                             totalBytes += bytesRead;
                             result.setBytesSent(totalBytes);
                             sendStream.write(buffer, 0, bytesRead);
-                            if (totalBytes > prevBytesRead + 102400) {
-                                prevBytesRead = totalBytes;
-                                Log.d(LOG_TAG, "Uploaded " + totalBytes + " of " + fixedLength + " bytes");
-                            }
+                            //if (totalBytes > prevBytesRead + MAX_BUFFER_SIZE) {
+                            //    prevBytesRead = totalBytes;
+                            //    Log.d(LOG_TAG, "Uploaded " + totalBytes + " of " + fixedLength + " bytes");
+                            //}
                             bytesAvailable = readResult.inputStream.available();
                             bufferSize = Math.min(bytesAvailable, MAX_BUFFER_SIZE);
                             bytesRead = readResult.inputStream.read(buffer, 0, bufferSize);
-
+                            Log.d(LOG_TAG, "bytesAvailable " + bytesAvailable + " bufferSize " + bufferSize+ " bytesRead " + bytesRead);
+                        
                             // Send a progress event.
                             progress.setLoaded(totalBytes);
                             PluginResult progressResult = new PluginResult(PluginResult.Status.OK, progress.toJSONObject());
@@ -498,10 +483,11 @@ public class FileTransfer extends CordovaPlugin {
                         context.connection = null;
                     }
                     Log.d(LOG_TAG, "Sent " + totalBytes + " of " + fixedLength);
-
+                    
                     //------------------ read the SERVER RESPONSE
                     String responseString;
                     int responseCode = conn.getResponseCode();
+                    
                     Log.d(LOG_TAG, "response code: " + responseCode);
                     Log.d(LOG_TAG, "response headers: " + conn.getHeaderFields());
                     TrackingInputStream inStream = null;
@@ -530,7 +516,11 @@ public class FileTransfer extends CordovaPlugin {
                     }
 
                     Log.d(LOG_TAG, "got response from server");
-                    Log.d(LOG_TAG, responseString.substring(0, Math.min(256, responseString.length())));
+                    if (responseString != null) {
+                        Log.d(LOG_TAG, responseString.substring(0, Math.min(256, responseString.length())));
+                    } else {
+                        Log.d(LOG_TAG, "Empty response");
+                    }
 
                     // send request and retrieve response
                     result.setResponseCode(responseCode);
@@ -572,7 +562,7 @@ public class FileTransfer extends CordovaPlugin {
             }
         });
     }
-
+     
     private static void safeClose(Closeable stream) {
         if (stream != null) {
             try {
