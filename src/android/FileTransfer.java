@@ -485,47 +485,49 @@ public class FileTransfer extends CordovaPlugin {
                     Log.d(LOG_TAG, "Sent " + totalBytes + " of " + fixedLength);
                     
                     //------------------ read the SERVER RESPONSE
-                    String responseString;
+                    String responseString = null;
                     int responseCode = conn.getResponseCode();
                     
                     Log.d(LOG_TAG, "response code: " + responseCode);
                     Log.d(LOG_TAG, "response headers: " + conn.getHeaderFields());
-                    TrackingInputStream inStream = null;
-                    try {
-                        inStream = getInputStream(conn);
-                        synchronized (context) {
-                            if (context.aborted) {
-                                return;
+                    String headerLocationProp = conn.getHeaderField("Location");
+                    if (responseCode != 200 && responseCode != 201) {
+                        TrackingInputStream inStream = null;
+                        try {
+                            inStream = getInputStream(conn);
+                            synchronized (context) {
+                                if (context.aborted) {
+                                    return;
+                                }
+                                context.connection = conn;
                             }
-                            context.connection = conn;
+    
+                            ByteArrayOutputStream out = new ByteArrayOutputStream(Math.max(1024, conn.getContentLength()));
+                            byte[] buffer = new byte[1024];
+                            int bytesRead = 0;
+                            // write bytes to file
+                            while ((bytesRead = inStream.read(buffer)) > 0) {
+                                out.write(buffer, 0, bytesRead);
+                            }
+                            responseString = out.toString("UTF-8");
+                        } finally {
+                            synchronized (context) {
+                                context.connection = null;
+                            }
+                            safeClose(inStream);
                         }
-
-                        ByteArrayOutputStream out = new ByteArrayOutputStream(Math.max(1024, conn.getContentLength()));
-                        byte[] buffer = new byte[1024];
-                        int bytesRead = 0;
-                        // write bytes to file
-                        while ((bytesRead = inStream.read(buffer)) > 0) {
-                            out.write(buffer, 0, bytesRead);
+    
+                        Log.d(LOG_TAG, "got response from server");
+                        if (responseString != null) {
+                            Log.d(LOG_TAG, responseString.substring(0, Math.min(256, responseString.length())));
+                        } else {
+                            Log.d(LOG_TAG, "Empty response");
                         }
-                        responseString = out.toString("UTF-8");
-                    } finally {
-                        synchronized (context) {
-                            context.connection = null;
-                        }
-                        safeClose(inStream);
                     }
-
-                    Log.d(LOG_TAG, "got response from server");
-                    if (responseString != null) {
-                        Log.d(LOG_TAG, responseString.substring(0, Math.min(256, responseString.length())));
-                    } else {
-                        Log.d(LOG_TAG, "Empty response");
-                    }
-
                     // send request and retrieve response
                     result.setResponseCode(responseCode);
                     result.setResponse(responseString);
-
+                    result.setLocationProp(headerLocationProp);
                     context.sendPluginResult(new PluginResult(PluginResult.Status.OK, result.toJSONObject()));
                 } catch (FileNotFoundException e) {
                     JSONObject error = createFileTransferError(FILE_NOT_FOUND_ERR, source, target, conn, e);
