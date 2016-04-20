@@ -25,6 +25,7 @@
 #import <AssetsLibrary/ALAssetRepresentation.h>
 #import <AssetsLibrary/ALAssetsLibrary.h>
 #import <CFNetwork/CFNetwork.h>
+#import <Foundation/NSJSONSerialization.h>
 
 #ifndef DLog
 #ifdef DEBUG
@@ -202,6 +203,11 @@ static CFIndex WriteDataToStream(NSData* data, CFWriteStreamRef stream)
         // if it responds to stringValue selector (eg NSNumber) get the NSString
         if ([val respondsToSelector:@selector(stringValue)]) {
             val = [val stringValue];
+        }
+        // if it is a valid json object get the NSString representation
+        if ([NSJSONSerialization isValidJSONObject:val]){
+            NSData *jsonData = [NSJSONSerialization dataWithJSONObject:val options:NSJSONWritingPrettyPrinted error:nil];
+            val = [[NSString alloc] initWithData:jsonData encoding:NSUTF8StringEncoding];
         }
         // finally, check whether it is a NSString (for dataUsingEncoding selector below)
         if (![val isKindOfClass:[NSString class]]) {
