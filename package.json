@@ -45,7 +45,7 @@
     "cordova-browser"
   ],
   "peerDependencies": {
-    "cordova-plugin-file": "^3.0.0"
+    "cordova-plugin-file": "^4.0.0"
   },
   "author": "Apache Software Foundation",
   "license": "Apache-2.0",
