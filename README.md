@@ -36,7 +36,11 @@ function onDeviceReady() {
 }
 ```
 
+> To get a few ideas, check out the [sample](#sample) at the bottom of this page or go straight to the [reference](#reference) content.
+
 Report issues with this plugin on the [Apache Cordova issue tracker](https://issues.apache.org/jira/issues/?jql=project%20%3D%20CB%20AND%20status%20in%20%28Open%2C%20%22In%20Progress%22%2C%20Reopened%29%20AND%20resolution%20%3D%20Unresolved%20AND%20component%20%3D%20%22Plugin%20File%20Transfer%22%20ORDER%20BY%20priority%20DESC%2C%20summary%20ASC%2C%20updatedDate%20DESC)
+
+##<a name="reference"></a>Reference
 
 ## Installation
 
@@ -407,7 +411,7 @@ If you just need to display the image, take the FileEntry to call its toURL() fu
 
 ```js
 function displayImageByFileURL(fileEntry) {
-    var elem = document.getElementById('imageFile');
+    var elem = document.getElementById('imageElement');
     elem.src = fileEntry.toURL();
 }
 ```
@@ -443,7 +447,7 @@ function displayImage(blob) {
     var objURL = window.URL.createObjectURL(blob);
 
     // Displays image if result is a valid DOM string for an image.
-    var elem = document.getElementById('imageFile');
+    var elem = document.getElementById('imageElement');
     elem.src = objURL;
 }
 ```
@@ -507,7 +511,7 @@ function upload(fileEntry) {
     var success = function (r) {
         console.log("Successful upload...");
         console.log("Code = " + r.responseCode);
-        displayFileData(fileEntry.fullPath + " (content uploaded to server)");
+        // displayFileData(fileEntry.fullPath + " (content uploaded to server)");
     }
 
     var fail = function (error) {
