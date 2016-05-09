@@ -29,16 +29,20 @@ This plugin allows you to upload and download files.
 
 This plugin defines global `FileTransfer`, `FileUploadOptions` constructors. Although in the global scope, they are not available until after the `deviceready` event.
 
-    document.addEventListener("deviceready", onDeviceReady, false);
-    function onDeviceReady() {
-        console.log(FileTransfer);
-    }
+```js
+document.addEventListener("deviceready", onDeviceReady, false);
+function onDeviceReady() {
+    console.log(FileTransfer);
+}
+```
 
 Report issues with this plugin on the [Apache Cordova issue tracker](https://issues.apache.org/jira/issues/?jql=project%20%3D%20CB%20AND%20status%20in%20%28Open%2C%20%22In%20Progress%22%2C%20Reopened%29%20AND%20resolution%20%3D%20Unresolved%20AND%20component%20%3D%20%22Plugin%20File%20Transfer%22%20ORDER%20BY%20priority%20DESC%2C%20summary%20ASC%2C%20updatedDate%20DESC)
 
 ## Installation
 
-    cordova plugin add cordova-plugin-file-transfer
+```bash
+cordova plugin add cordova-plugin-file-transfer
+```
 
 ## Supported Platforms
 
@@ -98,70 +102,74 @@ __Parameters__:
 
 ### Example
 
-    // !! Assumes variable fileURL contains a valid URL to a text file on the device,
-    //    for example, cdvfile://localhost/persistent/path/to/file.txt
+```js
+// !! Assumes variable fileURL contains a valid URL to a text file on the device,
+//    for example, cdvfile://localhost/persistent/path/to/file.txt
 
-    var win = function (r) {
-        console.log("Code = " + r.responseCode);
-        console.log("Response = " + r.response);
-        console.log("Sent = " + r.bytesSent);
-    }
+var win = function (r) {
+    console.log("Code = " + r.responseCode);
+    console.log("Response = " + r.response);
+    console.log("Sent = " + r.bytesSent);
+}
 
-    var fail = function (error) {
-        alert("An error has occurred: Code = " + error.code);
-        console.log("upload error source " + error.source);
-        console.log("upload error target " + error.target);
-    }
+var fail = function (error) {
+    alert("An error has occurred: Code = " + error.code);
+    console.log("upload error source " + error.source);
+    console.log("upload error target " + error.target);
+}
 
-    var options = new FileUploadOptions();
-    options.fileKey = "file";
-    options.fileName = fileURL.substr(fileURL.lastIndexOf('/') + 1);
-    options.mimeType = "text/plain";
+var options = new FileUploadOptions();
+options.fileKey = "file";
+options.fileName = fileURL.substr(fileURL.lastIndexOf('/') + 1);
+options.mimeType = "text/plain";
 
-    var params = {};
-    params.value1 = "test";
-    params.value2 = "param";
+var params = {};
+params.value1 = "test";
+params.value2 = "param";
 
-    options.params = params;
+options.params = params;
 
-    var ft = new FileTransfer();
-    ft.upload(fileURL, encodeURI("http://some.server.com/upload.php"), win, fail, options);
+var ft = new FileTransfer();
+ft.upload(fileURL, encodeURI("http://some.server.com/upload.php"), win, fail, options);
+```
 
 ### Example with Upload Headers and Progress Events (Android and iOS only)
 
-    function win(r) {
-        console.log("Code = " + r.responseCode);
-        console.log("Response = " + r.response);
-        console.log("Sent = " + r.bytesSent);
+```js
+function win(r) {
+    console.log("Code = " + r.responseCode);
+    console.log("Response = " + r.response);
+    console.log("Sent = " + r.bytesSent);
+}
+
+function fail(error) {
+    alert("An error has occurred: Code = " + error.code);
+    console.log("upload error source " + error.source);
+    console.log("upload error target " + error.target);
+}
+
+var uri = encodeURI("http://some.server.com/upload.php");
+
+var options = new FileUploadOptions();
+options.fileKey="file";
+options.fileName=fileURL.substr(fileURL.lastIndexOf('/')+1);
+options.mimeType="text/plain";
+
+var headers={'headerParam':'headerValue'};
+
+options.headers = headers;
+
+var ft = new FileTransfer();
+ft.onprogress = function(progressEvent) {
+    if (progressEvent.lengthComputable) {
+        loadingStatus.setPercentage(progressEvent.loaded / progressEvent.total);
+    } else {
+        loadingStatus.increment();
     }
-
-    function fail(error) {
-        alert("An error has occurred: Code = " + error.code);
-        console.log("upload error source " + error.source);
-        console.log("upload error target " + error.target);
-    }
-
-    var uri = encodeURI("http://some.server.com/upload.php");
-
-    var options = new FileUploadOptions();
-    options.fileKey="file";
-    options.fileName=fileURL.substr(fileURL.lastIndexOf('/')+1);
-    options.mimeType="text/plain";
-
-    var headers={'headerParam':'headerValue'};
-
-    options.headers = headers;
-
-    var ft = new FileTransfer();
-    ft.onprogress = function(progressEvent) {
-        if (progressEvent.lengthComputable) {
-          loadingStatus.setPercentage(progressEvent.loaded / progressEvent.total);
-        } else {
-          loadingStatus.increment();
-        }
-    };
-    ft.upload(fileURL, uri, win, fail, options);
-
+};
+ft.upload(fileURL, uri, win, fail, options);
+```   
+ 
 ## FileUploadResult
 
 A `FileUploadResult` object is passed to the success callback of the
@@ -208,30 +216,32 @@ __Parameters__:
 
 ### Example
 
-    // !! Assumes variable fileURL contains a valid URL to a path on the device,
-    //    for example, cdvfile://localhost/persistent/path/to/downloads/
+```js
+// !! Assumes variable fileURL contains a valid URL to a path on the device,
+//    for example, cdvfile://localhost/persistent/path/to/downloads/
 
-    var fileTransfer = new FileTransfer();
-    var uri = encodeURI("http://some.server.com/download.php");
+var fileTransfer = new FileTransfer();
+var uri = encodeURI("http://some.server.com/download.php");
 
-    fileTransfer.download(
-        uri,
-        fileURL,
-        function(entry) {
-            console.log("download complete: " + entry.toURL());
-        },
-        function(error) {
-            console.log("download error source " + error.source);
-            console.log("download error target " + error.target);
-            console.log("upload error code" + error.code);
-        },
-        false,
-        {
-            headers: {
-                "Authorization": "Basic dGVzdHVzZXJuYW1lOnRlc3RwYXNzd29yZA=="
-            }
+fileTransfer.download(
+    uri,
+    fileURL,
+    function(entry) {
+        console.log("download complete: " + entry.toURL());
+    },
+    function(error) {
+        console.log("download error source " + error.source);
+        console.log("download error target " + error.target);
+        console.log("upload error code" + error.code);
+    },
+    false,
+    {
+        headers: {
+            "Authorization": "Basic dGVzdHVzZXJuYW1lOnRlc3RwYXNzd29yZA=="
         }
-    );
+    }
+);
+```
 
 ### WP8 Quirks
 
@@ -247,29 +257,30 @@ Aborts an in-progress transfer. The onerror callback is passed a FileTransferErr
 
 ### Example
 
-    // !! Assumes variable fileURL contains a valid URL to a text file on the device,
-    //    for example, cdvfile://localhost/persistent/path/to/file.txt
+```js
+// !! Assumes variable fileURL contains a valid URL to a text file on the device,
+//    for example, cdvfile://localhost/persistent/path/to/file.txt
 
-    var win = function(r) {
-        console.log("Should not be called.");
-    }
+var win = function(r) {
+    console.log("Should not be called.");
+}
 
-    var fail = function(error) {
-        // error.code == FileTransferError.ABORT_ERR
-        alert("An error has occurred: Code = " + error.code);
-        console.log("upload error source " + error.source);
-        console.log("upload error target " + error.target);
-    }
+var fail = function(error) {
+    // error.code == FileTransferError.ABORT_ERR
+    alert("An error has occurred: Code = " + error.code);
+    console.log("upload error source " + error.source);
+    console.log("upload error target " + error.target);
+}
 
-    var options = new FileUploadOptions();
-    options.fileKey="file";
-    options.fileName="myphoto.jpg";
-    options.mimeType="image/jpeg";
+var options = new FileUploadOptions();
+options.fileKey="file";
+options.fileName="myphoto.jpg";
+options.mimeType="image/jpeg";
 
-    var ft = new FileTransfer();
-    ft.upload(fileURL, encodeURI("http://some.server.com/upload.php"), win, fail, options);
-    ft.abort();
-
+var ft = new FileTransfer();
+ft.upload(fileURL, encodeURI("http://some.server.com/upload.php"), win, fail, options);
+ft.abort();
+```
 
 ## FileTransferError
 
