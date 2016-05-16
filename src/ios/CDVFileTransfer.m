@@ -420,6 +420,7 @@ static CFIndex WriteDataToStream(NSData* data, CFWriteStreamRef stream)
     BOOL trustAllHosts = [[command argumentAtIndex:2 withDefault:[NSNumber numberWithBool:NO]] boolValue]; // allow self-signed certs
     NSString* objectId = [command argumentAtIndex:3];
     NSDictionary* headers = [command argumentAtIndex:4 withDefault:nil];
+    NSDictionary* postData = [command argumentAtIndex:5 withDefault:nil];
 
     CDVPluginResult* result = nil;
     CDVFileTransferError errorCode = 0;
@@ -457,6 +458,20 @@ static CFIndex WriteDataToStream(NSData* data, CFWriteStreamRef stream)
 
     NSMutableURLRequest* req = [NSMutableURLRequest requestWithURL:sourceURL];
     [self applyRequestHeaders:headers toRequest:req];
+    
+    if(postData){
+        [req setHTTPMethod: @"POST"];
+        NSError *error;
+        
+        NSData* jsondata = [NSJSONSerialization dataWithJSONObject:postData
+                                                           options:NSJSONWritingPrettyPrinted
+                                                             error:&error];
+        
+        //[req setValue:@"application/json" forHTTPHeaderField:@"Content-type"];
+        //[req setValue:@"application/json" forHTTPHeaderField:@"Accept"];
+        [req setHTTPMethod:@"POST"];
+        [req setHTTPBody:jsondata];
+    }
 
     CDVFileTransferDelegate* delegate = [[CDVFileTransferDelegate alloc] init];
     delegate.command = self;
