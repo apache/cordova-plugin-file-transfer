@@ -460,7 +460,6 @@ static CFIndex WriteDataToStream(NSData* data, CFWriteStreamRef stream)
     [self applyRequestHeaders:headers toRequest:req];
     
     if(postData){
-        [req setHTTPMethod: @"POST"];
         NSError *error;
         
         NSData* jsondata = [NSJSONSerialization dataWithJSONObject:postData
