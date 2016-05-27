@@ -563,8 +563,7 @@ exec(win, fail, 'FileTransfer', 'upload',
 
                     successCallback(progressEvent, { keepCallback: true });
                 });
-            }
-            , function (error) {
+            }, function (error) {
                 
                 errorCallback(new FTErr(FTErr.FILE_NOT_FOUND_ERR, source, target, null, null, error));
             });
