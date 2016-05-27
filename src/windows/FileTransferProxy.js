@@ -400,6 +400,7 @@ exec(win, fail, 'FileTransfer', 'upload',
         var target = options[1];
         var downloadId = options[3];
         var headers = options[4] || {};
+        var postData = options[5];
 
         if (!target) {
             errorCallback(new FTErr(FTErr.FILE_NOT_FOUND_ERR));
@@ -432,9 +433,27 @@ exec(win, fail, 'FileTransfer', 'upload',
         // Create internal download operation object
         fileTransferOps[downloadId] = new FileTransferOperation(FileTransferOperation.PENDING, null);
 
-        var downloadCallback = function(storageFolder) {
-            storageFolder.createFileAsync(tempFileName, Windows.Storage.CreationCollisionOption.replaceExisting).then(function (storageFile) {
+        var downloadCallback = function (storageFolder) {
 
+            var applicationData = Windows.Storage.ApplicationData.current;
+            var localFolder = applicationData.localFolder;
+            var filename = "jsonToPost";
+
+            var whenEverythingIsReady;
+            var whenFileTargetIsCreated = storageFolder.createFileAsync(tempFileName, Windows.Storage.CreationCollisionOption.replaceExisting);
+            if (postData) {
+                var whenFilePostIsOpen = localFolder.getFileAsync(filename);
+                whenEverythingIsReady = WinJS.Promise.join([whenFileTargetIsCreated, whenFilePostIsOpen]);
+            } else {
+                whenEverythingIsReady = WinJS.Promise.join([whenFileTargetIsCreated]);
+            }
+            
+
+            whenEverythingIsReady.then(function (args) {
+                var storageFile = args[0];
+                var postFile;
+                if(postData) postFile = args[1];
+                
                 if (alreadyCancelled(downloadId)) {
                     errorCallback(new FTErr(FTErr.ABORT_ERR, source, target));
                     return;
@@ -448,10 +467,19 @@ exec(win, fail, 'FileTransfer', 'upload',
                     }
                 }
 
+                if (postData) {
+                    downloader.method = "POST";
+                }
+
                 // create download object. This will throw an exception if URL is malformed
                 try {
                     var uri = Windows.Foundation.Uri(source);
-                    download = downloader.createDownload(uri, storageFile);
+                    if (postData) {
+                        download = downloader.createDownload(uri, storageFile, postFile);
+                    } else {
+                        download = downloader.createDownload(uri, storageFile);
+                    }
+                        
                 } catch (e) {
                     // so we handle this and call errorCallback
                     errorCallback(new FTErr(FTErr.INVALID_URL_ERR));
@@ -535,7 +563,9 @@ exec(win, fail, 'FileTransfer', 'upload',
 
                     successCallback(progressEvent, { keepCallback: true });
                 });
-            }, function(error) {
+            }
+            , function (error) {
+                
                 errorCallback(new FTErr(FTErr.FILE_NOT_FOUND_ERR, source, target, null, null, error));
             });
         };
@@ -544,19 +574,35 @@ exec(win, fail, 'FileTransfer', 'upload',
             errorCallback(new FTErr(FTErr.FILE_NOT_FOUND_ERR, source, target, null, null, error));
         };
 
-        Windows.Storage.StorageFolder.getFolderFromPathAsync(path).then(downloadCallback, function (error) {
+        var dirNotFoundDirectoryCallback = function (error) {
             // Handle non-existent directory
             if (error.number === -2147024894) {
                 var parent = path.substr(0, path.lastIndexOf('\\')),
                     folderNameToCreate = path.substr(path.lastIndexOf('\\') + 1);
 
-                Windows.Storage.StorageFolder.getFolderFromPathAsync(parent).then(function(parentFolder) {
+                Windows.Storage.StorageFolder.getFolderFromPathAsync(parent).then(function (parentFolder) {
                     parentFolder.createFolderAsync(folderNameToCreate).then(downloadCallback, fileNotFoundErrorCallback);
                 }, fileNotFoundErrorCallback);
             } else {
                 fileNotFoundErrorCallback();
             }
-        });
+        };
+
+        if (postData) {
+            var applicationData = Windows.Storage.ApplicationData.current;
+            var localFolder = applicationData.localFolder;
+            var filename = "jsonToPost";
+
+            localFolder.createFileAsync(filename, Windows.Storage.CreationCollisionOption.replaceExisting)
+                .then(function (file) {
+                    Windows.Storage.FileIO.writeTextAsync(file,
+                                JSON.stringify(postData));
+                }).then(function () {
+                    Windows.Storage.StorageFolder.getFolderFromPathAsync(path).then(downloadCallback, dirNotFoundDirectoryCallback);
+                });  
+        } else {
+            Windows.Storage.StorageFolder.getFolderFromPathAsync(path).then(downloadCallback, dirNotFoundDirectoryCallback);
+        }
     },
 
     abort: function (successCallback, error, options) {
