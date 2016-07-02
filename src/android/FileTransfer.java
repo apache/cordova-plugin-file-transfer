@@ -48,10 +48,10 @@ import javax.net.ssl.SSLSocketFactory;
 import javax.net.ssl.TrustManager;
 import javax.net.ssl.X509TrustManager;
 
+import org.apache.cordova.Config;
 import org.apache.cordova.CallbackContext;
 import org.apache.cordova.CordovaPlugin;
 import org.apache.cordova.CordovaResourceApi;
-import org.apache.cordova.PermissionHelper;
 import org.apache.cordova.CordovaResourceApi.OpenForReadResult;
 import org.apache.cordova.PluginManager;
 import org.apache.cordova.PluginResult;
@@ -61,8 +61,6 @@ import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
 
-import android.Manifest;
-import android.content.pm.PackageManager;
 import android.net.Uri;
 import android.os.Build;
 import android.util.Log;
@@ -80,18 +78,9 @@ public class FileTransfer extends CordovaPlugin {
     public static int CONNECTION_ERR = 3;
     public static int ABORTED_ERR = 4;
     public static int NOT_MODIFIED_ERR = 5;
-    public static int PERMISSION_DENIED_ERR = 6;
 
     private static HashMap<String, RequestContext> activeRequests = new HashMap<String, RequestContext>();
     private static final int MAX_BUFFER_SIZE = 16 * 1024;
-    
-    private final int PERMISSIONS_REQUEST_ID=1;
-    private String sourceStore;
-    private String targetStore;
-    private JSONArray argsStore;
-    private Boolean isDownload=true;
-    private CallbackContext callbackContextStore;
-    protected final static String[] permissions = { Manifest.permission.WRITE_EXTERNAL_STORAGE };
 
     private static final class RequestContext {
         String source;
@@ -187,28 +176,13 @@ public class FileTransfer extends CordovaPlugin {
     @Override
     public boolean execute(String action, JSONArray args, final CallbackContext callbackContext) throws JSONException {
         if (action.equals("upload") || action.equals("download")) {
-        	boolean permissionHas=true;
-        	if(!PermissionHelper.hasPermission(this, permissions[0])){
-        		permissionHas=false;
-        	}
             String source = args.getString(0);
             String target = args.getString(1);
-            if(permissionHas){
-                if (action.equals("upload")) {
-                    upload(source, target, args, callbackContext);
-                } else {
-                    download(source, target, args, callbackContext);
-                }	
-            }
-            else{
-            	if(action.equals("upload")){
-            	this.isDownload=false;	
-            	}
-             	this.sourceStore=source;
-            	this.targetStore=target;
-            	this.argsStore=args;
-            	this.callbackContextStore=callbackContext;
-            	PermissionHelper.requestPermission(this, PERMISSIONS_REQUEST_ID, permissions[0]);
+
+            if (action.equals("upload")) {
+                upload(source, target, args, callbackContext);
+            } else {
+                download(source, target, args, callbackContext);
             }
             return true;
         } else if (action.equals("abort")) {
@@ -821,6 +795,7 @@ public class FileTransfer extends CordovaPlugin {
         synchronized (activeRequests) {
             activeRequests.put(objectId, context);
         }
+
         cordova.getThreadPool().execute(new Runnable() {
             public void run() {
                 if (context.aborted) {
@@ -1045,25 +1020,5 @@ public class FileTransfer extends CordovaPlugin {
                 }
             });
         }
-    }
-    public void onRequestPermissionResult(int requestCode, String[] permissions, int[] grantResults)
-    		throws JSONException {
-			for (int r : grantResults) {
-				if (r == PackageManager.PERMISSION_DENIED) {
-					JSONObject error = createFileTransferError(PERMISSION_DENIED_ERR, this.sourceStore, this.targetStore, "Permision denied", null, null);
-					this.callbackContextStore.sendPluginResult(new PluginResult(PluginResult.Status.ERROR, error));
-					return;
-				}
-			}
-			switch (requestCode) {
-			case PERMISSIONS_REQUEST_ID:
-				if(this.isDownload){
-					download(this.sourceStore, this.targetStore, this.argsStore, this.callbackContextStore);
-				}
-				else{
-					upload(this.sourceStore, this.targetStore, this.argsStore, this.callbackContextStore);
-				}
-				break;
-			}
     }
 }
