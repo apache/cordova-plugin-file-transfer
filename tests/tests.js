@@ -784,9 +784,6 @@ exports.defineAutoTests = function () {
                         return;
                     }
 
-                    var imageURL = "http://apache.org/images/feather-small.gif";
-                    var lastModified = new Date();
-
                     var downloadFail = function (error) {
                         expect(error.http_status).toBe(304);
                         expect(error.code).toBe(FileTransferError.NOT_MODIFIED_ERR);
@@ -798,12 +795,7 @@ exports.defineAutoTests = function () {
                         done();
                     };
 
-                    this.transfer.download(imageURL + "?q=" + lastModified.getTime(), this.localFilePath, downloadWin, downloadFail, null,
-                        {
-                            headers: {
-                                "If-Modified-Since": lastModified.toUTCString()
-                            }
-                        });
+                    this.transfer.download(SERVER + '/304', this.localFilePath, downloadWin, downloadFail);
                 }, DOWNLOAD_TIMEOUT);
 
                 it("filetransfer.spec.35 304 should not result in the deletion of a cached file", function (done) {
@@ -813,8 +805,6 @@ exports.defineAutoTests = function () {
                         return;
                     }
 
-                    var imageURL = "http://apache.org/images/feather-small.gif";
-                    var lastModified = new Date();
                     var specContext = this;
 
                     var fileOperationFail = function() {
@@ -829,11 +819,6 @@ exports.defineAutoTests = function () {
 
                     var httpWin =  function() {
                         unexpectedCallbacks.httpWin();
-                        done();
-                    };
-
-                    var httpFail =  function() {
-                        unexpectedCallbacks.httpFail();
                         done();
                     };
 
@@ -869,17 +854,10 @@ exports.defineAutoTests = function () {
                         );
                     };
 
-                    // Adding parameters to the requests to avoid caching on iOS, which leads to 200
-                    // instead of 304 in result of the second request. (a similar issue is described in CB-8606, CB-10088)
-                    specContext.transfer.download(imageURL + "?q=" + lastModified.getTime(), specContext.localFilePath, function () {
-                        specContext.transfer.download(imageURL + "?q=" + (lastModified.getTime() + 1), specContext.localFilePath, httpWin, downloadFail, null,
-                        {
-                            headers: {
-                                "If-Modified-Since": lastModified.toUTCString()
-                            }
-                        });
-                    }, httpFail);
-                }, DOWNLOAD_TIMEOUT * 2);
+                    writeFile(specContext.root, specContext.fileName, 'Temp data', function () {
+                        specContext.transfer.download(SERVER + '/304', specContext.localFilePath, httpWin, downloadFail);
+                    }, fileOperationFail);
+                }, DOWNLOAD_TIMEOUT);
 
                 it("filetransfer.spec.36 should handle non-UTF8 encoded download response", function (done) {
 
