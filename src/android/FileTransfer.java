@@ -305,11 +305,6 @@ public class FileTransfer extends CordovaPlugin {
         Log.d(LOG_TAG, "httpMethod: " + httpMethod);
 
         final Uri targetUri = resourceApi.remapUri(Uri.parse(target));
-        // Accept a path or a URI for the source.
-        Uri tmpSrc = Uri.parse(source);
-        final Uri sourceUri = resourceApi.remapUri(
-            tmpSrc.getScheme() != null ? tmpSrc : Uri.fromFile(new File(source)));
-
         int uriType = CordovaResourceApi.getUriType(targetUri);
         final boolean useHttps = uriType == CordovaResourceApi.URI_TYPE_HTTPS;
         if (uriType != CordovaResourceApi.URI_TYPE_HTTP && !useHttps) {
@@ -329,6 +324,13 @@ public class FileTransfer extends CordovaPlugin {
                 if (context.aborted) {
                     return;
                 }
+
+
+                // Accept a path or a URI for the source.
+                Uri tmpSrc = Uri.parse(source);
+                Uri sourceUri = resourceApi.remapUri(
+                        tmpSrc.getScheme() != null ? tmpSrc : Uri.fromFile(new File(source)));
+
                 HttpURLConnection conn = null;
                 HostnameVerifier oldHostnameVerifier = null;
                 SSLSocketFactory oldSocketFactory = null;
@@ -737,11 +739,6 @@ public class FileTransfer extends CordovaPlugin {
         final JSONObject headers = args.optJSONObject(4);
 
         final Uri sourceUri = resourceApi.remapUri(Uri.parse(source));
-        // Accept a path or a URI for the source.
-        Uri tmpTarget = Uri.parse(target);
-        final Uri targetUri = resourceApi.remapUri(
-            tmpTarget.getScheme() != null ? tmpTarget : Uri.fromFile(new File(target)));
-
         int uriType = CordovaResourceApi.getUriType(sourceUri);
         final boolean useHttps = uriType == CordovaResourceApi.URI_TYPE_HTTPS;
         final boolean isLocalTransfer = !useHttps && uriType != CordovaResourceApi.URI_TYPE_HTTP;
@@ -801,6 +798,11 @@ public class FileTransfer extends CordovaPlugin {
                 if (context.aborted) {
                     return;
                 }
+
+                // Accept a path or a URI for the source.
+                Uri tmpTarget = Uri.parse(target);
+                Uri targetUri = resourceApi.remapUri(
+                        tmpTarget.getScheme() != null ? tmpTarget : Uri.fromFile(new File(target)));
                 HttpURLConnection connection = null;
                 HostnameVerifier oldHostnameVerifier = null;
                 SSLSocketFactory oldSocketFactory = null;
