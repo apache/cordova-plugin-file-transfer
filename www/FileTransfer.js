@@ -101,7 +101,7 @@ var FileTransfer = function() {
 * @param trustAllHosts {Boolean} Optional trust all hosts (e.g. for self-signed certs), defaults to false
 */
 FileTransfer.prototype.upload = function(filePath, server, successCallback, errorCallback, options, trustAllHosts) {
-    argscheck.checkArgs('ssFFO*', 'FileTransfer.upload', arguments);
+     argscheck.checkArgs('*sFFO*', 'FileTransfer.upload', arguments);
     // check for options
     var fileKey = null;
     var fileName = null;
@@ -140,6 +140,20 @@ FileTransfer.prototype.upload = function(filePath, server, successCallback, erro
             params = {};
         }
     }
+    var pathArray=[];
+               if(typeof filePath==='object'){
+               filePath.forEach(function(path){
+                                pathArray.push({
+                                              path:path,
+                                              fileName:path.substr(path.lastIndexOf('/')+1)
+                                              });
+                                })
+               }else{
+               pathArray.push({
+               path:filePath,
+                             fileName:filePath.substr(filePath.lastIndexOf('/')+1)
+               })
+               }
 
     if (cordova.platformId === "windowsphone") {
         headers = headers && convertHeadersToArray(headers);
@@ -163,7 +177,7 @@ FileTransfer.prototype.upload = function(filePath, server, successCallback, erro
             }
         }
     };
-    exec(win, fail, 'FileTransfer', 'upload', [filePath, server, fileKey, fileName, mimeType, params, trustAllHosts, chunkedMode, headers, this._id, httpMethod]);
+    exec(win, fail, 'FileTransfer', 'upload', [pathArray, server, fileKey, fileName, mimeType, params, trustAllHosts, chunkedMode, headers, this._id, httpMethod]);
 };
 
 /**
