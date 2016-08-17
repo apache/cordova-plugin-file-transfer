@@ -334,6 +334,7 @@ public class FileTransfer extends CordovaPlugin {
                 SSLSocketFactory oldSocketFactory = null;
                 int totalBytes = 0;
                 int fixedLength = -1;
+                int filesize = -1;
                 try {
                     // Create return object
                     FileUploadResult result = new FileUploadResult();
@@ -382,6 +383,13 @@ public class FileTransfer extends CordovaPlugin {
                         addHeadersToRequest(conn, headers);
                     }
 
+                    // Get a input stream of the file on the phone
+                    OpenForReadResult readResult = resourceApi.openForRead(sourceUri);
+
+                    if (readResult.length >= 0) {
+                        filesize = (int)readResult.length;
+                    }
+
                     /*
                         * Store the non-file portions of the multipart data as a string, so that we can add it
                         * to the contentSize, since it is part of the body of the HTTP request.
@@ -406,23 +414,25 @@ public class FileTransfer extends CordovaPlugin {
                     beforeData.append(LINE_START).append(BOUNDARY).append(LINE_END);
                     beforeData.append("Content-Disposition: form-data; name=\"").append(fileKey).append("\";");
                     beforeData.append(" filename=\"").append(fileName).append('"').append(LINE_END);
+
+                    if(filesize > -1)
+                        beforeData.append("Content-Length: ").append(filesize).append(LINE_END);
+
                     beforeData.append("Content-Type: ").append(mimeType).append(LINE_END).append(LINE_END);
                     byte[] beforeDataBytes = beforeData.toString().getBytes("UTF-8");
                     byte[] tailParamsBytes = (LINE_END + LINE_START + BOUNDARY + LINE_START + LINE_END).getBytes("UTF-8");
-
-
-                    // Get a input stream of the file on the phone
-                    OpenForReadResult readResult = resourceApi.openForRead(sourceUri);
-
                     int stringLength = beforeDataBytes.length + tailParamsBytes.length;
-                    if (readResult.length >= 0) {
-                        fixedLength = (int)readResult.length;
-                        if (multipartFormUpload)
-                            fixedLength += stringLength;
-                        progress.setLengthComputable(true);
-                        progress.setTotal(fixedLength);
+
+                    if (multipartFormUpload) {
+                        fixedLength = filesize + stringLength;
                     }
+
                     Log.d(LOG_TAG, "Content Length: " + fixedLength);
+
+                    progress.setLengthComputable(true);
+                    progress.setTotal(fixedLength);
+
+
                     // setFixedLengthStreamingMode causes and OutOfMemoryException on pre-Froyo devices.
                     // http://code.google.com/p/android/issues/detail?id=3164
                     // It also causes OOM if HTTPS is used, even on newer devices.
@@ -686,7 +696,7 @@ public class FileTransfer extends CordovaPlugin {
             if(body != null)
             {
                 error.put("body", body);
-            }   
+            }
             if (httpStatus != null) {
                 error.put("http_status", httpStatus);
             }
