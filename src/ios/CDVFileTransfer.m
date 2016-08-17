@@ -44,11 +44,14 @@
 @end
 
 // Buffer size to use for streaming uploads.
-static const NSUInteger kStreamBufferSize = 32768;
+static const NSUInteger kStreamBufferSize = 65536; //64 kb
 // Magic value within the options dict used to set a cookie.
 NSString* const kOptionsKeyCookie = @"__cookie";
 // Form boundary for multi-part requests.
-NSString* const kFormBoundary = @"+++++org.apache.cordova.formBoundary";
+
+NSString* const  LINE_START = @"--";
+NSString* const  LINE_END = @"\r\n";
+NSString* const  BOUNDARY =  @"+++++";
 
 // Writes the given data to the stream in a blocking way.
 // If successful, returns bytesToWrite.
@@ -69,11 +72,13 @@ static CFIndex WriteDataToStream(NSData* data, CFWriteStreamRef stream)
             NSLog(@"WriteStreamError domain: %ld error: %ld", error.domain, (long)error.error);
             return result;
         } else if (result == 0) {
+            NSLog(@"result: %ld", result);
             return result;
         }
+        NSLog(@"totalBytesWritten: %lld", totalBytesWritten);
         totalBytesWritten += result;
     }
-
+    NSLog(@"totalBytesWritten: %lld", totalBytesWritten);
     return totalBytesWritten;
 }
 
@@ -142,7 +147,7 @@ static CFIndex WriteDataToStream(NSData* data, CFWriteStreamRef stream)
     // thus debug and chunkedMode are the 6th and 7th arguments
     NSString* target = [command argumentAtIndex:0];
     NSString* server = [command argumentAtIndex:1];
-    NSString* fileKey = [command argumentAtIndex:2 withDefault:@"file"];
+    NSString* fileKey = [command argumentAtIndex:2 withDefault:@"file"];    // file key as metadata
     NSString* fileName = [command argumentAtIndex:3 withDefault:@"image.jpg"];
     NSString* mimeType = [command argumentAtIndex:4 withDefault:@"image/jpeg"];
     NSDictionary* options = [command argumentAtIndex:5 withDefault:nil];
@@ -159,7 +164,7 @@ static CFIndex WriteDataToStream(NSData* data, CFWriteStreamRef stream)
     // NSURL does not accepts URLs with spaces in the path. We escape the path in order
     // to be more lenient.
     NSURL* url = [NSURL URLWithString:server];
-
+    NSLog(@"File Transfer URL %@", server);
     if (!url) {
         errorCode = INVALID_URL_ERR;
         NSLog(@"File Transfer Error: Invalid server URL %@", server);
@@ -184,45 +189,35 @@ static CFIndex WriteDataToStream(NSData* data, CFWriteStreamRef stream)
     }
 
     // if we specified a Content-Type header, don't do multipart form upload
-    BOOL multipartFormUpload = [headers objectForKey:@"Content-Type"] == nil;
+    BOOL multipartFormUpload = true; // forcing multipart is true as this branch forces to use multipart/related
     if (multipartFormUpload) {
-        NSString* contentType = [NSString stringWithFormat:@"multipart/form-data; boundary=%@", kFormBoundary];
+        NSString* contentType = [NSString stringWithFormat:@"multipart/related; boundary=%@", BOUNDARY];
         [req setValue:contentType forHTTPHeaderField:@"Content-Type"];
     }
     [self applyRequestHeaders:headers toRequest:req];
 
-    NSData* formBoundaryData = [[NSString stringWithFormat:@"--%@\r\n", kFormBoundary] dataUsingEncoding:NSUTF8StringEncoding];
     NSMutableData* postBodyBeforeFile = [NSMutableData data];
+    [postBodyBeforeFile appendData:[LINE_START dataUsingEncoding:NSUTF8StringEncoding]];
+    [postBodyBeforeFile appendData:[BOUNDARY dataUsingEncoding:NSUTF8StringEncoding]];
+    [postBodyBeforeFile appendData:[LINE_END dataUsingEncoding:NSUTF8StringEncoding]];
+    [postBodyBeforeFile appendData:[LINE_END dataUsingEncoding:NSUTF8StringEncoding]];
+    [postBodyBeforeFile appendData:[fileKey dataUsingEncoding:NSUTF8StringEncoding]];
+    [postBodyBeforeFile appendData:[LINE_END dataUsingEncoding:NSUTF8StringEncoding]];
+    [postBodyBeforeFile appendData:[LINE_START dataUsingEncoding:NSUTF8StringEncoding]];
+    [postBodyBeforeFile appendData:[BOUNDARY dataUsingEncoding:NSUTF8StringEncoding]];
+    [postBodyBeforeFile appendData:[LINE_END dataUsingEncoding:NSUTF8StringEncoding]];
+    [postBodyBeforeFile appendData:[LINE_END dataUsingEncoding:NSUTF8StringEncoding]];
 
-    for (NSString* key in options) {
-        id val = [options objectForKey:key];
-        if (!val || (val == [NSNull null]) || [key isEqualToString:kOptionsKeyCookie]) {
-            continue;
-        }
-        // if it responds to stringValue selector (eg NSNumber) get the NSString
-        if ([val respondsToSelector:@selector(stringValue)]) {
-            val = [val stringValue];
-        }
-        // finally, check whether it is a NSString (for dataUsingEncoding selector below)
-        if (![val isKindOfClass:[NSString class]]) {
-            continue;
-        }
-
-        [postBodyBeforeFile appendData:formBoundaryData];
-        [postBodyBeforeFile appendData:[[NSString stringWithFormat:@"Content-Disposition: form-data; name=\"%@\"\r\n\r\n", key] dataUsingEncoding:NSUTF8StringEncoding]];
-        [postBodyBeforeFile appendData:[val dataUsingEncoding:NSUTF8StringEncoding]];
-        [postBodyBeforeFile appendData:[@"\r\n" dataUsingEncoding : NSUTF8StringEncoding]];
-    }
-
-    [postBodyBeforeFile appendData:formBoundaryData];
-    [postBodyBeforeFile appendData:[[NSString stringWithFormat:@"Content-Disposition: form-data; name=\"%@\"; filename=\"%@\"\r\n", fileKey, fileName] dataUsingEncoding:NSUTF8StringEncoding]];
-    if (mimeType != nil) {
-        [postBodyBeforeFile appendData:[[NSString stringWithFormat:@"Content-Type: %@\r\n", mimeType] dataUsingEncoding:NSUTF8StringEncoding]];
-    }
-    [postBodyBeforeFile appendData:[[NSString stringWithFormat:@"Content-Length: %ld\r\n\r\n", (long)[fileData length]] dataUsingEncoding:NSUTF8StringEncoding]];
-
+    NSMutableData* postBodyAfterFile = [NSMutableData data];
+    [postBodyAfterFile appendData:[LINE_END dataUsingEncoding:NSUTF8StringEncoding]];
+    [postBodyAfterFile appendData:[LINE_START dataUsingEncoding:NSUTF8StringEncoding]];
+    [postBodyAfterFile appendData:[BOUNDARY dataUsingEncoding:NSUTF8StringEncoding]];
+    [postBodyAfterFile appendData:[LINE_START dataUsingEncoding:NSUTF8StringEncoding]];
+    [postBodyAfterFile appendData:[LINE_END dataUsingEncoding:NSUTF8StringEncoding]];
+    
     DLog(@"fileData length: %d", [fileData length]);
-    NSData* postBodyAfterFile = [[NSString stringWithFormat:@"\r\n--%@--\r\n", kFormBoundary] dataUsingEncoding:NSUTF8StringEncoding];
+    NSLog(@"postBodyBeforeFile: %@", [NSString stringWithUTF8String:[postBodyBeforeFile bytes]]);
+    NSLog(@"postBodyAfterFile: %@", [NSString stringWithUTF8String:[postBodyAfterFile bytes]]);
 
     long long totalPayloadLength = [fileData length];
     if (multipartFormUpload) {
@@ -240,7 +235,7 @@ static CFIndex WriteDataToStream(NSData* data, CFWriteStreamRef stream)
                 if (multipartFormUpload) {
                     NSData* chunks[] = { postBodyBeforeFile, fileData, postBodyAfterFile };
                     int numChunks = sizeof(chunks) / sizeof(chunks[0]);
-
+                    NSLog(@"numChunks: %d", numChunks);
                     for (int i = 0; i < numChunks; ++i) {
                         // Allow uploading of an empty file
                         if (chunks[i].length == 0) {
@@ -251,6 +246,7 @@ static CFIndex WriteDataToStream(NSData* data, CFWriteStreamRef stream)
                         if (result <= 0) {
                             break;
                         }
+                        NSLog(@"result: %d", result);
                     }
                 } else {
                     if (totalPayloadLength > 0) {

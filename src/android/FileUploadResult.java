@@ -30,6 +30,7 @@ public class FileUploadResult {
     private int responseCode = -1;      // HTTP response code
     private String response = null;     // HTTP response
     private String objectId = null;     // FileTransfer object id
+    private String headerLocationProp = null;     // HTTP Location header
 
     public long getBytesSent() {
         return bytesSent;
@@ -55,6 +56,14 @@ public class FileUploadResult {
         this.response = response;
     }
 
+    public String getLocationProp() {
+        return headerLocationProp;
+    }
+
+    public void setLocationProp(String headerLocationProp) {
+        this.headerLocationProp = headerLocationProp;
+    }
+
     public String getObjectId() {
         return objectId;
     }
@@ -67,6 +76,7 @@ public class FileUploadResult {
         return new JSONObject(
                 "{bytesSent:" + bytesSent +
                 ",responseCode:" + responseCode +
+                ",headers: { Location:\""  + headerLocationProp + "\"}" +
                 ",response:" + JSONObject.quote(response) +
                 ",objectId:" + JSONObject.quote(objectId) + "}");
     }
