@@ -305,10 +305,6 @@ public class FileTransfer extends CordovaPlugin {
         Log.d(LOG_TAG, "httpMethod: " + httpMethod);
 
         final Uri targetUri = resourceApi.remapUri(Uri.parse(target));
-        // Accept a path or a URI for the source.
-        Uri tmpSrc = Uri.parse(source);
-        final Uri sourceUri = resourceApi.remapUri(
-            tmpSrc.getScheme() != null ? tmpSrc : Uri.fromFile(new File(source)));
 
         int uriType = CordovaResourceApi.getUriType(targetUri);
         final boolean useHttps = uriType == CordovaResourceApi.URI_TYPE_HTTPS;
@@ -329,6 +325,14 @@ public class FileTransfer extends CordovaPlugin {
                 if (context.aborted) {
                     return;
                 }
+
+                // We should call remapUri on background thread otherwise it throws
+                // IllegalStateException when trying to remap 'cdvfile://localhost/content/...' URIs
+                // via ContentFilesystem (see https://issues.apache.org/jira/browse/CB-9022)
+                Uri tmpSrc = Uri.parse(source);
+                final Uri sourceUri = resourceApi.remapUri(
+                        tmpSrc.getScheme() != null ? tmpSrc : Uri.fromFile(new File(source)));
+
                 HttpURLConnection conn = null;
                 HostnameVerifier oldHostnameVerifier = null;
                 SSLSocketFactory oldSocketFactory = null;
@@ -686,7 +690,7 @@ public class FileTransfer extends CordovaPlugin {
             if(body != null)
             {
                 error.put("body", body);
-            }   
+            }
             if (httpStatus != null) {
                 error.put("http_status", httpStatus);
             }
