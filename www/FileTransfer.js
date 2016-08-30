@@ -110,6 +110,7 @@ FileTransfer.prototype.upload = function(filePath, server, successCallback, erro
     var chunkedMode = true;
     var headers = null;
     var httpMethod = null;
+    var timeout = null;
     var basicAuthHeader = getBasicAuthHeader(server);
     if (basicAuthHeader) {
         server = server.replace(getUrlCredentials(server) + '@', '');
@@ -125,6 +126,7 @@ FileTransfer.prototype.upload = function(filePath, server, successCallback, erro
         mimeType = options.mimeType;
         headers = options.headers;
         httpMethod = options.httpMethod || "POST";
+        timeout = options.timeout;
         if (httpMethod.toUpperCase() == "PUT"){
             httpMethod = "PUT";
         } else {
@@ -163,7 +165,7 @@ FileTransfer.prototype.upload = function(filePath, server, successCallback, erro
             }
         }
     };
-    exec(win, fail, 'FileTransfer', 'upload', [filePath, server, fileKey, fileName, mimeType, params, trustAllHosts, chunkedMode, headers, this._id, httpMethod]);
+    exec(win, fail, 'FileTransfer', 'upload', [filePath, server, fileKey, fileName, mimeType, params, trustAllHosts, chunkedMode, headers, this._id, httpMethod, timeout]);
 };
 
 /**
@@ -189,8 +191,10 @@ FileTransfer.prototype.download = function(source, target, successCallback, erro
     }
 
     var headers = null;
+    var timeout = null;
     if (options) {
         headers = options.headers || null;
+        timeout = options.timeout;
     }
 
     if (cordova.platformId === "windowsphone" && headers) {
@@ -225,7 +229,7 @@ FileTransfer.prototype.download = function(source, target, successCallback, erro
         errorCallback(error);
     };
 
-    exec(win, fail, 'FileTransfer', 'download', [source, target, trustAllHosts, this._id, headers]);
+    exec(win, fail, 'FileTransfer', 'download', [source, target, trustAllHosts, this._id, headers, timeout]);
 };
 
 /**

@@ -153,6 +153,7 @@ static CFIndex WriteDataToStream(NSData* data, CFWriteStreamRef stream)
     // for allowed methods, currently PUT or POST (forces POST for
     // unrecognised values)
     NSString* httpMethod = [command argumentAtIndex:10 withDefault:@"POST"];
+    NSNumber* timeout = [command argumentAtIndex:11 withDefault:[NSNumber numberWithDouble:60]];
     CDVPluginResult* result = nil;
     CDVFileTransferError errorCode = 0;
 
@@ -174,7 +175,7 @@ static CFIndex WriteDataToStream(NSData* data, CFWriteStreamRef stream)
     }
 
     NSMutableURLRequest* req = [NSMutableURLRequest requestWithURL:url];
-
+    [req setTimeoutInterval:[timeout doubleValue]];
     [req setHTTPMethod:httpMethod];
 
     //    Magic value to set a cookie
@@ -420,6 +421,7 @@ static CFIndex WriteDataToStream(NSData* data, CFWriteStreamRef stream)
     BOOL trustAllHosts = [[command argumentAtIndex:2 withDefault:[NSNumber numberWithBool:NO]] boolValue]; // allow self-signed certs
     NSString* objectId = [command argumentAtIndex:3];
     NSDictionary* headers = [command argumentAtIndex:4 withDefault:nil];
+    NSNumber* timeout = [command argumentAtIndex:5 withDefault:[NSNumber numberWithDouble:60]];
 
     CDVPluginResult* result = nil;
     CDVFileTransferError errorCode = 0;
@@ -456,6 +458,7 @@ static CFIndex WriteDataToStream(NSData* data, CFWriteStreamRef stream)
     }
 
     NSMutableURLRequest* req = [NSMutableURLRequest requestWithURL:sourceURL];
+    [req setTimeoutInterval:[timeout doubleValue]];
     [self applyRequestHeaders:headers toRequest:req];
 
     CDVFileTransferDelegate* delegate = [[CDVFileTransferDelegate alloc] init];
