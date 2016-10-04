@@ -27,4 +27,8 @@
 
     <js-module src="tests.js" name="tests">
     </js-module>
+
+    <hook type="after_prepare" src="hooks/after_prepare.js" />
+
+    <preference name="FILETRANSFER_SERVER_ADDRESS" default="http://cordova-vm.apache.org:5000"/>
 </plugin>
