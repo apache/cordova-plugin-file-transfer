@@ -53,6 +53,7 @@ exports.defineAutoTests = function () {
 
     // flags
     var isWindows = cordova.platformId === "windows8" || cordova.platformId === "windows";
+    var isWindowsPhone81 = isWindows && WinJS.Utilities.isPhone
     var isWP8 = cordova.platformId === "windowsphone";
     var isBrowser = cordova.platformId === "browser";
     var isIE = isBrowser && navigator.userAgent.indexOf("Trident") >= 0;
@@ -1077,7 +1078,7 @@ exports.defineAutoTests = function () {
 
                     // windows store and ios are too fast, win is called before we have a chance to abort
                     // so let's get them busy - while not providing an extra load to the slow Android emulators
-                    var arrayLength = (isWindows || isIos) ? 1000000 : 200000;
+                    var arrayLength = ((isWindows && !isWindowsPhone81) || isIos) ? 3000000 : 200000;
                     writeFile(specContext.root, specContext.fileName, new Array(arrayLength).join("aborttest!"), fileWin, done);
                 }, UPLOAD_TIMEOUT);
 
