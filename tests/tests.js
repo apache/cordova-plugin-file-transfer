@@ -1075,7 +1075,10 @@ exports.defineAutoTests = function () {
                         }, GRACE_TIME_DELTA);
                     };
 
-                    writeFile(specContext.root, specContext.fileName, new Array(200000).join("aborttest!"), fileWin, done);
+                    // windows store and ios are too fast, win is called before we have a chance to abort
+                    // so let's get them busy - while not providing an extra load to the slow Android emulators
+                    var arrayLength = (isWindows || isIos) ? 1000000 : 200000;
+                    writeFile(specContext.root, specContext.fileName, new Array(arrayLength).join("aborttest!"), fileWin, done);
                 }, UPLOAD_TIMEOUT);
 
                 it("filetransfer.spec.22 should get http status and body on failure", function (done) {
