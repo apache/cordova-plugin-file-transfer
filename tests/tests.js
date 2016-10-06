@@ -19,7 +19,7 @@
 *
 */
 
-/* global exports, cordova, FileTransfer, FileTransferError, FileUploadOptions, LocalFileSystem */
+/* global exports, cordova, FileTransfer, FileTransferError, FileUploadOptions, LocalFileSystem, WinJS */
 
 /* jshint jasmine: true */
 
@@ -53,7 +53,7 @@ exports.defineAutoTests = function () {
 
     // flags
     var isWindows = cordova.platformId === "windows8" || cordova.platformId === "windows";
-    var isWindowsPhone81 = isWindows && WinJS.Utilities.isPhone
+    var isWindowsPhone81 = isWindows && WinJS.Utilities.isPhone;
     var isWP8 = cordova.platformId === "windowsphone";
     var isBrowser = cordova.platformId === "browser";
     var isIE = isBrowser && navigator.userAgent.indexOf("Trident") >= 0;
