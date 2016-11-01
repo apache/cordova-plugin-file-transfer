@@ -29,6 +29,7 @@ module.exports = function(context) {
         // get the file transfer server address from the specified variables
         var fileTransferServerAddress = getFileTransferServerAddress(context) || getDefaultFileTransferServerAddress(context);
         console.log('Tests will use the following file transfer server address: ' + fileTransferServerAddress);
+        console.log('If you\'re using cordova@6.3.1 and the above address is wrong at "platform add", don\'t worry, it\'ll fix itself on "cordova run" or "cordova prepare".');
 
         // pass it to the tests
         writeFileTransferOptions(fileTransferServerAddress, context);
@@ -51,7 +52,11 @@ module.exports = function(context) {
         var platformJsonFile = path.join(context.opts.projectRoot, 'platforms', context.opts.platforms[0], context.opts.platforms[0] + '.json');
         var platformJson = JSON.parse(fs.readFileSync(platformJsonFile, 'utf8'));
 
-        return platformJson.installed_plugins['cordova-plugin-file-transfer-tests'].FILETRANSFER_SERVER_ADDRESS;
+        if (platformJson && platformJson.installed_plugins && platformJson.installed_plugins['cordova-plugin-file-transfer-tests'] && platformJson.installed_plugins['cordova-plugin-file-transfer-tests'].FILETRANSFER_SERVER_ADDRESS) {
+            return platformJson.installed_plugins['cordova-plugin-file-transfer-tests'].FILETRANSFER_SERVER_ADDRESS;
+        } else {
+            return null;
+        }
     }
 
     function writeFileTransferOptions(address, context) {
