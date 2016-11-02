@@ -221,7 +221,7 @@ static CFIndex WriteDataToStream(NSData* data, CFWriteStreamRef stream)
     }
     [postBodyBeforeFile appendData:[[NSString stringWithFormat:@"Content-Length: %ld\r\n\r\n", (long)[fileData length]] dataUsingEncoding:NSUTF8StringEncoding]];
 
-    DLog(@"fileData length: %d", [fileData length]);
+    DLog(@"fileData length: %ld", [fileData length]);
     NSData* postBodyAfterFile = [[NSString stringWithFormat:@"\r\n--%@--\r\n", kFormBoundary] dataUsingEncoding:NSUTF8StringEncoding];
 
     long long totalPayloadLength = [fileData length];
