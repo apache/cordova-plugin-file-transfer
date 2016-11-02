@@ -62,8 +62,10 @@ import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
 
+import android.content.Intent;
 import android.net.Uri;
 import android.os.Build;
+import android.os.Environment;
 import android.webkit.CookieManager;
 
 public class FileTransfer extends CordovaPlugin {
@@ -914,6 +916,11 @@ public class FileTransfer extends CordovaPlugin {
 
                         LOG.d(LOG_TAG, "Saved file: " + target);
 
+                        String path = targetUri.getPath();
+                        if( isPublicDirectory( path ) ) {
+                            Intent intent = new Intent(Intent.ACTION_MEDIA_SCANNER_SCAN_FILE, targetUri);
+                            cordova.getActivity().sendBroadcast(intent);
+                        }
 
                         // create FileEntry object
                         Class webViewClass = webView.getClass();
@@ -1024,5 +1031,25 @@ public class FileTransfer extends CordovaPlugin {
                 }
             });
         }
+    }
+
+    /**
+     * Checks if path belongs to a public directory described by cordova-plugin-file
+     * https://github.com/apache/cordova-plugin-file#android-file-system-layout
+     * @param absolutePath
+     * @return boolean
+     */
+    private boolean isPublicDirectory(String absolutePath) {
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
+            // Lollipop has a bug where SD cards are null.
+            for (File f : webView.getContext().getExternalMediaDirs()) {
+                if(f != null && absolutePath.startsWith(f.getAbsolutePath())) {
+                    return true;
+                }
+            }
+        }
+
+        String extPath = Environment.getExternalStorageDirectory().getAbsolutePath();
+        return absolutePath.startsWith(extPath);
     }
 }
