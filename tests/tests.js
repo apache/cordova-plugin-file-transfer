@@ -58,6 +58,7 @@ exports.defineAutoTests = function () {
     var isBrowser = cordova.platformId === "browser";
     var isIE = isBrowser && navigator.userAgent.indexOf("Trident") >= 0;
     var isIos = cordova.platformId === "ios";
+    var isIot = cordova.platformId === "android" && navigator.userAgent.indexOf("iot") >= 0;
 
     // tests
     describe("FileTransferError", function () {
@@ -1078,7 +1079,7 @@ exports.defineAutoTests = function () {
 
                     // windows store and ios are too fast, win is called before we have a chance to abort
                     // so let's get them busy - while not providing an extra load to the slow Android emulators
-                    var arrayLength = ((isWindows && !isWindowsPhone81) || isIos) ? 3000000 : 200000;
+                    var arrayLength = ((isWindows && !isWindowsPhone81) || isIos) ? 3000000 : isIot ? 150000 : 200000;
                     writeFile(specContext.root, specContext.fileName, new Array(arrayLength).join("aborttest!"), fileWin, done);
                 }, UPLOAD_TIMEOUT);
 
