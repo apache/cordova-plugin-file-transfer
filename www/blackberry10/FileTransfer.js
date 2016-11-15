@@ -100,7 +100,9 @@ FileTransfer.prototype.upload = function(filePath, server, successCallback, erro
         mimeType = options.mimeType;
         headers = options.headers;
         httpMethod = options.httpMethod || "POST";
-        if (httpMethod.toUpperCase() == "PUT"){
+        if (httpMethod.toUpperCase() == "PATCH") {
+            httpMethod = "PATCH";
+        } else if (httpMethod.toUpperCase() == "PUT") {
             httpMethod = "PUT";
         } else {
             httpMethod = "POST";
