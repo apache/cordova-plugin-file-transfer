@@ -1506,7 +1506,9 @@ exports.defineAutoTests = function () {
                             obj = JSON.parse(uploadResult.response);
 
                             if (specContext.uploadOptions.chunkedMode) {
-                                expect(obj["content-length"]).not.toBeDefined("Expected Content-Length not to be defined");
+                                if (!isIos) {
+                                    expect(obj["content-length"]).not.toBeDefined("Expected Content-Length not to be defined");
+                                }
                                 expect(obj["transfer-encoding"].toLowerCase()).toEqual("chunked");
                             } else {
                                 expect(obj["content-length"]).toBeDefined("Expected Content-Length to be defined");

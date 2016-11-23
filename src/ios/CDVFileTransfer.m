@@ -229,6 +229,8 @@ static CFIndex WriteDataToStream(NSData* data, CFWriteStreamRef stream)
         totalPayloadLength += [postBodyBeforeFile length] + [postBodyAfterFile length];
     }
 
+    [req setValue:[[NSNumber numberWithLongLong:totalPayloadLength] stringValue] forHTTPHeaderField:@"Content-Length"];
+
     if (chunkedMode) {
         CFReadStreamRef readStream = NULL;
         CFWriteStreamRef writeStream = NULL;
@@ -266,7 +268,6 @@ static CFIndex WriteDataToStream(NSData* data, CFWriteStreamRef stream)
             CFRelease(writeStream);
         }];
     } else {
-        [req setValue:[[NSNumber numberWithLongLong:totalPayloadLength] stringValue] forHTTPHeaderField:@"Content-Length"];
         if (multipartFormUpload) {
             [postBodyBeforeFile appendData:fileData];
             [postBodyBeforeFile appendData:postBodyAfterFile];
@@ -814,7 +815,7 @@ static CFIndex WriteDataToStream(NSData* data, CFWriteStreamRef stream)
     if (self.direction == CDV_TRANSFER_UPLOAD) {
         NSMutableDictionary* uploadProgress = [NSMutableDictionary dictionaryWithCapacity:3];
 
-        [uploadProgress setObject:[NSNumber numberWithBool:(!self.chunkedMode)] forKey:@"lengthComputable"];
+        [uploadProgress setObject:[NSNumber numberWithBool:true] forKey:@"lengthComputable"];
         [uploadProgress setObject:[NSNumber numberWithLongLong:totalBytesWritten] forKey:@"loaded"];
         [uploadProgress setObject:[NSNumber numberWithLongLong:totalBytesExpectedToWrite] forKey:@"total"];
         CDVPluginResult* result = [CDVPluginResult resultWithStatus:CDVCommandStatus_OK messageAsDictionary:uploadProgress];
