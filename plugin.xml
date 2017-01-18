@@ -139,14 +139,14 @@
     <!-- windows8 -->
     <platform name="windows8">
         <js-module src="src/windows/FileTransferProxy.js" name="FileTransferProxy">
-            <clobbers target="" />
+            <runs />
         </js-module>
     </platform>
 
     <!-- windows -->
     <platform name="windows">
         <js-module src="src/windows/FileTransferProxy.js" name="FileTransferProxy">
-            <clobbers target="" />
+            <runs />
         </js-module>
     </platform>
 
