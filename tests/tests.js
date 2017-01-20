@@ -532,9 +532,11 @@ exports.defineAutoTests = function () {
                 }, DOWNLOAD_TIMEOUT);
 
                 it("filetransfer.spec.9 should not leave partial file due to abort", function (done) {
-
                     var fileURL = "http://cordova.apache.org/downloads/logos_2.zip";
                     var specContext = this;
+                    var GRACE_TIMEOUT_DELTA = 3000;
+                    var aborted = false;
+                    var winIsOK = false;
 
                     var fileSystemWin = function() {
                         unexpectedCallbacks.fileSystemWin();
@@ -542,12 +544,13 @@ exports.defineAutoTests = function () {
                     };
 
                     var downloadWin = function() {
-                        unexpectedCallbacks.httpWin();
+                        if (!winIsOK) {
+                            unexpectedCallbacks.httpWin();
+                        }
                         done();
                     };
 
                     var downloadFail = function (error) {
-
                         var result = (error.code === FileTransferError.ABORT_ERR || error.code === FileTransferError.CONNECTION_ERR)? true: false;
                         if (!result) {
                             fail("Expected " + error.code + " to be " + FileTransferError.ABORT_ERR + " or " + FileTransferError.CONNECTION_ERR);
@@ -560,8 +563,17 @@ exports.defineAutoTests = function () {
 
                     // abort at the first onprogress event
                     specContext.transfer.onprogress = function (event) {
-                        if (event.loaded > 0) {
-                            specContext.transfer.abort();
+                        if (event.loaded < event.total) {
+                            if (!aborted) {
+                                aborted = true;
+                                specContext.transfer.abort();
+                            } else {
+                                // already called abort(), do nothing
+                            }
+                        } else {
+                            // Android sometimes calls onprogress for already downloaded file
+                            // if this is the case, there is nothing to do but wait for the win callback
+                            winIsOK = true;
                         }
                     };
 
