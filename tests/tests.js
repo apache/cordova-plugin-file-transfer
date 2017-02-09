@@ -361,6 +361,10 @@ exports.defineAutoTests = function () {
                 });
 
                 it("filetransfer.spec.4 should download a file", function (done) {
+                    // tests that use fileserver are temporarily disabled on CI
+                    if (window.IS_CI) {
+                        pending();
+                    }
 
                     var fileURL = SERVER + "/robots.txt";
                     var specContext = this;
@@ -399,6 +403,10 @@ exports.defineAutoTests = function () {
                 }, DOWNLOAD_TIMEOUT);
 
                 it("filetransfer.spec.5 should download a file using http basic auth", function (done) {
+                    // tests that use fileserver are temporarily disabled on CI
+                    if (window.IS_CI) {
+                        pending();
+                    }
 
                     var fileURL = SERVER_WITH_CREDENTIALS + "/download_basic_auth";
                     var specContext = this;
@@ -417,6 +425,10 @@ exports.defineAutoTests = function () {
                 }, DOWNLOAD_TIMEOUT);
 
                 it("filetransfer.spec.6 should get 401 status on http basic auth failure", function (done) {
+                    // tests that use fileserver are temporarily disabled on CI
+                    if (window.IS_CI) {
+                        pending();
+                    }
 
                     // NOTE:
                     //      using server without credentials
@@ -603,6 +615,10 @@ exports.defineAutoTests = function () {
                 }, DOWNLOAD_TIMEOUT);
 
                 it("filetransfer.spec.12 should get http status on failure", function (done) {
+                    // tests that use fileserver are temporarily disabled on CI
+                    if (window.IS_CI) {
+                        pending();
+                    }
 
                     var fileURL = SERVER + "/404";
 
@@ -630,6 +646,10 @@ exports.defineAutoTests = function () {
                 }, DOWNLOAD_TIMEOUT);
 
                 it("filetransfer.spec.13 should get http body on failure", function (done) {
+                    // tests that use fileserver are temporarily disabled on CI
+                    if (window.IS_CI) {
+                        pending();
+                    }
 
                     var fileURL = SERVER + "/404";
 
@@ -695,6 +715,11 @@ exports.defineAutoTests = function () {
                 }, isWindows ? WINDOWS_UNKNOWN_HOST_TIMEOUT : DOWNLOAD_TIMEOUT);
 
                 it("filetransfer.spec.16 should handle bad file path", function (done) {
+                    // tests that use fileserver are temporarily disabled on CI
+                    if (window.IS_CI) {
+                        pending();
+                    }
+
                     var fileURL = SERVER;
 
                     var downloadWin = function() {
@@ -730,6 +755,10 @@ exports.defineAutoTests = function () {
                 }, DOWNLOAD_TIMEOUT);
 
                 it("filetransfer.spec.30 downloaded file entries should have a toNativeURL method", function (done) {
+                    // tests that use fileserver are temporarily disabled on CI
+                    if (window.IS_CI) {
+                        pending();
+                    }
 
                     if (cordova.platformId === "browser") {
                         pending();
@@ -768,6 +797,10 @@ exports.defineAutoTests = function () {
                 }, DOWNLOAD_TIMEOUT);
 
                 it("filetransfer.spec.28 (compatibility) should be able to download a file using local paths", function (done) {
+                    // tests that use fileserver are temporarily disabled on CI
+                    if (window.IS_CI) {
+                        pending();
+                    }
 
                     var fileURL = SERVER + "/robots.txt";
                     var specContext = this;
@@ -804,6 +837,10 @@ exports.defineAutoTests = function () {
                 });
 
                 it("filetransfer.spec.33 should properly handle 304", function (done) {
+                    // tests that use fileserver are temporarily disabled on CI
+                    if (window.IS_CI) {
+                        pending();
+                    }
 
                     if (isWP8) {
                         pending();
@@ -825,6 +862,10 @@ exports.defineAutoTests = function () {
                 }, DOWNLOAD_TIMEOUT);
 
                 it("filetransfer.spec.35 304 should not result in the deletion of a cached file", function (done) {
+                    // tests that use fileserver are temporarily disabled on CI
+                    if (window.IS_CI) {
+                        pending();
+                    }
 
                     if (isWP8) {
                         pending();
@@ -886,6 +927,10 @@ exports.defineAutoTests = function () {
                 }, DOWNLOAD_TIMEOUT);
 
                 it("filetransfer.spec.36 should handle non-UTF8 encoded download response", function (done) {
+                    // tests that use fileserver are temporarily disabled on CI
+                    if (window.IS_CI) {
+                        pending();
+                    }
 
                     // Only iOS is supported: https://issues.apache.org/jira/browse/CB-9840
                     if (!isIos) {
@@ -1001,6 +1046,10 @@ exports.defineAutoTests = function () {
                 });
 
                 it("filetransfer.spec.18 should be able to upload a file", function (done) {
+                    // tests that use fileserver are temporarily disabled on CI
+                    if (window.IS_CI) {
+                        pending();
+                    }
 
                     var fileURL = SERVER + "/upload";
                     var specContext = this;
@@ -1027,6 +1076,10 @@ exports.defineAutoTests = function () {
                 }, UPLOAD_TIMEOUT);
 
                 it("filetransfer.spec.19 should be able to upload a file with http basic auth", function (done) {
+                    // tests that use fileserver are temporarily disabled on CI
+                    if (window.IS_CI) {
+                        pending();
+                    }
 
                     var fileURL = SERVER_WITH_CREDENTIALS + "/upload_basic_auth";
                     var specContext = this;
@@ -1046,6 +1099,10 @@ exports.defineAutoTests = function () {
                 }, UPLOAD_TIMEOUT);
 
                 it("filetransfer.spec.21 should be stopped by abort()", function (done) {
+                    // tests that use fileserver are temporarily disabled on CI
+                    if (window.IS_CI) {
+                        pending();
+                    }
 
                     var fileURL = SERVER + "/upload";
                     var specContext = this;
@@ -1084,6 +1141,10 @@ exports.defineAutoTests = function () {
                 }, UPLOAD_TIMEOUT);
 
                 it("filetransfer.spec.22 should get http status and body on failure", function (done) {
+                    // tests that use fileserver are temporarily disabled on CI
+                    if (window.IS_CI) {
+                        pending();
+                    }
 
                     var fileURL = SERVER + "/403";
 
@@ -1138,6 +1199,10 @@ exports.defineAutoTests = function () {
                 }, UPLOAD_TIMEOUT);
 
                 it("filetransfer.spec.25 should handle missing file", function (done) {
+                    // tests that use fileserver are temporarily disabled on CI
+                    if (window.IS_CI) {
+                        pending();
+                    }
 
                     var fileURL = SERVER + "/upload";
 
@@ -1156,6 +1221,10 @@ exports.defineAutoTests = function () {
                 }, UPLOAD_TIMEOUT);
 
                 it("filetransfer.spec.26 should handle bad file path", function (done) {
+                    // tests that use fileserver are temporarily disabled on CI
+                    if (window.IS_CI) {
+                        pending();
+                    }
 
                     var fileURL = SERVER + "/upload";
 
@@ -1173,6 +1242,11 @@ exports.defineAutoTests = function () {
                 });
 
                 it("filetransfer.spec.27 should be able to set custom headers", function (done) {
+                    // whatheaders.com is down for a long time
+                    // TODO: add its functionality to the cordova-labs test server
+                    if (window.IS_CI) {
+                        pending();
+                    }
 
                     var fileURL = HEADERS_ECHO;
 
@@ -1208,6 +1282,10 @@ exports.defineAutoTests = function () {
                 }, UPLOAD_TIMEOUT);
 
                 it("filetransfer.spec.29 (compatibility) should be able to upload a file using local paths", function (done) {
+                    // tests that use fileserver are temporarily disabled on CI
+                    if (window.IS_CI) {
+                        pending();
+                    }
 
                     var fileURL = SERVER + "/upload";
                     var specContext = this;
@@ -1244,6 +1322,10 @@ exports.defineAutoTests = function () {
                 }, UPLOAD_TIMEOUT);
 
                 it("filetransfer.spec.31 should be able to upload a file using PUT method", function (done) {
+                    // tests that use fileserver are temporarily disabled on CI
+                    if (window.IS_CI) {
+                        pending();
+                    }
 
                     var fileURL = SERVER + "/upload";
                     var specContext = this;
@@ -1272,6 +1354,10 @@ exports.defineAutoTests = function () {
                 }, UPLOAD_TIMEOUT);
 
                 it("filetransfer.spec.32 should be able to upload a file (non-multipart)", function (done) {
+                    // tests that use fileserver are temporarily disabled on CI
+                    if (window.IS_CI) {
+                        pending();
+                    }
 
                     var fileURL = SERVER + "/upload";
                     var specContext = this;
@@ -1309,6 +1395,10 @@ exports.defineAutoTests = function () {
                 }, UPLOAD_TIMEOUT);
 
                 it("filetransfer.spec.34 should not delete a file on upload error", function (done) {
+                    // tests that use fileserver are temporarily disabled on CI
+                    if (window.IS_CI) {
+                        pending();
+                    }
 
                     var fileURL = SERVER + "/upload";
                     var specContext = this;
@@ -1351,6 +1441,10 @@ exports.defineAutoTests = function () {
                 }, UPLOAD_TIMEOUT);
 
                 it("filetransfer.spec.37 should handle non-UTF8 encoded upload response", function (done) {
+                    // tests that use fileserver are temporarily disabled on CI
+                    if (window.IS_CI) {
+                        pending();
+                    }
 
                     // Only iOS is supported: https://issues.apache.org/jira/browse/CB-9840
                     if (!isIos) {
@@ -1390,6 +1484,10 @@ exports.defineAutoTests = function () {
                 }, UPLOAD_TIMEOUT);
 
                 it("filetransfer.spec.38 should be able to upload a file using data: source uri", function (done) {
+                    // tests that use fileserver are temporarily disabled on CI
+                    if (window.IS_CI) {
+                        pending();
+                    }
 
                     var fileURL = SERVER + "/upload";
                     var specContext = this;
@@ -1424,6 +1522,10 @@ exports.defineAutoTests = function () {
                 }, UPLOAD_TIMEOUT);
 
                 it("filetransfer.spec.39 should be able to upload a file using data: source uri (non-multipart)", function (done) {
+                    // tests that use fileserver are temporarily disabled on CI
+                    if (window.IS_CI) {
+                        pending();
+                    }
 
                     var fileURL = SERVER + "/upload";
 
@@ -1456,6 +1558,10 @@ exports.defineAutoTests = function () {
                 }, UPLOAD_TIMEOUT);
 
                 it("filetransfer.spec.40 should not fail to upload a file using data: source uri when the data is empty", function (done) {
+                    // tests that use fileserver are temporarily disabled on CI
+                    if (window.IS_CI) {
+                        pending();
+                    }
 
                     var fileURL = SERVER + "/upload";
 
@@ -1471,6 +1577,10 @@ exports.defineAutoTests = function () {
                 }, UPLOAD_TIMEOUT);
 
                 it("filetransfer.spec.41 should not fail to upload a file using data: source uri when the data is empty (non-multipart)", function (done) {
+                    // tests that use fileserver are temporarily disabled on CI
+                    if (window.IS_CI) {
+                        pending();
+                    }
 
                     if (isIos) {
                         // iOS does not support uploads of an empty file with __chunkedMode=true__ and `multipartMode=false`:
@@ -1526,6 +1636,11 @@ exports.defineAutoTests = function () {
                     };
 
                     var testChunkedModeBase = function(chunkedMode, multipart, done) {
+                        // tests that use fileserver are temporarily disabled on CI
+                        if (window.IS_CI) {
+                            pending();
+                        }
+
                         var fileURL = SERVER + "/upload_echo_headers";
                         var specContext = this;
 
