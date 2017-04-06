@@ -440,6 +440,13 @@ static CFIndex WriteDataToStream(NSData* data, CFWriteStreamRef stream)
         targetURL = [[self.commandDelegate getCommandInstance:@"File"] fileSystemURLforLocalPath:target].url;
     } else {
         targetURL = [NSURL URLWithString:target];
+
+        if (targetURL == nil) {
+            NSString* targetUrlTextEscaped = [target stringByAddingPercentEncodingWithAllowedCharacters:[NSCharacterSet URLFragmentAllowedCharacterSet]];
+            if (targetUrlTextEscaped) {
+                targetURL = [NSURL URLWithString:targetUrlTextEscaped];
+            }
+        }
     }
 
     NSURL* sourceURL = [NSURL URLWithString:source];
@@ -447,6 +454,9 @@ static CFIndex WriteDataToStream(NSData* data, CFWriteStreamRef stream)
     if (!sourceURL) {
         errorCode = INVALID_URL_ERR;
         NSLog(@"File Transfer Error: Invalid server URL %@", source);
+    } else if (!targetURL) {
+        errorCode = INVALID_URL_ERR;
+        NSLog(@"File Tranfer Error: Invalid target URL %@", target);
     } else if (![targetURL isFileURL]) {
         CDVFilesystemURL *fsURL = [CDVFilesystemURL fileSystemURLWithString:target];
         if (!fsURL) {
