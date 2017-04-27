@@ -439,6 +439,8 @@ static CFIndex WriteDataToStream(NSData* data, CFWriteStreamRef stream)
         target = [target stringByReplacingOccurrencesOfString:@"//" withString:@"/"];
         targetURL = [[self.commandDelegate getCommandInstance:@"File"] fileSystemURLforLocalPath:target].url;
     } else {
+        // fix Chinese words
+        target = [target stringByAddingPercentEscapesUsingEncoding:NSUTF8StringEncoding];
         targetURL = [NSURL URLWithString:target];
 
         if (targetURL == nil) {
