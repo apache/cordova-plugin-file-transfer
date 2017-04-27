@@ -20,6 +20,10 @@
 -->
 # Release Notes
                                               
+### 1.6.3 (Apr 27, 2017)
+* [CB-12685](https://issues.apache.org/jira/browse/CB-12685) added `package.json` to tests folder
+* [CB-10696](https://issues.apache.org/jira/browse/CB-10696) **iOS**: Encode target path with spaces
+
 ### 1.6.2 (Feb 28, 2017)
 * [CB-12353](https://issues.apache.org/jira/browse/CB-12353) Corrected merges usage in `plugin.xml`
 * [CB-12369](https://issues.apache.org/jira/browse/CB-12369) Add plugin typings from `DefinitelyTyped`

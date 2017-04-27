@@ -398,6 +398,47 @@ exports.defineAutoTests = function () {
                     specContext.transfer.download(fileURL, specContext.localFilePath, downloadWin, downloadFail);
                 }, DOWNLOAD_TIMEOUT * 10); // to give Heroku server some time to wake up
 
+                it("filetransfer.spec.4.1 should download a file using target name with space", function (done) {
+
+                    var fileURL = SERVER + "/robots.txt";
+                    this.fileName = "test file.txt";
+                    this.localFilePath = this.root.toURL() + this.fileName;
+
+                    var specContext = this;
+
+                    var fileWin = function (blob) {
+
+                        if (specContext.transfer.onprogress.calls.any()) {
+                            var lastProgressEvent = specContext.transfer.onprogress.calls.mostRecent().args[0];
+                            expect(lastProgressEvent.loaded).not.toBeGreaterThan(blob.size);
+                        } else {
+                            console.log("no progress events were emitted");
+                        }
+
+                        done();
+                    };
+
+                    var fileSystemFail = function() {
+                        unexpectedCallbacks.fileSystemFail();
+                        done();
+                    };
+
+                    var downloadFail = function() {
+                        unexpectedCallbacks.httpFail();
+                        done();
+                    };
+
+                    var downloadWin = function (entry) {
+
+                        verifyDownload(entry, specContext);
+
+                        // verify the FileEntry representing this file
+                        entry.file(fileWin, fileSystemFail);
+                    };
+
+                    specContext.transfer.download(fileURL, specContext.localFilePath, downloadWin, downloadFail);
+                }, DOWNLOAD_TIMEOUT * 10); // to give Heroku server some time to wake up
+
                 it("filetransfer.spec.5 should download a file using http basic auth", function (done) {
                     var fileURL = SERVER_WITH_CREDENTIALS + "/download_basic_auth";
                     var specContext = this;
