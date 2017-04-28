@@ -289,6 +289,7 @@ exports.defineAutoTests = function () {
                 }
             } catch (ex) {
                 console.error('Unable to load file transfer server url: ' + ex);
+                console.error('Note: if you are testing this on cordova-ios with cordova-plugin-wkwebview-engine, that may be why you are getting this error. See https://issues.apache.org/jira/browse/CB-10144.');
                 fail(ex);
             }
         });
