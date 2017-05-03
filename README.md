@@ -195,6 +195,7 @@ A `FileUploadResult` object is passed to the success callback of the
 ### iOS Quirks
 
 - Does not support `responseCode` or `bytesSent`.
+- If you are using iOS9 and Xcode7, then App Transport Security (ATS) may prevent you from connecting to your desired server. ATS will eventually be handled by the whitelist plugin -- for now, use cordova-plugin-transport-security to temporarily bypass ATS for development purposes.
 
 - Does not support uploads of an empty file with __chunkedMode=true__ and `multipartMode=false`.
 
