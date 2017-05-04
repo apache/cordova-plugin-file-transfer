@@ -191,7 +191,13 @@ exec(win, fail, 'FileTransfer', 'upload',
             return;
         }
 
-        if (filePath.indexOf("data:") === 0 && filePath.indexOf("base64") !== -1) {
+        if (filePath.indexOf("data:") === 0) {
+            // check if we have base64 encoded data
+            var isBase64 = false;
+            if (filePath.indexOf("base64") !== -1) {
+                isBase64 = true;
+            }
+
             // First a DataWriter object is created, backed by an in-memory stream where 
             // the data will be stored.
             var writer = Windows.Storage.Streams.DataWriter(new Windows.Storage.Streams.InMemoryRandomAccessStream());
@@ -241,10 +247,18 @@ exec(win, fail, 'FileTransfer', 'upload',
                 uploader.setRequestHeader("Content-Type", "multipart/form-data; boundary=" + BOUNDARY);
                 writer.writeString(multipartParams);
                 writer.writeString(multipartFile);
-                writer.writeBytes(stringToByteArray(fileDataString));
+                if (isBase64) {
+                    writer.writeBytes(stringToByteArray(fileDataString));
+                } else {
+                    writer.writeString(decodeURIComponent(fileDataString));
+                }
                 writer.writeString(bound);
             } else {
-                writer.writeBytes(stringToByteArray(fileDataString));
+                if (isBase64) {
+                    writer.writeBytes(stringToByteArray(fileDataString));
+                } else {
+                    writer.writeString(decodeURIComponent(fileDataString));
+                }
             }
 
             var stream;
