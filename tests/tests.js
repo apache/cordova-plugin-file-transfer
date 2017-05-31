@@ -32,9 +32,9 @@ exports.defineAutoTests = function () {
     var GRACE_TIME_DELTA = 600; // in milliseconds
     var DEFAULT_FILESYSTEM_SIZE = 1024 * 50; // filesystem size in bytes
     var UNKNOWN_HOST = "http://foobar.apache.org";
-    var DOWNLOAD_TIMEOUT = 7 * ONE_SECOND;
-    var WINDOWS_UNKNOWN_HOST_TIMEOUT = 35 * ONE_SECOND;
-    var UPLOAD_TIMEOUT = 7 * ONE_SECOND;
+    var DOWNLOAD_TIMEOUT = 15 * ONE_SECOND;
+    var LONG_TIMEOUT = 60 * ONE_SECOND;
+    var UPLOAD_TIMEOUT = 15 * ONE_SECOND;
     var ABORT_DELAY = 100; // for abort() tests
     var LATIN1_SYMBOLS = '¥§©ÆÖÑøøø¼';
     var DATA_URI_PREFIX = "data:image/png;base64,";
@@ -550,7 +550,7 @@ exports.defineAutoTests = function () {
                     };
 
                     specContext.transfer.download(fileURL, specContext.localFilePath, downloadWin, downloadFail);
-                }, DOWNLOAD_TIMEOUT);
+                }, isWindows ? LONG_TIMEOUT : DOWNLOAD_TIMEOUT);
 
                 it("filetransfer.spec.11 should call the error callback on abort()", function (done) {
                     var fileURL = "http://cordova.apache.org/downloads/BlueZedEx.mp3";
@@ -604,7 +604,7 @@ exports.defineAutoTests = function () {
                     spyOn(specContext.transfer, "onprogress").and.callThrough();
 
                     specContext.transfer.download(fileURL, specContext.localFilePath, downloadWin, downloadFail);
-                }, DOWNLOAD_TIMEOUT);
+                }, isWindows ? LONG_TIMEOUT : DOWNLOAD_TIMEOUT);
 
                 it("filetransfer.spec.10 should be stopped by abort()", function (done) {
                     var fileURL = "http://cordova.apache.org/downloads/BlueZedEx.mp3";
@@ -724,7 +724,7 @@ exports.defineAutoTests = function () {
                     this.transfer.onprogress = function () {};
 
                     this.transfer.download(fileURL, this.localFilePath, downloadWin, downloadFail);
-                }, isWindows ? WINDOWS_UNKNOWN_HOST_TIMEOUT : DOWNLOAD_TIMEOUT);
+                }, isWindows ? LONG_TIMEOUT : DOWNLOAD_TIMEOUT);
 
                 it("filetransfer.spec.16 should handle bad file path", function (done) {
                     var fileURL = SERVER;
