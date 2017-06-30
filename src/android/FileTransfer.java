@@ -291,6 +291,7 @@ public class FileTransfer extends CordovaPlugin {
         final JSONObject headers = args.optJSONObject(8) == null ? params.optJSONObject("headers") : args.optJSONObject(8);
         final String objectId = args.getString(9);
         final String httpMethod = getArgument(args, 10, "POST");
+        final int timeout = args.optInt(11, 60);
 
         final CordovaResourceApi resourceApi = webView.getResourceApi();
 
@@ -355,6 +356,9 @@ public class FileTransfer extends CordovaPlugin {
                         // Setup the connection not to verify hostnames
                         https.setHostnameVerifier(DO_NOT_VERIFY);
                     }
+
+                    // Client Timeout before returning a 'HTTP 408 Gateway Timeout'
+                    conn.setReadTimeout(timeout * 1000);
 
                     // Allow Inputs
                     conn.setDoInput(true);
@@ -742,6 +746,7 @@ public class FileTransfer extends CordovaPlugin {
         final boolean trustEveryone = args.optBoolean(2);
         final String objectId = args.getString(3);
         final JSONObject headers = args.optJSONObject(4);
+        final int timeout = args.optInt(5, 60);
 
         final Uri sourceUri = resourceApi.remapUri(Uri.parse(source));
         int uriType = CordovaResourceApi.getUriType(sourceUri);
@@ -848,6 +853,9 @@ public class FileTransfer extends CordovaPlugin {
                             https.setHostnameVerifier(DO_NOT_VERIFY);
                         }
 
+                        // Client Timeout before returning a 'HTTP 408 Gateway Timeout'
+                        connection.setReadTimeout(timeout * 1000);
+
                         connection.setRequestMethod("GET");
 
                         // TODO: Make OkHttp use this CookieManager by default.
@@ -907,6 +915,7 @@ public class FileTransfer extends CordovaPlugin {
                                 progressResult.setKeepCallback(true);
                                 context.sendPluginResult(progressResult);
                             }
+                            outputStream.flush();
                         } finally {
                             synchronized (context) {
                                 context.connection = null;
