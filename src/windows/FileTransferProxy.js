@@ -369,6 +369,7 @@ exec(win, fail, 'FileTransfer', 'upload',
                     var fileToUploadPart = new Windows.Networking.BackgroundTransfer.BackgroundTransferContentPart(fileKey, fileName);
                     fileToUploadPart.setHeader("Content-Type", mimeType);
                     fileToUploadPart.setFile(storageFile);
+                    fileToUploadPart.setHeader("Content-Type", mimeType);
                     transferParts.push(fileToUploadPart);
 
                     createUploadOperation = uploader.createUploadAsync(uri, transferParts);
