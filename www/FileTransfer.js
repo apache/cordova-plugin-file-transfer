@@ -179,6 +179,8 @@ FileTransfer.prototype.download = function(source, target, successCallback, erro
     argscheck.checkArgs('ssFF*', 'FileTransfer.download', arguments);
     var self = this;
 
+    var proxy = null;
+    var port = null;
     var basicAuthHeader = getBasicAuthHeader(source);
     if (basicAuthHeader) {
         source = source.replace(getUrlCredentials(source) + '@', '');
@@ -187,6 +189,11 @@ FileTransfer.prototype.download = function(source, target, successCallback, erro
         options.headers = options.headers || {};
         options.headers[basicAuthHeader.name] = basicAuthHeader.value;
     }
+
+    if (options.proxy)
+        proxy = options.proxy;
+    if (options.port)
+        port = options.port;
 
     var headers = null;
     if (options) {
@@ -221,11 +228,10 @@ FileTransfer.prototype.download = function(source, target, successCallback, erro
     };
 
     var fail = errorCallback && function(e) {
-        var error = new FileTransferError(e.code, e.source, e.target, e.http_status, e.body, e.exception);
-        errorCallback(error);
-    };
-
-    exec(win, fail, 'FileTransfer', 'download', [source, target, trustAllHosts, this._id, headers]);
+            var error = new FileTransferError(e.code, e.source, e.target, e.http_status, e.body, e.exception);
+            errorCallback(error);
+        };
+    exec(win, fail, 'FileTransfer', 'download', [source, target, proxy, port, trustAllHosts, this._id, headers]);
 };
 
 /**
