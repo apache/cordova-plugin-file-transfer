@@ -31,7 +31,7 @@ Bien que dans la portée globale, ils ne sont pas disponibles jusqu'après la `d
 
 ## Installation
 
-    Cordova plugin ajouter cordova-plugin-file-transfert
+    Cordova plugin add cordova-plugin-file-transfert
     
 
 ## Plates-formes prises en charge
