@@ -308,6 +308,10 @@ A `FileTransferError` object is passed to an error callback when an error occurs
 
 - __exception__: Either e.getMessage or e.toString (String)
 
+### iOS Quirks
+
+__exception__ is never defined.
+
 ### Constants
 
 - 1 = `FileTransferError.FILE_NOT_FOUND_ERR`
