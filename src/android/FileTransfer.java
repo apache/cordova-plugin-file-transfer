@@ -31,8 +31,9 @@ import java.io.OutputStream;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Field;
 import java.lang.reflect.Method;
+import java.lang.reflect.Proxy;
 import java.net.HttpURLConnection;
-import java.net.URLConnection;
+import java.net.*;
 import java.security.cert.CertificateException;
 import java.security.cert.X509Certificate;
 import java.util.HashMap;
@@ -736,12 +737,27 @@ public class FileTransfer extends CordovaPlugin {
      */
     private void download(final String source, final String target, JSONArray args, CallbackContext callbackContext) throws JSONException {
         LOG.d(LOG_TAG, "download " + source + " to " +  target);
+        int port_ = 0;
+        String proxy_ip_ = "no_proxy";
+
+        try {
+            port_ = Integer.parseInt(args.getString(3));
+        }
+        catch (Exception e){
+            port_ = 0;
+        }
+        final int port = port_;
+
+        if (args.getString(2) == null || args.getString(2) == "null")
+            proxy_ip_ = "no_proxy";
+        else
+            proxy_ip_ = args.getString(2);
+        final String proxy_ip = proxy_ip_;
 
         final CordovaResourceApi resourceApi = webView.getResourceApi();
-
-        final boolean trustEveryone = args.optBoolean(2);
-        final String objectId = args.getString(3);
-        final JSONObject headers = args.optJSONObject(4);
+        final boolean trustEveryone = args.optBoolean(4);
+        final String objectId = args.getString(5);
+        final JSONObject headers = args.optJSONObject(6);
 
         final Uri sourceUri = resourceApi.remapUri(Uri.parse(source));
         int uriType = CordovaResourceApi.getUriType(sourceUri);
@@ -809,6 +825,11 @@ public class FileTransfer extends CordovaPlugin {
                 Uri targetUri = resourceApi.remapUri(
                         tmpTarget.getScheme() != null ? tmpTarget : Uri.fromFile(new File(target)));
                 HttpURLConnection connection = null;
+                Proxy proxy;
+                if (proxy_ip == "no_proxy")
+                    proxy = Proxy.NO_PROXY;
+                else
+                    proxy = new Proxy(Proxy.Type.HTTP, new InetSocketAddress(proxy_ip, port));
                 HostnameVerifier oldHostnameVerifier = null;
                 SSLSocketFactory oldSocketFactory = null;
                 File file = null;
@@ -837,7 +858,10 @@ public class FileTransfer extends CordovaPlugin {
                     } else {
                         // connect to server
                         // Open a HTTP connection to the URL based on protocol
-                        connection = resourceApi.createHttpConnection(sourceUri);
+                        if (proxy_ip == "no_proxy")
+                            connection = resourceApi.createHttpConnection(sourceUri);
+                        else
+                            connection = (HttpURLConnection) new URL(source).openConnection(proxy);
                         if (useHttps && trustEveryone) {
                             // Setup the HTTPS connection class to trust everyone
                             HttpsURLConnection https = (HttpsURLConnection)connection;
