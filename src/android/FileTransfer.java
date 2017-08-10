@@ -742,6 +742,7 @@ public class FileTransfer extends CordovaPlugin {
         final boolean trustEveryone = args.optBoolean(2);
         final String objectId = args.getString(3);
         final JSONObject headers = args.optJSONObject(4);
+        final JSONObject postData = args.optJSONObject(5);
 
         final Uri sourceUri = resourceApi.remapUri(Uri.parse(source));
         int uriType = CordovaResourceApi.getUriType(sourceUri);
@@ -848,8 +849,6 @@ public class FileTransfer extends CordovaPlugin {
                             https.setHostnameVerifier(DO_NOT_VERIFY);
                         }
 
-                        connection.setRequestMethod("GET");
-
                         // TODO: Make OkHttp use this CookieManager by default.
                         String cookie = getCookies(sourceUri.toString());
 
@@ -864,6 +863,17 @@ public class FileTransfer extends CordovaPlugin {
                         // Handle the other headers
                         if (headers != null) {
                             addHeadersToRequest(connection, headers);
+                        }
+                        
+                         if(postData != null){
+                            connection.setRequestMethod("POST");
+                            String str =  postData.toString();
+                            byte[] outputInBytes = str.getBytes("UTF-8");
+                            OutputStream os = connection.getOutputStream();
+                            os.write( outputInBytes );
+                            os.close();
+                        } else {
+                            connection.setRequestMethod("GET");
                         }
 
                         connection.connect();

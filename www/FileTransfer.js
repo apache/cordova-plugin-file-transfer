@@ -225,7 +225,7 @@ FileTransfer.prototype.download = function(source, target, successCallback, erro
         errorCallback(error);
     };
 
-    exec(win, fail, 'FileTransfer', 'download', [source, target, trustAllHosts, this._id, headers]);
+    exec(win, fail, 'FileTransfer', 'download', [source, target, trustAllHosts, this._id, headers, options.postData]);
 };
 
 /**
