@@ -32,6 +32,7 @@ import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Field;
 import java.lang.reflect.Method;
 import java.net.HttpURLConnection;
+import java.net.URL;
 import java.net.URLConnection;
 import java.security.cert.CertificateException;
 import java.security.cert.X509Certificate;
@@ -835,38 +836,53 @@ public class FileTransfer extends CordovaPlugin {
                         }
                         inputStream = new SimpleTrackingInputStream(readResult.inputStream);
                     } else {
-                        // connect to server
-                        // Open a HTTP connection to the URL based on protocol
-                        connection = resourceApi.createHttpConnection(sourceUri);
-                        if (useHttps && trustEveryone) {
-                            // Setup the HTTPS connection class to trust everyone
-                            HttpsURLConnection https = (HttpsURLConnection)connection;
-                            oldSocketFactory = trustAllHosts(https);
-                            // Save the current hostnameVerifier
-                            oldHostnameVerifier = https.getHostnameVerifier();
-                            // Setup the connection not to verify hostnames
-                            https.setHostnameVerifier(DO_NOT_VERIFY);
-                        }
-
-                        connection.setRequestMethod("GET");
-
-                        // TODO: Make OkHttp use this CookieManager by default.
-                        String cookie = getCookies(sourceUri.toString());
-
-                        if(cookie != null)
+                        Uri currentSourceUri = sourceUri;
+                        while (true)
                         {
-                            connection.setRequestProperty("cookie", cookie);
+                            // connect to server
+                            // Open a HTTP connection to the URL based on protocol
+                            connection = resourceApi.createHttpConnection(currentSourceUri);
+                            if (useHttps && trustEveryone) {
+                                // Setup the HTTPS connection class to trust everyone
+                                HttpsURLConnection https = (HttpsURLConnection)connection;
+                                oldSocketFactory = trustAllHosts(https);
+                                // Save the current hostnameVerifier
+                                oldHostnameVerifier = https.getHostnameVerifier();
+                                // Setup the connection not to verify hostnames
+                                https.setHostnameVerifier(DO_NOT_VERIFY);
+                            }
+
+                            connection.setRequestMethod("GET");
+
+                            // TODO: Make OkHttp use this CookieManager by default.
+                            String cookie = getCookies(currentSourceUri.toString());
+
+                            if(cookie != null)
+                            {
+                                connection.setRequestProperty("cookie", cookie);
+                            }
+
+                            // This must be explicitly set for gzip progress tracking to work.
+                            connection.setRequestProperty("Accept-Encoding", "gzip");
+
+                            // Handle the other headers
+                            if (headers != null) {
+                                addHeadersToRequest(connection, headers);
+                            }
+
+                            connection.connect();
+
+                            if (connection.getResponseCode() == HttpURLConnection.HTTP_MOVED_PERM ||
+                                connection.getResponseCode() == HttpURLConnection.HTTP_MOVED_TEMP) {
+                                String location = connection.getHeaderField("Location");
+                                URL base  = new URL(currentSourceUri.toString());
+                                URL next  = new URL(base, location);  // Deal with relative URLs
+                                currentSourceUri = Uri.parse(next.toString());
+                                continue;
+                            }
+                            break;
                         }
 
-                        // This must be explicitly set for gzip progress tracking to work.
-                        connection.setRequestProperty("Accept-Encoding", "gzip");
-
-                        // Handle the other headers
-                        if (headers != null) {
-                            addHeadersToRequest(connection, headers);
-                        }
-
-                        connection.connect();
                         if (connection.getResponseCode() == HttpURLConnection.HTTP_NOT_MODIFIED) {
                             cached = true;
                             connection.disconnect();
