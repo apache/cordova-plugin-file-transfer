@@ -20,8 +20,8 @@
 
 <plugin xmlns="http://apache.org/cordova/ns/plugins/1.0"
     xmlns:android="http://schemas.android.com/apk/res/android"
-    id="org.apache.cordova.file-transfer"
-    version="0.4.5-dev">
+    id="cordova-plugin-file-transfer"
+    version="1.6.4-dev">
     <name>File Transfer</name>
     <description>Cordova File Transfer Plugin</description>
     <license>Apache 2.0</license>
@@ -29,8 +29,7 @@
     <repo>https://git-wip-us.apache.org/repos/asf/cordova-plugin-file-transfer.git</repo>
     <issue>https://issues.apache.org/jira/browse/CB/component/12320650</issue>
 
-    <!-- dependency id="org.apache.cordova.file@1" /-->
-    <dependency id="org.apache.cordova.file" version=">=1.0.1" />
+    <dependency id="cordova-plugin-file" version="^4.0.0" />
 
     <js-module src="www/FileTransferError.js" name="FileTransferError">
         <clobbers target="window.FileTransferError" />
@@ -73,7 +72,7 @@
         <source-file src="src/android/FileProgressResult.java" target-dir="src/org/apache/cordova/filetransfer" />
         <source-file src="src/android/FileUploadResult.java" target-dir="src/org/apache/cordova/filetransfer" />
     </platform>
-    
+
     <!-- ubuntu -->
     <platform name="ubuntu">
         <header-file src="src/ubuntu/file-transfer.h" />
@@ -139,9 +138,33 @@
 
     <!-- windows8 -->
     <platform name="windows8">
-        <js-module src="www/windows8/FileTransferProxy.js" name="FileTransferProxy">
-            <clobbers target="" />
+        <js-module src="src/windows/FileTransferProxy.js" name="FileTransferProxy">
+            <runs />
         </js-module>
     </platform>
 
+    <!-- windows -->
+    <platform name="windows">
+        <js-module src="src/windows/FileTransferProxy.js" name="FileTransferProxy">
+            <runs />
+        </js-module>
+    </platform>
+
+    <!-- firefoxOS -->
+    <platform name="firefoxos">
+        <config-file target="config.xml" parent="/*">
+            <permission name="systemXHR" privileged="true"/>
+        </config-file>
+
+        <js-module src="www/firefoxos/FileTransferProxy.js" name="FileTransferProxy">
+            <runs/>
+        </js-module>
+    </platform>
+
+    <!-- browser -->
+    <platform name="browser">
+        <js-module src="www/browser/FileTransfer.js" name="BrowserFileTransfer">
+            <clobbers target="window.FileTransfer" />
+        </js-module>
+    </platform>
 </plugin>

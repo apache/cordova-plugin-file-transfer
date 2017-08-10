@@ -1,23 +1,27 @@
-<!---
-    Licensed to the Apache Software Foundation (ASF) under one
-    or more contributor license agreements.  See the NOTICE file
-    distributed with this work for additional information
-    regarding copyright ownership.  The ASF licenses this file
-    to you under the Apache License, Version 2.0 (the
-    "License"); you may not use this file except in compliance
-    with the License.  You may obtain a copy of the License at
-
-      http://www.apache.org/licenses/LICENSE-2.0
-
-    Unless required by applicable law or agreed to in writing,
-    software distributed under the License is distributed on an
-    "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY
-    KIND, either express or implied.  See the License for the
-    specific language governing permissions and limitations
-    under the License.
+<!--
+# license: Licensed to the Apache Software Foundation (ASF) under one
+#         or more contributor license agreements.  See the NOTICE file
+#         distributed with this work for additional information
+#         regarding copyright ownership.  The ASF licenses this file
+#         to you under the Apache License, Version 2.0 (the
+#         "License"); you may not use this file except in compliance
+#         with the License.  You may obtain a copy of the License at
+#
+#           http://www.apache.org/licenses/LICENSE-2.0
+#
+#         Unless required by applicable law or agreed to in writing,
+#         software distributed under the License is distributed on an
+#         "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY
+#         KIND, either express or implied.  See the License for the
+#         specific language governing permissions and limitations
+#         under the License.
 -->
 
 # cordova-plugin-file-transfer
+
+[![Build Status](https://travis-ci.org/apache/cordova-plugin-file-transfer.svg)](https://travis-ci.org/apache/cordova-plugin-file-transfer)
+
+Documentazione plugin: <doc/index.md>
 
 Questo plugin permette di caricare e scaricare file.
 
@@ -38,59 +42,60 @@ Anche se in ambito globale, non sono disponibili fino a dopo l'evento `devicerea
 
 ## Piattaforme supportate
 
-*   Amazon fuoco OS
-*   Android
-*   BlackBerry 10
-*   Browser
-*   Firefox OS**
-*   iOS
-*   Windows Phone 7 e 8 *
-*   Windows 8
-*   Windows
+  * Amazon fuoco OS
+  * Android
+  * BlackBerry 10
+  * Browser
+  * Firefox OS**
+  * iOS
+  * Windows Phone 7 e 8 *
+  * Windows 8
+  * Windows
 
-* *Supporto `onprogress` né `abort()`*
+\ * *Non supportano `onprogress` né `abort()` *
 
-** *Non supportano `onprogress`*
+\ * * *Non supportano `onprogress` *
 
 # FileTransfer
 
-L'oggetto `FileTransfer` fornisce un modo per caricare i file utilizzando una richiesta HTTP di POST più parte e scaricare file pure.
+L'oggetto `FileTransfer` fornisce un modo per caricare i file utilizzando una richiesta HTTP multiparte POST o PUT e scaricare file pure.
 
 ## Proprietà
 
-*   **OnProgress**: chiamata con un `ProgressEvent` ogni volta che un nuovo blocco di dati viene trasferito. *(Funzione)*
+  * **OnProgress**: chiamata con un `ProgressEvent` ogni volta che un nuovo blocco di dati viene trasferito. *(Funzione)*
 
 ## Metodi
 
-*   **caricare**: invia un file a un server.
+  * **caricare**: invia un file a un server.
 
-*   **Scarica**: Scarica un file dal server.
+  * **Scarica**: Scarica un file dal server.
 
-*   **Abort**: interrompe un trasferimento in corso.
+  * **Abort**: interrompe un trasferimento in corso.
 
-## caricare
+## upload
 
 **Parametri**:
 
-*   **fileURL**: Filesystem URL che rappresenta il file nel dispositivo. Per indietro la compatibilità, questo può anche essere il percorso completo del file sul dispositivo. (Vedere [indietro compatibilità rileva] qui sotto)
+  * **fileURL**: Filesystem URL che rappresenta il file nel dispositivo. Per indietro la compatibilità, questo può anche essere il percorso completo del file sul dispositivo. (Vedere [indietro compatibilità rileva] qui sotto)
 
-*   **server**: URL del server per ricevere il file, come codificato dal`encodeURI()`.
+  * **server**: URL del server per ricevere il file, come codificato dal`encodeURI()`.
 
-*   **successCallback**: un callback che viene passato un oggetto `FileUploadResult`. *(Funzione)*
+  * **successCallback**: un callback che viene passato un oggetto `FileUploadResult`. *(Funzione)*
 
-*   **errorCallback**: un callback che viene eseguito se si verifica un errore di recupero `FileUploadResult`. Richiamato con un oggetto `FileTransferError`. *(Funzione)*
+  * **errorCallback**: un callback che viene eseguito se si verifica un errore di recupero `FileUploadResult`. Richiamato con un oggetto `FileTransferError`. *(Funzione)*
 
-*   **opzioni**: parametri facoltativi *(oggetto)*. Chiavi valide:
+  * **opzioni**: parametri facoltativi *(oggetto)*. Chiavi valide:
     
-    *   **fileKey**: il nome dell'elemento form. Valore predefinito è `file` . (DOMString)
-    *   **nome file**: il nome del file da utilizzare quando si salva il file sul server. Valore predefinito è `image.jpg` . (DOMString)
-    *   **httpMethod**: metodo HTTP da utilizzare - `PUT` o `POST`. Impostazioni predefinite per `POST`. (DOMString)
-    *   **mimeType**: il tipo mime dei dati da caricare. Impostazioni predefinite su `image/jpeg`. (DOMString)
-    *   **params**: un insieme di coppie chiave/valore opzionale per passare nella richiesta HTTP. (Object)
-    *   **chunkedMode**: se a caricare i dati in modalità streaming chunked. Impostazione predefinita è `true`. (Boolean)
-    *   **headers**: mappa di valori nome/intestazione intestazione. Utilizzare una matrice per specificare più valori. (Object)
+      * **fileKey**: il nome dell'elemento form. Valore predefinito è `file` . (DOMString)
+      * **nome file**: il nome del file da utilizzare quando si salva il file sul server. Valore predefinito è `image.jpg` . (DOMString)
+      * **httpMethod**: metodo HTTP da utilizzare - `PUT` o `POST`. Impostazioni predefinite per `POST`. (DOMString)
+      * **mimeType**: il tipo mime dei dati da caricare. Impostazioni predefinite su `image/jpeg`. (DOMString)
+      * **params**: un insieme di coppie chiave/valore opzionale per passare nella richiesta HTTP. (Object)
+      * **chunkedMode**: se a caricare i dati in modalità streaming chunked. Impostazione predefinita è `true`. (Boolean)
+      * **headers**: una mappa di valori di intestazione e nome dell'intestazione. Utilizzare una matrice per specificare più di un valore. Su iOS, FireOS e Android, se è presente, un'intestazione Content-Type il nome dati form multipart non verranno utilizzati. (Object)
+      * **httpMethod**: metodo HTTP da utilizzare per esempio POST o PUT. Il valore predefinito è `POST`. (DOMString)
 
-*   **trustAllHosts**: parametro opzionale, valore predefinito è `false` . Se impostata su `true` , accetta tutti i certificati di sicurezza. Questo è utile poiché Android respinge i certificati autofirmati sicurezza. Non raccomandato per uso in produzione. Supportato su Android e iOS. *(boolean)*
+  * **trustAllHosts**: parametro opzionale, valore predefinito è `false` . Se impostata su `true` , accetta tutti i certificati di sicurezza. Questo è utile poiché Android respinge i certificati autofirmati sicurezza. Non raccomandato per uso in produzione. Supportato su Android e iOS. *(boolean)*
 
 ### Esempio
 
@@ -166,35 +171,35 @@ Un oggetto `FileUploadResult` viene passato al metodo di callback del metodo `up
 
 ### Proprietà
 
-*   **bytesSent**: il numero di byte inviati al server come parte dell'upload. (lungo)
+  * **bytesSent**: il numero di byte inviati al server come parte dell'upload. (lungo)
 
-*   **responseCode**: codice di risposta HTTP restituito dal server. (lungo)
+  * **responseCode**: codice di risposta HTTP restituito dal server. (lungo)
 
-*   **risposta**: risposta HTTP restituito dal server. (DOMString)
+  * **risposta**: risposta HTTP restituito dal server. (DOMString)
 
-*   **intestazioni**: intestazioni di risposta HTTP dal server. (Oggetto)
+  * **intestazioni**: intestazioni di risposta HTTP dal server. (Oggetto)
     
-    *   Attualmente supportato solo iOS.
+      * Attualmente supportato solo iOS.
 
 ### iOS stranezze
 
-*   Non supporta `responseCode` o`bytesSent`.
+  * Non supporta `responseCode` o`bytesSent`.
 
 ## Scarica
 
 **Parametri**:
 
-*   **fonte**: URL del server per scaricare il file, come codificato dal`encodeURI()`.
+  * **fonte**: URL del server per scaricare il file, come codificato dal`encodeURI()`.
 
-*   **destinazione**: Filesystem url che rappresenta il file nel dispositivo. Per indietro la compatibilità, questo può anche essere il percorso completo del file sul dispositivo. (Vedere [indietro compatibilità rileva] qui sotto)
+  * **destinazione**: Filesystem url che rappresenta il file nel dispositivo. Per indietro la compatibilità, questo può anche essere il percorso completo del file sul dispositivo. (Vedere [indietro compatibilità rileva] qui sotto)
 
-*   **successCallback**: un callback passato un `FileEntry` oggetto. *(Funzione)*
+  * **successCallback**: un callback passato un `FileEntry` oggetto. *(Funzione)*
 
-*   **errorCallback**: un callback che viene eseguito se si verifica un errore durante il recupero `FileEntry`. Richiamato con un oggetto `FileTransferError`. *(Function)*
+  * **errorCallback**: un callback che viene eseguito se si verifica un errore durante il recupero `FileEntry`. Richiamato con un oggetto `FileTransferError`. *(Function)*
 
-*   **trustAllHosts**: parametro opzionale, valore predefinito è `false` . Se impostata su `true` , accetta tutti i certificati di sicurezza. Questo è utile perché Android respinge i certificati autofirmati sicurezza. Non raccomandato per uso in produzione. Supportato su Android e iOS. *(boolean)*
+  * **trustAllHosts**: parametro opzionale, valore predefinito è `false` . Se impostata su `true` , accetta tutti i certificati di sicurezza. Questo è utile perché Android respinge i certificati autofirmati sicurezza. Non raccomandato per uso in produzione. Supportato su Android e iOS. *(boolean)*
 
-*   **opzioni**: parametri facoltativi, attualmente solo supporti intestazioni (ad esempio autorizzazione (autenticazione di base), ecc.).
+  * **opzioni**: parametri facoltativi, attualmente solo supporti intestazioni (ad esempio autorizzazione (autenticazione di base), ecc.).
 
 ### Esempio
 
@@ -223,6 +228,10 @@ Un oggetto `FileUploadResult` viene passato al metodo di callback del metodo `up
         }
     );
     
+
+### WP8 stranezze
+
+  * Il download richiede è nella cache di implementazione nativa. Per evitare la memorizzazione nella cache, passare `if-Modified-Since` intestazione per metodo di download.
 
 ## Abort
 
@@ -260,25 +269,25 @@ Un oggetto `FileTransferError` viene passato a un callback di errore quando si v
 
 ### Proprietà
 
-*   **codice**: uno dei codici di errore predefiniti elencati di seguito. (Numero)
+  * **codice**: uno dei codici di errore predefiniti elencati di seguito. (Numero)
 
-*   **fonte**: URL all'origine. (String)
+  * **fonte**: URL all'origine. (String)
 
-*   **destinazione**: URL di destinazione. (String)
+  * **destinazione**: URL di destinazione. (String)
 
-*   **http_status**: codice di stato HTTP. Questo attributo è disponibile solo quando viene ricevuto un codice di risposta della connessione HTTP. (Numero)
+  * **http_status**: codice di stato HTTP. Questo attributo è disponibile solo quando viene ricevuto un codice di risposta della connessione HTTP. (Numero)
 
-*   **body** Corpo della risposta. Questo attributo è disponibile solo quando viene ricevuta una risposta dalla connessione HTTP. (String)
+  * **body** Corpo della risposta. Questo attributo è disponibile solo quando viene ricevuta una risposta dalla connessione HTTP. (String)
 
-*   **exception**: O e.getMessage o e.toString (String)
+  * **exception**: O e.getMessage o e.toString (String)
 
 ### Costanti
 
-*   1 = `FileTransferError.FILE_NOT_FOUND_ERR`
-*   2 = `FileTransferError.INVALID_URL_ERR`
-*   3 = `FileTransferError.CONNECTION_ERR`
-*   4 = `FileTransferError.ABORT_ERR`
-*   5 = `FileTransferError.NOT_MODIFIED_ERR`
+  * 1 = `FileTransferError.FILE_NOT_FOUND_ERR`
+  * 2 = `FileTransferError.INVALID_URL_ERR`
+  * 3 = `FileTransferError.CONNECTION_ERR`
+  * 4 = `FileTransferError.ABORT_ERR`
+  * 5 = `FileTransferError.NOT_MODIFIED_ERR`
 
 ## Note di compatibilità all'indietro
 

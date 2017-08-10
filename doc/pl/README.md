@@ -1,23 +1,27 @@
-<!---
-    Licensed to the Apache Software Foundation (ASF) under one
-    or more contributor license agreements.  See the NOTICE file
-    distributed with this work for additional information
-    regarding copyright ownership.  The ASF licenses this file
-    to you under the Apache License, Version 2.0 (the
-    "License"); you may not use this file except in compliance
-    with the License.  You may obtain a copy of the License at
-
-      http://www.apache.org/licenses/LICENSE-2.0
-
-    Unless required by applicable law or agreed to in writing,
-    software distributed under the License is distributed on an
-    "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY
-    KIND, either express or implied.  See the License for the
-    specific language governing permissions and limitations
-    under the License.
+<!--
+# license: Licensed to the Apache Software Foundation (ASF) under one
+#         or more contributor license agreements.  See the NOTICE file
+#         distributed with this work for additional information
+#         regarding copyright ownership.  The ASF licenses this file
+#         to you under the Apache License, Version 2.0 (the
+#         "License"); you may not use this file except in compliance
+#         with the License.  You may obtain a copy of the License at
+#
+#           http://www.apache.org/licenses/LICENSE-2.0
+#
+#         Unless required by applicable law or agreed to in writing,
+#         software distributed under the License is distributed on an
+#         "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY
+#         KIND, either express or implied.  See the License for the
+#         specific language governing permissions and limitations
+#         under the License.
 -->
 
 # cordova-plugin-file-transfer
+
+[![Build Status](https://travis-ci.org/apache/cordova-plugin-file-transfer.svg)](https://travis-ci.org/apache/cordova-plugin-file-transfer)
+
+Plugin dokumentacja: <doc/index.md>
 
 Plugin pozwala na przesyłanie i pobieranie plików.
 
@@ -38,59 +42,60 @@ Chociaż w globalnym zasięgu, są nie dostępne dopiero po `deviceready` imprez
 
 ## Obsługiwane platformy
 
-*   Amazon Fire OS
-*   Android
-*   BlackBerry 10
-*   Przeglądarka
-*   Firefox OS **
-*   iOS
-*   Windows Phone 7 i 8 *
-*   Windows 8
-*   Windows
+  * Amazon Fire OS
+  * Android
+  * BlackBerry 10
+  * Przeglądarka
+  * Firefox OS **
+  * iOS
+  * Windows Phone 7 i 8 *
+  * Windows 8
+  * Windows
 
-* *Nie obsługują `onprogress` ani `abort()`*
+\ * *Nie obsługują `onprogress` ani `abort()` *
 
-* * *Nie obsługują `onprogress`*
+\ ** *Nie obsługują `onprogress` *
 
 # FileTransfer
 
-Obiekt `FileTransfer` zapewnia sposób wgrać pliki przy użyciu żądania HTTP wieloczęściowe POST i pobierania plików, jak również.
+Obiekt `FileTransfer` zapewnia sposób wgrać pliki za pomocą Multi-część POST lub PUT żądania HTTP i pobierania plików, jak również.
 
 ## Właściwości
 
-*   **OnProgress**: o nazwie `ProgressEvent` gdy nowy kawałek danych jest przenoszona. *(Funkcja)*
+  * **OnProgress**: o nazwie `ProgressEvent` gdy nowy kawałek danych jest przenoszona. *(Funkcja)*
 
 ## Metody
 
-*   **wgraj**: wysyła plik na serwer.
+  * **wgraj**: wysyła plik na serwer.
 
-*   **do pobrania**: pliki do pobrania pliku z serwera.
+  * **do pobrania**: pliki do pobrania pliku z serwera.
 
-*   **przerwać**: przerywa w toku transferu.
+  * **przerwać**: przerywa w toku transferu.
 
 ## upload
 
 **Parametry**:
 
-*   **fileURL**: URL plików reprezentujących pliku na urządzenie. Dla wstecznej kompatybilności, to może również być pełną ścieżkę pliku na urządzenie. (Zobacz [wstecz zgodności zauważa] poniżej)
+  * **fileURL**: URL plików reprezentujących pliku na urządzenie. Dla wstecznej kompatybilności, to może również być pełną ścieżkę pliku na urządzenie. (Zobacz [wstecz zgodności zauważa] poniżej)
 
-*   **serwer**: adres URL serwera, aby otrzymać plik, jak kodowane przez`encodeURI()`.
+  * **serwer**: adres URL serwera, aby otrzymać plik, jak kodowane przez`encodeURI()`.
 
-*   **successCallback**: wywołania zwrotnego, który jest przekazywany obiekt `FileUploadResult`. *(Funkcja)*
+  * **successCallback**: wywołania zwrotnego, który jest przekazywany obiekt `FileUploadResult`. *(Funkcja)*
 
-*   **errorCallback**: wywołanie zwrotne, które wykonuje, jeżeli wystąpi błąd pobierania `FileUploadResult`. Wywoływany z obiektu `FileTransferError`. *(Funkcja)*
+  * **errorCallback**: wywołanie zwrotne, które wykonuje, jeżeli wystąpi błąd pobierania `FileUploadResult`. Wywoływany z obiektu `FileTransferError`. *(Funkcja)*
 
-*   **Opcje**: parametry opcjonalne *(obiektu)*. Ważne klucze:
+  * **Opcje**: parametry opcjonalne *(obiektu)*. Ważne klucze:
     
-    *   **fileKey**: nazwa elementu form. Domyślnie `file` . (DOMString)
-    *   **Nazwa pliku**: nazwy pliku, aby użyć podczas zapisywania pliku na serwerze. Domyślnie `image.jpg` . (DOMString)
-    *   **element httpMethod**: Metoda HTTP do użycia - `umieścić` lub `POST`. Domyślnie `POST`. (DOMString)
-    *   **mimeType**: Typ mime danych do przesłania. Domyślnie do `image/jpeg`. (DOMString)
-    *   **params**: zestaw par opcjonalny klucz/wartość w żądaniu HTTP. (Obiekt)
-    *   **chunkedMode**: czy przekazać dane w trybie pakietowego przesyłania strumieniowego. Wartością domyślną jest `true`. (Wartość logiczna)
-    *   **headers**: Mapa wartości Nazwa/nagłówka nagłówek. Aby określić więcej niż jedną wartość, należy użyć tablicę. (Obiekt)
+      * **fileKey**: nazwa elementu form. Domyślnie `file` . (DOMString)
+      * **Nazwa pliku**: nazwy pliku, aby użyć podczas zapisywania pliku na serwerze. Domyślnie `image.jpg` . (DOMString)
+      * **element httpMethod**: Metoda HTTP do użycia - `umieścić` lub `POST`. Domyślnie `POST`. (DOMString)
+      * **mimeType**: Typ mime danych do przesłania. Domyślnie do `image/jpeg`. (DOMString)
+      * **params**: zestaw par opcjonalny klucz/wartość w żądaniu HTTP. (Obiekt)
+      * **chunkedMode**: czy przekazać dane w trybie pakietowego przesyłania strumieniowego. Wartością domyślną jest `true`. (Wartość logiczna)
+      * **headers**: Mapa wartości Nazwa/nagłówka nagłówek. Aby określić więcej niż jedną wartość, należy użyć tablicę. Na iOS, FireOS i Android jeśli nagłówek o nazwie Content-Type jest obecny, wieloczęściowa forma nie danych. (Object)
+      * **element httpMethod**: Metoda HTTP np. POST lub PUT. Ustawienia domyślne do `POST`. (DOMString)
 
-*   **trustAllHosts**: parametr opcjonalny, domyślnie `false` . Jeśli zestaw `true` , to akceptuje wszystkie certyfikaty bezpieczeństwa. Jest to przydatne, ponieważ Android odrzuca Certyfikaty samopodpisane. Nie zaleca się do użytku produkcyjnego. Obsługiwane na Androida i iOS. *(wartość logiczna)*
+  * **trustAllHosts**: parametr opcjonalny, domyślnie `false` . Jeśli zestaw `true` , to akceptuje wszystkie certyfikaty bezpieczeństwa. Jest to przydatne, ponieważ Android odrzuca Certyfikaty samopodpisane. Nie zaleca się do użytku produkcyjnego. Obsługiwane na Androida i iOS. *(wartość logiczna)*
 
 ### Przykład
 
@@ -166,35 +171,35 @@ Obiekt `FileUploadResult` jest przekazywana do sukcesu wywołania zwrotnego meto
 
 ### Właściwości
 
-*   **bytesSent**: liczba bajtów wysłanych do serwera jako część upload. (długie)
+  * **bytesSent**: liczba bajtów wysłanych do serwera jako część upload. (długie)
 
-*   **responseCode**: kod odpowiedzi HTTP, zwracane przez serwer. (długie)
+  * **responseCode**: kod odpowiedzi HTTP, zwracane przez serwer. (długie)
 
-*   **odpowiedź**: HTTP odpowiedzi zwracane przez serwer. (DOMString)
+  * **odpowiedź**: HTTP odpowiedzi zwracane przez serwer. (DOMString)
 
-*   **nagłówki**: nagłówki HTTP odpowiedzi przez serwer. (Obiekt)
+  * **nagłówki**: nagłówki HTTP odpowiedzi przez serwer. (Obiekt)
     
-    *   Obecnie obsługiwane na iOS tylko.
+      * Obecnie obsługiwane na iOS tylko.
 
 ### Dziwactwa iOS
 
-*   Nie obsługuje `responseCode` lub`bytesSent`.
+  * Nie obsługuje `responseCode` lub`bytesSent`.
 
 ## download
 
 **Parametry**:
 
-*   **Źródło**: adres URL serwera, aby pobrać plik, jak kodowane przez`encodeURI()`.
+  * **Źródło**: adres URL serwera, aby pobrać plik, jak kodowane przez`encodeURI()`.
 
-*   **cel**: url plików reprezentujących pliku na urządzenie. Dla wstecznej kompatybilności, to może również być pełną ścieżkę pliku na urządzenie. (Zobacz [wstecz zgodności zauważa] poniżej)
+  * **cel**: url plików reprezentujących pliku na urządzenie. Dla wstecznej kompatybilności, to może również być pełną ścieżkę pliku na urządzenie. (Zobacz [wstecz zgodności zauważa] poniżej)
 
-*   **successCallback**: wywołania zwrotnego, który jest przekazywany `FileEntry` obiektu. *(Funkcja)*
+  * **successCallback**: wywołania zwrotnego, który jest przekazywany `FileEntry` obiektu. *(Funkcja)*
 
-*   **errorCallback**: wywołanie zwrotne, które wykonuje, jeśli wystąpi błąd podczas pobierania `FileEntry`. Wywoływany z obiektu `FileTransferError`. *(Funkcja)*
+  * **errorCallback**: wywołanie zwrotne, które wykonuje, jeśli wystąpi błąd podczas pobierania `FileEntry`. Wywoływany z obiektu `FileTransferError`. *(Funkcja)*
 
-*   **trustAllHosts**: parametr opcjonalny, domyślnie `false` . Jeśli zestaw `true` , to akceptuje wszystkie certyfikaty bezpieczeństwa. Jest to przydatne, ponieważ Android odrzuca Certyfikaty samopodpisane. Nie zaleca się do użytku produkcyjnego. Obsługiwane na Androida i iOS. *(wartość logiczna)*
+  * **trustAllHosts**: parametr opcjonalny, domyślnie `false` . Jeśli zestaw `true` , to akceptuje wszystkie certyfikaty bezpieczeństwa. Jest to przydatne, ponieważ Android odrzuca Certyfikaty samopodpisane. Nie zaleca się do użytku produkcyjnego. Obsługiwane na Androida i iOS. *(wartość logiczna)*
 
-*   **Opcje**: parametry opcjonalne, obecnie tylko obsługuje nagłówki (takie jak autoryzacja (uwierzytelnianie podstawowe), itp.).
+  * **Opcje**: parametry opcjonalne, obecnie tylko obsługuje nagłówki (takie jak autoryzacja (uwierzytelnianie podstawowe), itp.).
 
 ### Przykład
 
@@ -223,6 +228,10 @@ Obiekt `FileUploadResult` jest przekazywana do sukcesu wywołania zwrotnego meto
         }
     );
     
+
+### WP8 dziwactwa
+
+  * Pobierz wnioski są buforowane przez rodzimych realizacji. Aby uniknąć, buforowanie, przekazać `if-Modified-Since` nagłówka do pobrania Metoda.
 
 ## abort
 
@@ -260,25 +269,25 @@ Obiekt `FileTransferError` jest przekazywana do błąd wywołania zwrotnego, gdy
 
 ### Właściwości
 
-*   **Kod**: jeden z kodów błędów wstępnie zdefiniowanych poniżej. (Liczba)
+  * **Kod**: jeden z kodów błędów wstępnie zdefiniowanych poniżej. (Liczba)
 
-*   **Źródło**: URL do źródła. (String)
+  * **Źródło**: URL do źródła. (String)
 
-*   **cel**: adres URL do docelowego. (String)
+  * **cel**: adres URL do docelowego. (String)
 
-*   **HTTP_STATUS**: kod stanu HTTP. Ten atrybut jest dostępna tylko po otrzymaniu kodu odpowiedzi z połączenia HTTP. (Liczba)
+  * **HTTP_STATUS**: kod stanu HTTP. Ten atrybut jest dostępna tylko po otrzymaniu kodu odpowiedzi z połączenia HTTP. (Liczba)
 
-*   **body** Treść odpowiedzi. Ten atrybut jest dostępna tylko wtedy, gdy odpowiedź jest otrzymanych od połączenia HTTP. (String)
+  * **body** Treść odpowiedzi. Ten atrybut jest dostępna tylko wtedy, gdy odpowiedź jest otrzymanych od połączenia HTTP. (String)
 
-*   **exception**: albo e.getMessage lub e.toString (String)
+  * **exception**: albo e.getMessage lub e.toString (String)
 
 ### Stałe
 
-*   1 = `FileTransferError.FILE_NOT_FOUND_ERR`
-*   2 = `FileTransferError.INVALID_URL_ERR`
-*   3 = `FileTransferError.CONNECTION_ERR`
-*   4 = `FileTransferError.ABORT_ERR`
-*   5 = `FileTransferError.NOT_MODIFIED_ERR`
+  * 1 = `FileTransferError.FILE_NOT_FOUND_ERR`
+  * 2 = `FileTransferError.INVALID_URL_ERR`
+  * 3 = `FileTransferError.CONNECTION_ERR`
+  * 4 = `FileTransferError.ABORT_ERR`
+  * 5 = `FileTransferError.NOT_MODIFIED_ERR`
 
 ## Do tyłu zgodności stwierdza
 

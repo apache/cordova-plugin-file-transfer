@@ -19,10 +19,11 @@
  *
 */
 
-/*global Blob:false */
+/* global Blob:false */
+
 var cordova = require('cordova'),
-    resolve = cordova.require('org.apache.cordova.file.resolveLocalFileSystemURIProxy'),
-    requestAnimationFrame = cordova.require('org.apache.cordova.file.bb10RequestAnimationFrame'),
+    resolve = cordova.require('cordova-plugin-file.resolveLocalFileSystemURIProxy'),
+    requestAnimationFrame = cordova.require('cordova-plugin-file.bb10RequestAnimationFrame'),
     xhr = {};
 
 function getParentPath(filePath) {
@@ -55,7 +56,7 @@ module.exports = {
     upload: function(win, fail, args) {
         var filePath = args[0],
             server = args[1],
-            fileKey = args[9],
+            fileKey = args[2],
             fileName = args[3],
             mimeType = args[4],
             params = args[5],
@@ -221,7 +222,7 @@ module.exports = {
 
         xhr[id].onabort = function (e) {
             onFail(new FileTransferError(FileTransferError.ABORT_ERR, source, target, xhr[id].status, xhr[id].response));
-        }
+        };
 
         xhr[id].onload = function () {
             if (xhr[id].readyState === xhr[id].DONE) {
