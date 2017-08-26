@@ -137,7 +137,7 @@ var ft = new FileTransfer();
 ft.upload(fileURL, encodeURI("http://some.server.com/upload.php"), win, fail, options);
 ```
 
-### Example with Upload Headers and Progress Events (Android and iOS only)
+### Example with Upload Headers and Progress Events ([Supported Platforms](#supported-platforms))
 
 ```js
 function win(r) {
