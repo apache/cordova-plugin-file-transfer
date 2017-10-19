@@ -726,9 +726,20 @@ static CFIndex WriteDataToStream(NSData* data, CFWriteStreamRef stream)
         self.bytesExpected = [response expectedContentLength];
         self.responseHeaders = [httpResponse allHeaderFields];
         if ((self.direction == CDV_TRANSFER_DOWNLOAD) && (self.responseCode == 200) && (self.bytesExpected == NSURLResponseUnknownLength)) {
-            // Kick off HEAD request to server to get real length
+            BOOL gzip = NO;
+            for (NSString *key in [self.responseHeaders allKeys]) {
+                if ( [@"Content-Encoding" caseInsensitiveCompare:key] == NSOrderedSame ) {
+                    if ( [@"gzip" caseInsensitiveCompare:[self.responseHeaders objectForKey:key]] == NSOrderedSame ){
+                        gzip = YES;
+                    }
+                }
+            }
+
+            // Kick off HEAD request to server to get real length if content encoding is gzip
             // bytesExpected will be updated when that response is returned
-            self.entityLengthRequest = [[CDVFileTransferEntityLengthRequest alloc] initWithOriginalRequest:connection.currentRequest andDelegate:self];
+            if ( gzip ) {
+                self.entityLengthRequest = [[CDVFileTransferEntityLengthRequest alloc] initWithOriginalRequest:connection.currentRequest andDelegate:self];
+            }
         }
     } else if ([response.URL isFileURL]) {
         NSDictionary* attr = [[NSFileManager defaultManager] attributesOfItemAtPath:[response.URL path] error:nil];
