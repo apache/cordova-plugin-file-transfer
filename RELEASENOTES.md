@@ -20,6 +20,14 @@
 -->
 # Release Notes
                                               
+### 1.7.0 (Nov 06, 2017)
+* Updated `README` with Deprecated Status
+* [CB-13472](https://issues.apache.org/jira/browse/CB-13472) (CI) Fixed Travis **Android** builds again
+* [CB-12809](https://issues.apache.org/jira/browse/CB-12809) Google Play Blocker: Unsafe SSL TrustManager Defined
+* [CB-7995](https://issues.apache.org/jira/browse/CB-7995) document that `FileTransferError.exception` on **iOS** is never defined.
+* [CB-13000](https://issues.apache.org/jira/browse/CB-13000) (CI) Speed up **Android** builds
+* [CB-12847](https://issues.apache.org/jira/browse/CB-12847) added `bugs` entry to `package.json`.
+
 ### 1.6.3 (Apr 27, 2017)
 * [CB-12685](https://issues.apache.org/jira/browse/CB-12685) added `package.json` to tests folder
 * [CB-10696](https://issues.apache.org/jira/browse/CB-10696) **iOS**: Encode target path with spaces
