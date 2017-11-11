@@ -438,7 +438,7 @@ exports.defineAutoTests = function () {
                     };
 
                     specContext.transfer.download(fileURL, specContext.localFilePath, downloadWin, downloadFail);
-                }, DOWNLOAD_TIMEOUT);
+                }, DOWNLOAD_TIMEOUT * 10); // to give Heroku server some time to wake up
 
                 it("filetransfer.spec.5 should download a file using http basic auth", function (done) {
                     var fileURL = SERVER_WITH_CREDENTIALS + "/download_basic_auth";
