@@ -308,7 +308,7 @@ static CFIndex WriteDataToStream(NSData* data, CFWriteStreamRef stream)
     NSString* server = [command argumentAtIndex:1];
     NSError* __autoreleasing err = nil;
 
-    if ([source hasPrefix:@"data:"] && [source rangeOfString:@"base64"].location != NSNotFound) {
+    if ([source hasPrefix:@"data:"]) {
         NSRange commaRange = [source rangeOfString: @","];
         if (commaRange.location == NSNotFound) {
             // Return error is there is no comma
@@ -325,8 +325,17 @@ static CFIndex WriteDataToStream(NSData* data, CFWriteStreamRef stream)
             return;
         }
 
-        NSData *fileData = [[NSData alloc] initWithBase64EncodedString:[source substringFromIndex:(commaRange.location + 1)] options:NSDataBase64DecodingIgnoreUnknownCharacters];
-        [self uploadData:fileData command:command];
+        // check if source is base64 encoded
+        if ([source rangeOfString:@"base64"].location != NSNotFound) {
+            NSData *fileData = [[NSData alloc] initWithBase64EncodedString:[source substringFromIndex:(commaRange.location + 1)] options:NSDataBase64DecodingIgnoreUnknownCharacters];
+            [self uploadData:fileData command:command];
+        }
+        // if not, apply urldecode and encode it to NSData using UTF8
+        else {
+            NSData *fileData = [[[source substringFromIndex:(commaRange.location + 1)] stringByReplacingPercentEscapesUsingEncoding:NSUTF8StringEncoding] dataUsingEncoding:NSUTF8StringEncoding];
+            [self uploadData:fileData command:command];
+        }
+
         return;
     }
 
