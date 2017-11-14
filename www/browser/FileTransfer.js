@@ -114,7 +114,14 @@ FileTransfer.prototype.upload = function(filePath, server, successCallback, erro
     var withCredentials = options.withCredentials || false;
     // var chunkedMode = !!options.chunkedMode; // Not supported
     var headers = options.headers || {};
-    var httpMethod = options.httpMethod && options.httpMethod.toUpperCase() === "PUT" ? "PUT" : "POST";
+    var httpMethod = options.httpMethod || "POST";
+    if (httpMethod.toUpperCase() == "PATCH") {
+        httpMethod = "PATCH";
+    } else if (httpMethod.toUpperCase() == "PUT") {
+        httpMethod = "PUT";
+    } else {
+        httpMethod = "POST";
+    }
 
     var basicAuthHeader = getBasicAuthHeader(server);
     if (basicAuthHeader) {
