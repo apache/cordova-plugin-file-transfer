@@ -225,7 +225,6 @@ public class FileTransfer extends CordovaPlugin {
     }
 
     private String getCookies(final String target) {
-        boolean gotCookie = false;
         String cookie = null;
         Class webViewClass = webView.getClass();
         try {
@@ -238,15 +237,19 @@ public class FileTransfer extends CordovaPlugin {
                             gcmMethod.invoke(webView)
                         ), target);
 
-            gotCookie = true;
         } catch (NoSuchMethodException e) {
         } catch (IllegalAccessException e) {
         } catch (InvocationTargetException e) {
         } catch (ClassCastException e) {
         }
 
-        if (!gotCookie && CookieManager.getInstance() != null) {
-            cookie = CookieManager.getInstance().getCookie(target);
+        if (CookieManager.getInstance() != null) {
+            String cmCookie = CookieManager.getInstance().getCookie(target);
+            if (cookie != null) {
+                cookie += "; " + cmCookie;
+            } else {
+                cookie = cmCookie;
+            }
         }
 
         return cookie;
