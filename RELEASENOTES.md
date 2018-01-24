@@ -20,6 +20,9 @@
 -->
 # Release Notes
                                               
+### 1.7.1 (Jan 24, 2018)
+* [CB-13749](https://issues.apache.org/jira/browse/CB-13749) Add build-tools-26.0.2 to travis
+
 ### 1.7.0 (Nov 06, 2017)
 * Updated `README` with Deprecated Status
 * [CB-13472](https://issues.apache.org/jira/browse/CB-13472) (CI) Fixed Travis **Android** builds again
