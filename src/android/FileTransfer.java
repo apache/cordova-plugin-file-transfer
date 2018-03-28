@@ -53,7 +53,12 @@ import org.json.JSONObject;
 
 import android.net.Uri;
 import android.os.Build;
+import android.util.Log;
 import android.webkit.CookieManager;
+
+import com.google.android.gms.common.GooglePlayServicesNotAvailableException;
+import com.google.android.gms.common.GooglePlayServicesRepairableException;
+import com.google.android.gms.security.ProviderInstaller;
 
 public class FileTransfer extends CordovaPlugin {
 
@@ -167,6 +172,17 @@ public class FileTransfer extends CordovaPlugin {
         if (action.equals("upload") || action.equals("download")) {
             String source = args.getString(0);
             String target = args.getString(1);
+
+            // Patch the Security Provider via Google Play Services to improve support for newer TLS/SSL standards in
+            // older versions of Android (@jira:CB-12551). More info here:
+            // https://developer.android.com/training/articles/security-gms-provider.html
+            try {
+                ProviderInstaller.installIfNeeded(this.cordova.getActivity().getApplicationContext());
+            } catch (GooglePlayServicesRepairableException e) {
+                Log.e(LOG_TAG, "Google Play Services is out of date. Unable to patch security provider");
+            } catch (GooglePlayServicesNotAvailableException e) {
+                Log.e(LOG_TAG, "Unable to patch security provider");
+            }
 
             if (action.equals("upload")) {
                 upload(source, target, args, callbackContext);
