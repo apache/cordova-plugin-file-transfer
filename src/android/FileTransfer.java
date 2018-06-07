@@ -53,9 +53,10 @@ import org.json.JSONObject;
 
 import android.net.Uri;
 import android.os.Build;
-import android.util.Log;
+import org.apache.cordova.LOG;
 import android.webkit.CookieManager;
 
+import com.google.android.gms.common.GoogleApiAvailability;
 import com.google.android.gms.common.GooglePlayServicesNotAvailableException;
 import com.google.android.gms.common.GooglePlayServicesRepairableException;
 import com.google.android.gms.security.ProviderInstaller;
@@ -179,9 +180,14 @@ public class FileTransfer extends CordovaPlugin {
             try {
                 ProviderInstaller.installIfNeeded(this.cordova.getActivity().getApplicationContext());
             } catch (GooglePlayServicesRepairableException e) {
-                Log.e(LOG_TAG, "Google Play Services is out of date. Unable to patch security provider");
+                LOG.e(LOG_TAG, "Google Play Services is out of date. Unable to patch security provider");
+
+                // Prompt the user to install/update/enable Google Play services.
+                GoogleApiAvailability.getInstance()
+                        .showErrorNotification(this.cordova.getActivity().getApplicationContext(),
+                                e.getConnectionStatusCode());
             } catch (GooglePlayServicesNotAvailableException e) {
-                Log.e(LOG_TAG, "Unable to patch security provider");
+                LOG.e(LOG_TAG, "Unable to patch security provider");
             }
 
             if (action.equals("upload")) {

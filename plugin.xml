@@ -54,6 +54,8 @@
         <source-file src="src/android/FileTransfer.java" target-dir="src/org/apache/cordova/filetransfer" />
         <source-file src="src/android/FileProgressResult.java" target-dir="src/org/apache/cordova/filetransfer" />
         <source-file src="src/android/FileUploadResult.java" target-dir="src/org/apache/cordova/filetransfer" />
+
+        <framework src="com.google.android.gms:play-services-base:15.0.0+" />
     </platform>
 
     <!-- amamzon-fireos -->
