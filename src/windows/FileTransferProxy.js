@@ -499,7 +499,7 @@ exec(win, fail, 'FileTransfer', 'upload',
                             if (!response) {
                                 resolve(new FTErr(FTErr.CONNECTION_ERR, source, target));
                             } else {
-                                if (result.progress.bytesReceived === 0) {
+                                if (download.progress.bytesReceived === 0) {
                                     resolve(new FTErr(FTErr.FILE_NOT_FOUND_ERR, source, target, response.statusCode, null, error));
                                     return;
                                 }
