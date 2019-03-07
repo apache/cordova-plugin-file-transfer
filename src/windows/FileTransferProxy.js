@@ -110,6 +110,10 @@ function doUpload (upload, uploadId, filePath, server, successCallback, errorCal
                     if (!response) {
                         resolve(new FTErr(FTErr.CONNECTION_ERR, source, server));
                     } else {
+                        if (upload.progress.bytesReceived === 0) {
+                            resolve(new FTErr(FTErr.FILE_NOT_FOUND_ERR, source, server, response.statusCode, null, error));
+                            return;
+                        }
                         var reader = new Windows.Storage.Streams.DataReader(upload.getResultStreamAt(0));
                         reader.loadAsync(upload.progress.bytesReceived).then(function (size) {
                             var responseText = reader.readString(size);
