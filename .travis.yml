@@ -44,10 +44,17 @@ _android: &_android
 matrix:
   include:    
     # local tests, without saucelabs
+    - env: PLATFORM=local/browser
+      <<: *_ios
     - env: PLATFORM=local/ios-10.0
       <<: *_ios
 
     # many tests with saucelabs
+    - env: PLATFORM=browser-chrome
+    - env: PLATFORM=browser-firefox
+    - env: PLATFORM=browser-safari
+    - env: PLATFORM=browser-edge
+
     - env: PLATFORM=ios-11.3
       <<: *_ios
     - env: PLATFORM=ios-12.0
@@ -97,11 +104,19 @@ before_script:
       PARAMEDIC_COMMAND="cordova-paramedic"
     fi
   - PARAMEDIC_BUILDNAME=travis-$TRAVIS_REPO_SLUG-$TRAVIS_JOB_NUMBER
-  
+  - |
+    echo "Variables now are set to:"
+    echo "TEST_COMMAND=$TEST_COMMAND"
+    echo "ADDITIONAL_TESTS=$ADDITIONAL_TESTS"
+    echo "PARAMEDIC_COMMAND=$PARAMEDIC_COMMAND"
+    echo "PLATFORM=$PLATFORM"
+    echo "PARAMEDIC_PLUGIN_TO_TEST=$PARAMEDIC_PLUGIN_TO_TEST"
+    echo "PARAMEDIC_BUILDNAME=$PARAMEDIC_BUILDNAME"
+
 script:
   - $TEST_COMMAND
-  - if [[ "$ADDITIONAL_TESTS" != "" ]]; 
-      then cd $ADDITIONAL_TESTS && npm install && npm test;
+  - if [[ "$ADDITIONAL_TESTS_DIR" != "" ]]; then
+      cd $ADDITIONAL_TESTS_DIR && npm install && npm test;
     else 
       $PARAMEDIC_COMMAND --config ./pr/$PLATFORM --plugin $PARAMEDIC_PLUGIN_TO_TEST --buildName $PARAMEDIC_BUILDNAME --fileTransferServer http://sheltered-retreat-43956.herokuapp.com; 
     fi
