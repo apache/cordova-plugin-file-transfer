@@ -104,5 +104,5 @@ script:
       then cd $ADDITIONAL_TESTS && npm install && npm test;
     else 
       $PARAMEDIC_COMMAND --config ./pr/$PLATFORM --plugin $PARAMEDIC_PLUGIN_TO_TEST --buildName $PARAMEDIC_BUILDNAME --fileTransferServer http://sheltered-retreat-43956.herokuapp.com; 
-fi
+    fi
 
