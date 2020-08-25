@@ -29,7 +29,7 @@ description: Upload and download files.
 
 # Usage notice
 
-With the new features introduced in the [Fetch API](https://developer.mozilla.org/en-US/docs/Web/API/Fetch_API) and the [XMLHttpRequest](https://developer.mozilla.org/en-US/docs/Web/API/XMLHttpRequest), this plugin may not be needed any more for your use case. For small file transfers you probably won't require the plugin. But if pland to handle large downloads or you are suffering from slow saving, timeouts or crashed the plugin is better suited for your use case than the Fetch API or the XMLHttpRequest.
+With the new features introduced in the [Fetch API](https://developer.mozilla.org/en-US/docs/Web/API/Fetch_API) and the [XMLHttpRequest](https://developer.mozilla.org/en-US/docs/Web/API/XMLHttpRequest), this plugin may not be needed any more for your use case. For small file transfers, you probably won't require this plugin. But, if you plan to handle large downloads, suffering from slow saving, timeouts, or crashes, this plugin is better suited for your use case over the Fetch API or the XMLHttpRequest.
 
 Migrating from this plugin to using the new features of [XMLHttpRequest](https://developer.mozilla.org/en-US/docs/Web/API/XMLHttpRequest), is explained in this [Cordova blog post](https://cordova.apache.org/blog/2017/10/18/from-filetransfer-to-xhr2.html).
 
