@@ -27,6 +27,14 @@ description: Upload and download files.
 
 # cordova-plugin-file-transfer
 
+# Usage notice
+
+With the new features introduced in the [Fetch API](https://developer.mozilla.org/en-US/docs/Web/API/Fetch_API) and the [XMLHttpRequest](https://developer.mozilla.org/en-US/docs/Web/API/XMLHttpRequest), this plugin may not be needed any more for your use case. For small file transfers, you probably won't require this plugin. But, if you plan to handle large downloads, suffering from slow saving, timeouts, or crashes, this plugin is better suited for your use case over the Fetch API or the XMLHttpRequest.
+
+Migrating from this plugin to using the new features of [XMLHttpRequest](https://developer.mozilla.org/en-US/docs/Web/API/XMLHttpRequest), is explained in this [Cordova blog post](https://cordova.apache.org/blog/2017/10/18/from-filetransfer-to-xhr2.html).
+
+## Description
+
 This plugin allows you to upload and download files.
 
 This plugin defines global `FileTransfer`, `FileUploadOptions` constructors. Although in the global scope, they are not available until after the `deviceready` event.
@@ -41,10 +49,6 @@ function onDeviceReady() {
 > To get a few ideas, check out the [sample](#sample) at the bottom of this page.
 
 Report issues with this plugin on the [Apache Cordova issue tracker](https://issues.apache.org/jira/issues/?jql=project%20%3D%20CB%20AND%20status%20in%20%28Open%2C%20%22In%20Progress%22%2C%20Reopened%29%20AND%20resolution%20%3D%20Unresolved%20AND%20component%20%3D%20%22Plugin%20File%20Transfer%22%20ORDER%20BY%20priority%20DESC%2C%20summary%20ASC%2C%20updatedDate%20DESC)
-
-## Deprecated
-
-With the new features introduced in [XMLHttpRequest](https://developer.mozilla.org/en-US/docs/Web/API/XMLHttpRequest), this plugin is not needed any more. Migrating from this plugin to using the new features of [XMLHttpRequest](https://developer.mozilla.org/en-US/docs/Web/API/XMLHttpRequest), is explained in this [Cordova blog post](https://cordova.apache.org/blog/2017/10/18/from-filetransfer-to-xhr2.html).
 
 ## Installation
 
