@@ -54,8 +54,6 @@ exports.defineAutoTests = function () {
 
     // flags
     var isWindows = cordova.platformId === "windows8" || cordova.platformId === "windows";
-    var isWindowsPhone81 = isWindows && WinJS.Utilities.isPhone;
-    var isWP8 = cordova.platformId === "windowsphone";
     var isBrowser = cordova.platformId === "browser";
     var isIE = isBrowser && navigator.userAgent.indexOf("Trident") >= 0;
     var isIos = cordova.platformId === "ios";
@@ -177,10 +175,6 @@ exports.defineAutoTests = function () {
             );
         };
 
-        // according to documentation, wp8 does not support onProgress:
-        // https://github.com/apache/cordova-plugin-file-transfer/blob/master/doc/index.md#supported-platforms
-        var wp8OnProgressHandler = function () {};
-
         var defaultOnProgressHandler = function (event) {
             if (event.lengthComputable) {
                 expect(event.loaded).toBeGreaterThan(1);
@@ -199,7 +193,7 @@ exports.defineAutoTests = function () {
         };
 
         var getMalformedUrl = function () {
-            if (cordova.platformId === "android" || cordova.platformId === "amazon-fireos") {
+            if (cordova.platformId === "android") {
                 // bad protocol causes a MalformedUrlException on Android
                 return "httpssss://example.com";
             } else {
@@ -330,7 +324,7 @@ exports.defineAutoTests = function () {
                 this.transfer = new FileTransfer();
 
                 // assign onprogress handler
-                this.transfer.onprogress = isWP8 ? wp8OnProgressHandler : defaultOnProgressHandler;
+                this.transfer.onprogress = defaultOnProgressHandler;
 
                 // spy on the onprogress handler, but still call through to it
                 spyOn(this.transfer, "onprogress").and.callThrough();
@@ -491,10 +485,7 @@ exports.defineAutoTests = function () {
                     var fileURL = window.location.protocol + "//" + window.location.pathname.replace(/ /g, "%20");
                     var specContext = this;
 
-                    if (!/^file:/.exec(fileURL) && cordova.platformId !== "blackberry10") {
-                        if (cordova.platformId === "windowsphone") {
-                            expect(fileURL).toMatch(/^x-wmapp0:/);
-                        }
+                    if (!/^file:/.exec(fileURL)) {
                         done();
                         return;
                     }
@@ -645,12 +636,7 @@ exports.defineAutoTests = function () {
                         expect(error.http_status).not.toBe(401, "Ensure " + fileURL + " is in the white list");
                         expect(error.http_status).toBe(404);
 
-                        // wp8 does not make difference between 404 and unknown host
-                        if (isWP8) {
-                            expect(error.code).toBe(FileTransferError.CONNECTION_ERR);
-                        } else {
-                            expect(error.code).toBe(FileTransferError.FILE_NOT_FOUND_ERR);
-                        }
+                        expect(error.code).toBe(FileTransferError.FILE_NOT_FOUND_ERR);
 
                         done();
                     };
@@ -738,13 +724,6 @@ exports.defineAutoTests = function () {
                 });
 
                 it("filetransfer.spec.17 progress should work with gzip encoding", function (done) {
-
-                    // lengthComputable false on bb10 when downloading gzip
-                    if (cordova.platformId === "blackberry10") {
-                        pending();
-                        return;
-                    }
-
                     var fileURL = "http://www.apache.org/";
                     var specContext = this;
 
@@ -781,8 +760,6 @@ exports.defineAutoTests = function () {
 
                         if (isWindows) {
                             expect(nativeURL.substring(0, 14)).toBe("ms-appdata:///");
-                        } else if (isWP8) {
-                            expect(nativeURL.substring(0, 1)).toBe("/");
                         } else {
                             expect(nativeURL.substring(0, 7)).toBe("file://");
                         }
@@ -834,11 +811,6 @@ exports.defineAutoTests = function () {
                 });
 
                 it("filetransfer.spec.33 should properly handle 304", function (done) {
-                    if (isWP8) {
-                        pending();
-                        return;
-                    }
-
                     var downloadFail = function (error) {
                         expect(error.http_status).toBe(304);
                         expect(error.code).toBe(FileTransferError.NOT_MODIFIED_ERR);
@@ -854,11 +826,6 @@ exports.defineAutoTests = function () {
                 }, DOWNLOAD_TIMEOUT);
 
                 it("filetransfer.spec.35 304 should not result in the deletion of a cached file", function (done) {
-                    if (isWP8) {
-                        pending();
-                        return;
-                    }
-
                     var specContext = this;
 
                     var fileOperationFail = function() {
@@ -1103,7 +1070,7 @@ exports.defineAutoTests = function () {
 
                     // windows store and ios are too fast, win is called before we have a chance to abort
                     // so let's get them busy - while not providing an extra load to the slow Android emulators
-                    var arrayLength = ((isWindows && !isWindowsPhone81) || isIos) ? 3000000 : isIot ? 150000 : 200000;
+                    var arrayLength = (isWindows || isIos) ? 3000000 : isIot ? 150000 : 200000;
                     writeFile(specContext.root, specContext.fileName, new Array(arrayLength).join("aborttest!"), fileWin, done);
                 }, UPLOAD_TIMEOUT);
 
