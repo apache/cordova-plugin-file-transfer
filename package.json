@@ -13,9 +13,8 @@
     ]
   },
   "scripts": {
-    "test": "npm run lint && npm run style",
-    "lint": "jshint www && jshint src && jshint tests",
-    "style": "jscs tests/tests.js"
+    "test": "npm run lint",
+    "lint": "eslint ."
   },
   "repository": "github:apache/cordova-plugin-file-transfer",
   "bugs": "https://github.com/apache/cordova-plugin-file-transfer/issues",
@@ -39,7 +38,6 @@
     }
   },
   "devDependencies": {
-    "jscs": "^2.6.0",
-    "jshint": "^2.8.0"
+    "@cordova/eslint-config": "^3.0.0"
   }
 }

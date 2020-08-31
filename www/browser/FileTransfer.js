@@ -17,33 +17,32 @@
  * specific language governing permissions and limitations
  * under the License.
  *
-*/
+ */
 
-/*global module, require*/
+/* global FileUploadResult */
 
-var argscheck = require('cordova/argscheck'),
-    FileTransferError = require('./FileTransferError');
+var argscheck = require('cordova/argscheck');
+var FileTransferError = require('./FileTransferError');
 
-function getParentPath(filePath) {
+function getParentPath (filePath) {
     var pos = filePath.lastIndexOf('/');
     return filePath.substring(0, pos + 1);
 }
 
-function getFileName(filePath) {
+function getFileName (filePath) {
     var pos = filePath.lastIndexOf('/');
     return filePath.substring(pos + 1);
 }
 
-function getUrlCredentials(urlString) {
-    var credentialsPattern = /^https?\:\/\/(?:(?:(([^:@\/]*)(?::([^@\/]*))?)?@)?([^:\/?#]*)(?::(\d*))?).*$/,
-        credentials = credentialsPattern.exec(urlString);
+function getUrlCredentials (urlString) {
+    var credentialsPattern = /^https?:\/\/(?:(?:(([^:@/]*)(?::([^@/]*))?)?@)?([^:/?#]*)(?::(\d*))?).*$/;
+    var credentials = credentialsPattern.exec(urlString);
 
     return credentials && credentials[1];
 }
 
-function getBasicAuthHeader(urlString) {
-    var header =  null;
-
+function getBasicAuthHeader (urlString) {
+    var header = null;
 
     // This is changed due to MS Windows doesn't support credentials in http uris
     // so we detect them by regexp and strip off from result url
@@ -52,12 +51,12 @@ function getBasicAuthHeader(urlString) {
     if (window.btoa) {
         var credentials = getUrlCredentials(urlString);
         if (credentials) {
-            var authHeader = "Authorization";
-            var authHeaderValue = "Basic " + window.btoa(credentials);
+            var authHeader = 'Authorization';
+            var authHeaderValue = 'Basic ' + window.btoa(credentials);
 
             header = {
-                name : authHeader,
-                value : authHeaderValue
+                name: authHeader,
+                value: authHeaderValue
             };
         }
     }
@@ -65,8 +64,8 @@ function getBasicAuthHeader(urlString) {
     return header;
 }
 
-function checkURL(url) {
-    return url.indexOf(' ') === -1 ?  true : false;
+function checkURL (url) {
+    return url.indexOf(' ') === -1;
 }
 
 var idCounter = 0;
@@ -77,7 +76,7 @@ var transfers = {};
  * FileTransfer uploads a file to a remote server.
  * @constructor
  */
-var FileTransfer = function() {
+var FileTransfer = function () {
     this._id = ++idCounter;
     this.onprogress = null; // optional callback
 };
@@ -92,7 +91,7 @@ var FileTransfer = function() {
  * @param options {FileUploadOptions} Optional parameters such as file name and mimetype
  * @param trustAllHosts {Boolean} Optional trust all hosts (e.g. for self-signed certs), defaults to false
  */
-FileTransfer.prototype.upload = function(filePath, server, successCallback, errorCallback, options) {
+FileTransfer.prototype.upload = function (filePath, server, successCallback, errorCallback, options) {
     // check for arguments
     argscheck.checkArgs('ssFFO*', 'FileTransfer.upload', arguments);
 
@@ -107,14 +106,14 @@ FileTransfer.prototype.upload = function(filePath, server, successCallback, erro
 
     options = options || {};
 
-    var fileKey = options.fileKey || "file";
-    var fileName = options.fileName || "image.jpg";
-    var mimeType = options.mimeType || "image/jpeg";
+    var fileKey = options.fileKey || 'file';
+    var fileName = options.fileName || 'image.jpg';
+    var mimeType = options.mimeType || 'image/jpeg';
     var params = options.params || {};
     var withCredentials = options.withCredentials || false;
     // var chunkedMode = !!options.chunkedMode; // Not supported
     var headers = options.headers || {};
-    var httpMethod = options.httpMethod && options.httpMethod.toUpperCase() === "PUT" ? "PUT" : "POST";
+    var httpMethod = options.httpMethod && options.httpMethod.toUpperCase() === 'PUT' ? 'PUT' : 'POST';
 
     var basicAuthHeader = getBasicAuthHeader(server);
     if (basicAuthHeader) {
@@ -123,93 +122,101 @@ FileTransfer.prototype.upload = function(filePath, server, successCallback, erro
     }
 
     var that = this;
-    var xhr = transfers[this._id] = new XMLHttpRequest();
+    var xhr = (transfers[this._id] = new XMLHttpRequest());
     xhr.withCredentials = withCredentials;
 
-    var fail = errorCallback && function(code, status, response) {
-        if (transfers[this._id]) {
-            delete transfers[this._id];
-        }
-        var error = new FileTransferError(code, filePath, server, status, response);
-        if (errorCallback) {
-            errorCallback(error);
-        }
-    };
+    var fail =
+        errorCallback &&
+        function (code, status, response) {
+            if (transfers[this._id]) {
+                delete transfers[this._id];
+            }
+            var error = new FileTransferError(code, filePath, server, status, response);
+            if (errorCallback) {
+                errorCallback(error);
+            }
+        };
 
-    window.resolveLocalFileSystemURL(filePath, function(entry) {
-        entry.file(function(file) {
-            var reader = new FileReader();
-            reader.onloadend = function() {
-                var blob = new Blob([this.result], {type: mimeType});
+    window.resolveLocalFileSystemURL(
+        filePath,
+        function (entry) {
+            entry.file(
+                function (file) {
+                    var reader = new FileReader();
+                    reader.onloadend = function () {
+                        var blob = new Blob([this.result], { type: mimeType });
 
-                // Prepare form data to send to server
-                var fd = new FormData();
-                fd.append(fileKey, blob, fileName);
-                for (var prop in params) {
-                    if (params.hasOwnProperty(prop)) {
-                        fd.append(prop, params[prop]);
-                    }
+                        // Prepare form data to send to server
+                        var fd = new FormData();
+                        fd.append(fileKey, blob, fileName);
+                        for (var prop in params) {
+                            if (Object.prototype.hasOwnProperty.call(params, prop)) {
+                                fd.append(prop, params[prop]);
+                            }
+                        }
+
+                        xhr.open(httpMethod, server);
+
+                        // Fill XHR headers
+                        for (var header in headers) {
+                            if (Object.prototype.hasOwnProperty.call(headers, header)) {
+                                xhr.setRequestHeader(header, headers[header]);
+                            }
+                        }
+
+                        xhr.onload = function () {
+                            // 2xx codes are valid
+                            if (this.status >= 200 && this.status < 300) {
+                                var result = new FileUploadResult();
+                                result.bytesSent = blob.size;
+                                result.responseCode = this.status;
+                                result.response = this.response;
+                                delete transfers[that._id];
+                                successCallback(result);
+                            } else if (this.status === 404) {
+                                fail(FileTransferError.INVALID_URL_ERR, this.status, this.response);
+                            } else {
+                                fail(FileTransferError.CONNECTION_ERR, this.status, this.response);
+                            }
+                        };
+
+                        xhr.ontimeout = function () {
+                            fail(FileTransferError.CONNECTION_ERR, this.status, this.response);
+                        };
+
+                        xhr.onerror = function () {
+                            fail(FileTransferError.CONNECTION_ERR, this.status, this.response);
+                        };
+
+                        xhr.onabort = function () {
+                            fail(FileTransferError.ABORT_ERR, this.status, this.response);
+                        };
+
+                        xhr.upload.onprogress = function (e) {
+                            if (that.onprogress) {
+                                that.onprogress(e);
+                            }
+                        };
+
+                        xhr.send(fd);
+                        // Special case when transfer already aborted, but XHR isn't sent.
+                        // In this case XHR won't fire an abort event, so we need to check if transfers record
+                        // isn't deleted by filetransfer.abort and if so, call XHR's abort method again
+                        if (!transfers[that._id]) {
+                            xhr.abort();
+                        }
+                    };
+                    reader.readAsArrayBuffer(file);
+                },
+                function () {
+                    fail(FileTransferError.FILE_NOT_FOUND_ERR);
                 }
-
-                xhr.open(httpMethod, server);
-
-                // Fill XHR headers
-                for (var header in headers) {
-                    if (headers.hasOwnProperty(header)) {
-                        xhr.setRequestHeader(header, headers[header]);
-                    }
-                }
-
-                xhr.onload = function() {
-                    // 2xx codes are valid
-                    if (this.status >= 200 &&
-                       this.status < 300) {
-                        var result = new FileUploadResult(); // jshint ignore:line
-                        result.bytesSent = blob.size;
-                        result.responseCode = this.status;
-                        result.response = this.response;
-                        delete transfers[that._id];
-                        successCallback(result);
-                    } else if (this.status === 404) {
-                        fail(FileTransferError.INVALID_URL_ERR, this.status, this.response);
-                    } else {
-                        fail(FileTransferError.CONNECTION_ERR, this.status, this.response);
-                    }
-                };
-
-                xhr.ontimeout = function() {
-                    fail(FileTransferError.CONNECTION_ERR, this.status, this.response);
-                };
-
-                xhr.onerror = function() {
-                    fail(FileTransferError.CONNECTION_ERR, this.status, this.response);
-                };
-
-                xhr.onabort = function () {
-                    fail(FileTransferError.ABORT_ERR, this.status, this.response);
-                };
-
-                xhr.upload.onprogress = function (e) {
-                    if (that.onprogress) {
-                        that.onprogress(e);
-                    }
-                };
-
-                xhr.send(fd);
-                // Special case when transfer already aborted, but XHR isn't sent.
-                // In this case XHR won't fire an abort event, so we need to check if transfers record
-                // isn't deleted by filetransfer.abort and if so, call XHR's abort method again
-                if (!transfers[that._id]) {
-                    xhr.abort();
-                }
-            };
-            reader.readAsArrayBuffer(file);
-        }, function() {
+            );
+        },
+        function () {
             fail(FileTransferError.FILE_NOT_FOUND_ERR);
-        });
-    }, function() {
-        fail(FileTransferError.FILE_NOT_FOUND_ERR);
-    });
+        }
+    );
 };
 
 /**
@@ -221,7 +228,7 @@ FileTransfer.prototype.upload = function(filePath, server, successCallback, erro
  * @param trustAllHosts {Boolean} Optional trust all hosts (e.g. for self-signed certs), defaults to false
  * @param options {FileDownloadOptions} Optional parameters such as headers
  */
-FileTransfer.prototype.download = function(source, target, successCallback, errorCallback, trustAllHosts, options) {
+FileTransfer.prototype.download = function (source, target, successCallback, errorCallback, trustAllHosts, options) {
     argscheck.checkArgs('ssFF*', 'FileTransfer.download', arguments);
 
     // Check if target URL doesn't contain spaces. If contains, it should be escaped first
@@ -234,7 +241,7 @@ FileTransfer.prototype.download = function(source, target, successCallback, erro
     }
 
     options = options || {};
-    
+
     var headers = options.headers || {};
     var withCredentials = options.withCredentials || false;
 
@@ -245,29 +252,30 @@ FileTransfer.prototype.download = function(source, target, successCallback, erro
     }
 
     var that = this;
-    var xhr = transfers[this._id] = new XMLHttpRequest();
+    var xhr = (transfers[this._id] = new XMLHttpRequest());
     xhr.withCredentials = withCredentials;
-    var fail = errorCallback && function(code, status, response) {
-        if (transfers[that._id]) {
-            delete transfers[that._id];
-        }
-        // In XHR GET reqests we're setting response type to Blob
-        // but in case of error we need to raise event with plain text response
-        if (response instanceof Blob) {
-            var reader = new FileReader();
-            reader.readAsText(response);
-            reader.onloadend = function(e) {
-                var error = new FileTransferError(code, source, target, status, e.target.result);
+    var fail =
+        errorCallback &&
+        function (code, status, response) {
+            if (transfers[that._id]) {
+                delete transfers[that._id];
+            }
+            // In XHR GET reqests we're setting response type to Blob
+            // but in case of error we need to raise event with plain text response
+            if (response instanceof Blob) {
+                var reader = new FileReader();
+                reader.readAsText(response);
+                reader.onloadend = function (e) {
+                    var error = new FileTransferError(code, source, target, status, e.target.result);
+                    errorCallback(error);
+                };
+            } else {
+                var error = new FileTransferError(code, source, target, status, response);
                 errorCallback(error);
-            };
-        } else {
-            var error = new FileTransferError(code, source, target, status, response);
-            errorCallback(error);
-        }
-    };
+            }
+        };
 
     xhr.onload = function (e) {
-
         var fileNotFound = function () {
             fail(FileTransferError.FILE_NOT_FOUND_ERR);
         };
@@ -275,27 +283,36 @@ FileTransfer.prototype.download = function(source, target, successCallback, erro
         var req = e.target;
         // req.status === 0 is special case for local files with file:// URI scheme
         if ((req.status === 200 || req.status === 0) && req.response) {
-            window.resolveLocalFileSystemURL(getParentPath(target), function (dir) {
-                dir.getFile(getFileName(target), {create: true}, function writeFile(entry) {
-                    entry.createWriter(function (fileWriter) {
-                        fileWriter.onwriteend = function (evt) {
-                            if (!evt.target.error) {
-                                entry.filesystemName = entry.filesystem.name;
-                                delete transfers[that._id];
-                                if (successCallback) {
-                                    successCallback(entry);
-                                }
-                            } else {
-                                fail(FileTransferError.FILE_NOT_FOUND_ERR);
-                            }
-                        };
-                        fileWriter.onerror = function () {
-                            fail(FileTransferError.FILE_NOT_FOUND_ERR);
-                        };
-                        fileWriter.write(req.response);
-                    }, fileNotFound);
-                }, fileNotFound);
-            }, fileNotFound);
+            window.resolveLocalFileSystemURL(
+                getParentPath(target),
+                function (dir) {
+                    dir.getFile(
+                        getFileName(target),
+                        { create: true },
+                        function writeFile (entry) {
+                            entry.createWriter(function (fileWriter) {
+                                fileWriter.onwriteend = function (evt) {
+                                    if (!evt.target.error) {
+                                        entry.filesystemName = entry.filesystem.name;
+                                        delete transfers[that._id];
+                                        if (successCallback) {
+                                            successCallback(entry);
+                                        }
+                                    } else {
+                                        fail(FileTransferError.FILE_NOT_FOUND_ERR);
+                                    }
+                                };
+                                fileWriter.onerror = function () {
+                                    fail(FileTransferError.FILE_NOT_FOUND_ERR);
+                                };
+                                fileWriter.write(req.response);
+                            }, fileNotFound);
+                        },
+                        fileNotFound
+                    );
+                },
+                fileNotFound
+            );
         } else if (req.status === 404) {
             fail(FileTransferError.INVALID_URL_ERR, req.status, req.response);
         } else {
@@ -317,15 +334,15 @@ FileTransfer.prototype.download = function(source, target, successCallback, erro
         fail(FileTransferError.ABORT_ERR, this.status, this.response);
     };
 
-    xhr.open("GET", source, true);
+    xhr.open('GET', source, true);
 
     for (var header in headers) {
-        if (headers.hasOwnProperty(header)) {
+        if (Object.prototype.hasOwnProperty.call(headers, header)) {
             xhr.setRequestHeader(header, headers[header]);
         }
     }
 
-    xhr.responseType = "blob";
+    xhr.responseType = 'blob';
 
     xhr.send();
 };
@@ -334,7 +351,7 @@ FileTransfer.prototype.download = function(source, target, successCallback, erro
  * Aborts the ongoing file transfer on this object. The original error
  * callback for the file transfer will be called if necessary.
  */
-FileTransfer.prototype.abort = function() {
+FileTransfer.prototype.abort = function () {
     if (this instanceof FileTransfer) {
         if (transfers[this._id]) {
             transfers[this._id].abort();
