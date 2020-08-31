@@ -58,18 +58,10 @@ cordova plugin add cordova-plugin-file-transfer
 
 ## Supported Platforms
 
-- Amazon Fire OS
 - Android
-- BlackBerry 10
 - Browser
-- Firefox OS**
 - iOS
-- Windows Phone 7 and 8*
 - Windows
-
-\* _Do not support `onprogress` nor `abort()`_
-
-\** _Do not support `onprogress`_
 
 # FileTransfer
 
@@ -258,10 +250,6 @@ fileTransfer.download(
     }
 );
 ```
-
-### WP8 Quirks
-
-- Download requests is being cached by native implementation. To avoid caching, pass `if-Modified-Since` header to download method.
 
 ### Browser Quirks
 
