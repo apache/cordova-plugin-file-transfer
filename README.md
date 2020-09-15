@@ -164,12 +164,17 @@ var headers={'headerParam':'headerValue', 'headerParam2':'headerValue2'};
 options.headers = headers;
 
 var ft = new FileTransfer();
+var progressValue = 0;
 ft.onprogress = function(progressEvent) {
     if (progressEvent.lengthComputable) {
-        loadingStatus.setPercentage(progressEvent.loaded / progressEvent.total);
+        // Calculate the percentage
+        progressValue = progressEvent.loaded / progressEvent.total;
     } else {
-        loadingStatus.increment();
+        progressValue++;
     }
+
+    // Display percentage in the UI
+    document.getElementByID('progress-value').innerHTML = progressValue;
 };
 ft.upload(fileURL, uri, win, fail, options);
 ```
