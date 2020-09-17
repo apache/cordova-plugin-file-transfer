@@ -657,7 +657,7 @@ public class FileTransfer extends CordovaPlugin {
      * @param source        URL of the server to receive the file
      * @param target            Full path of the file on the file system
      */
-    private void download(final String source, final String target, JSONArray args, CallbackContext callbackContext) throws JSONException {
+    private void download(final String source, final String target, JSONArray args, CallbackContext callbackContext, Boolean suppressProgress) throws JSONException {
         LOG.d(LOG_TAG, "download " + source + " to " +  target);
 
         final CordovaResourceApi resourceApi = webView.getResourceApi();
@@ -812,10 +812,12 @@ public class FileTransfer extends CordovaPlugin {
                             while ((bytesRead = inputStream.read(buffer)) > 0) {
                                 outputStream.write(buffer, 0, bytesRead);
                                 // Send a progress event.
-                                progress.setLoaded(inputStream.getTotalRawBytesRead());
-                                PluginResult progressResult = new PluginResult(PluginResult.Status.OK, progress.toJSONObject());
-                                progressResult.setKeepCallback(true);
-                                context.sendPluginResult(progressResult);
+                                if (!suppressProgress) {
+                                  progress.setLoaded(inputStream.getTotalRawBytesRead());
+                                  PluginResult progressResult = new PluginResult(PluginResult.Status.OK, progress.toJSONObject());
+                                  progressResult.setKeepCallback(true);
+                                  context.sendPluginResult(progressResult);
+                                }
                             }
                         } finally {
                             synchronized (context) {

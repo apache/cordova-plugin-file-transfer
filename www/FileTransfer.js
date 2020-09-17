@@ -190,6 +190,7 @@ FileTransfer.prototype.upload = function (filePath, server, successCallback, err
 FileTransfer.prototype.download = function (source, target, successCallback, errorCallback, trustAllHosts, options) {
     argscheck.checkArgs('ssFF*', 'FileTransfer.download', arguments);
     var self = this;
+    var suppressProgress = !!((options || {}).suppressProgress);
 
     var basicAuthHeader = getBasicAuthHeader(source);
     if (basicAuthHeader) {
@@ -240,7 +241,7 @@ FileTransfer.prototype.download = function (source, target, successCallback, err
             errorCallback(error);
         };
 
-    exec(win, fail, 'FileTransfer', 'download', [source, target, trustAllHosts, this._id, headers]);
+    exec(win, fail, 'FileTransfer', 'download', [source, target, trustAllHosts, this._id, headers, suppressProgress]);
 };
 
 /**

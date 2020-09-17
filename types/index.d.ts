@@ -100,6 +100,9 @@ interface FileUploadOptions {
 interface FileDownloadOptions {
     /** A map of header name/header values. */
     headers?: {};
+    /** Suppress progress events generation; can help to reduce cordova communication volume (and prevent some stack overflows). */
+    suppressProgress?: boolean;
+
 }
 
 /** A FileTransferError object is passed to an error callback when an error occurs. */

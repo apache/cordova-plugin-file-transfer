@@ -230,6 +230,7 @@ FileTransfer.prototype.upload = function (filePath, server, successCallback, err
  */
 FileTransfer.prototype.download = function (source, target, successCallback, errorCallback, trustAllHosts, options) {
     argscheck.checkArgs('ssFF*', 'FileTransfer.download', arguments);
+    var suppressProgress = !!((options || {}).suppressProgress);
 
     // Check if target URL doesn't contain spaces. If contains, it should be escaped first
     // (see https://github.com/apache/cordova-plugin-file-transfer/blob/master/doc/index.md#download)
@@ -321,7 +322,7 @@ FileTransfer.prototype.download = function (source, target, successCallback, err
     };
 
     xhr.onprogress = function (e) {
-        if (that.onprogress) {
+        if (that.onprogress && !suppressProgress) {
             that.onprogress(e);
         }
     };

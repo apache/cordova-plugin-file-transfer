@@ -424,6 +424,7 @@ static CFIndex WriteDataToStream(NSData* data, CFWriteStreamRef stream)
     BOOL trustAllHosts = [[command argumentAtIndex:2 withDefault:[NSNumber numberWithBool:NO]] boolValue]; // allow self-signed certs
     NSString* objectId = [command argumentAtIndex:3];
     NSDictionary* headers = [command argumentAtIndex:4 withDefault:nil];
+    BOOL suppressProgress = [[command argumentAtIndex:5 withDefault:[NSNumber numberWithBool:NO]] boolValue]; // prevent progress events
 
     CDVPluginResult* result = nil;
     CDVFileTransferError errorCode = 0;
@@ -481,6 +482,7 @@ static CFIndex WriteDataToStream(NSData* data, CFWriteStreamRef stream)
     delegate.target = [targetURL absoluteString];
     delegate.targetURL = targetURL;
     delegate.trustAllHosts = trustAllHosts;
+    delegate.suppressProgress = suppressProgress;
     delegate.filePlugin = [self.commandDelegate getCommandInstance:@"File"];
     delegate.backgroundTaskID = [[UIApplication sharedApplication] beginBackgroundTaskWithExpirationHandler:^{
         [delegate cancelTransfer:delegate.connection];
@@ -801,7 +803,7 @@ static CFIndex WriteDataToStream(NSData* data, CFWriteStreamRef stream)
 
 - (void)updateProgress
 {
-    if (self.direction == CDV_TRANSFER_DOWNLOAD) {
+    if (self.direction == CDV_TRANSFER_DOWNLOAD && !(self.suppressProgress)) {
         BOOL lengthComputable = (self.bytesExpected != NSURLResponseUnknownLength);
         // If the response is GZipped, and we have an outstanding HEAD request to get
         // the length, then hold off on sending progress events.
