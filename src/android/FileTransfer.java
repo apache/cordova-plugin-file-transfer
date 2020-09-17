@@ -657,18 +657,20 @@ public class FileTransfer extends CordovaPlugin {
      * @param source        URL of the server to receive the file
      * @param target            Full path of the file on the file system
      */
-    private void download(final String source, final String target, JSONArray args, CallbackContext callbackContext, Boolean suppressProgress) throws JSONException {
+    private void download(final String source, final String target, JSONArray args, CallbackContext callbackContext) throws JSONException {
         LOG.d(LOG_TAG, "download " + source + " to " +  target);
 
         final CordovaResourceApi resourceApi = webView.getResourceApi();
 
         final String objectId = args.getString(3);
         final JSONObject headers = args.optJSONObject(4);
+        final boolean suppressProgress = args.optBoolean(5) || false;
 
         final Uri sourceUri = resourceApi.remapUri(Uri.parse(source));
         int uriType = CordovaResourceApi.getUriType(sourceUri);
         final boolean useHttps = uriType == CordovaResourceApi.URI_TYPE_HTTPS;
         final boolean isLocalTransfer = !useHttps && uriType != CordovaResourceApi.URI_TYPE_HTTP;
+
         if (uriType == CordovaResourceApi.URI_TYPE_UNKNOWN) {
             JSONObject error = createFileTransferError(INVALID_URL_ERR, source, target, null, 0, null);
             LOG.e(LOG_TAG, "Unsupported URI: " + sourceUri);
