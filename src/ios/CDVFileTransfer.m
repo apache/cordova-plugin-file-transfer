@@ -103,34 +103,31 @@ static CFIndex WriteDataToStream(NSData* data, CFWriteStreamRef stream)
 - (void)applyRequestHeaders:(NSDictionary*)headers toRequest:(NSMutableURLRequest*)req
 {
     [req setValue:@"XMLHttpRequest" forHTTPHeaderField:@"X-Requested-With"];
-    [self.webViewEngine evaluateJavaScript:@"navigator.userAgent" completionHandler:^(NSString* userAgent, NSError* error) {
-        [req setValue:userAgent forHTTPHeaderField:@"User-Agent"];
 
-        for (NSString* headerName in headers) {
-            id value = [headers objectForKey:headerName];
-            if (!value || (value == [NSNull null])) {
-                value = @"null";
+    for (NSString* headerName in headers) {
+        id value = [headers objectForKey:headerName];
+        if (!value || (value == [NSNull null])) {
+            value = @"null";
+        }
+
+        // First, remove an existing header if one exists.
+        [req setValue:nil forHTTPHeaderField:headerName];
+
+        if (![value isKindOfClass:[NSArray class]]) {
+            value = [NSArray arrayWithObject:value];
+        }
+
+        // Then, append all header values.
+        for (id __strong subValue in value) {
+            // Convert from an NSNumber -> NSString.
+            if ([subValue respondsToSelector:@selector(stringValue)]) {
+                subValue = [subValue stringValue];
             }
-            
-            // First, remove an existing header if one exists.
-            [req setValue:nil forHTTPHeaderField:headerName];
-            
-            if (![value isKindOfClass:[NSArray class]]) {
-                value = [NSArray arrayWithObject:value];
-            }
-            
-            // Then, append all header values.
-            for (id __strong subValue in value) {
-                // Convert from an NSNumber -> NSString.
-                if ([subValue respondsToSelector:@selector(stringValue)]) {
-                    subValue = [subValue stringValue];
-                }
-                if ([subValue isKindOfClass:[NSString class]]) {
-                    [req addValue:subValue forHTTPHeaderField:headerName];
-                }
+            if ([subValue isKindOfClass:[NSString class]]) {
+                [req addValue:subValue forHTTPHeaderField:headerName];
             }
         }
-    }];
+    }
 }
 
 - (NSURLRequest*)requestForUploadCommand:(CDVInvokedUrlCommand*)command fileData:(NSData*)fileData
