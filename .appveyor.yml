@@ -30,4 +30,4 @@ install:
 build: off
 
 test_script:
-  - cordova-paramedic --config pr\%PLATFORM% --plugin . --justBuild
+  - cordova-paramedic --config pr\windows-10-store --plugin . --justBuild
