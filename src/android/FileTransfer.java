@@ -50,8 +50,12 @@ import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
 
+import android.content.ContentResolver;
+import android.content.ContentValues;
+import android.content.Context;
 import android.net.Uri;
 import android.os.Build;
+import android.provider.MediaStore;
 import android.webkit.CookieManager;
 
 public class FileTransfer extends CordovaPlugin {
@@ -792,7 +796,24 @@ public class FileTransfer extends CordovaPlugin {
                             // write bytes to file
                             byte[] buffer = new byte[MAX_BUFFER_SIZE];
                             int bytesRead = 0;
-                            outputStream = resourceApi.openOutputStream(targetUri);
+                            /* 
+                                This ensures that for Android Q and above that the new MediaStore API being used.
+
+                                Instead of using the provided target directory for saving from the web app, it will automatically
+                                save to the Downloads folder.
+                            */
+                            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
+                                Context androidContext = cordova.getContext();
+                                ContentResolver resolver = androidContext.getContentResolver();
+                                ContentValues contentValues = new ContentValues();
+                                contentValues.put(MediaStore.MediaColumns.DISPLAY_NAME, file.getName());
+                                contentValues.put(MediaStore.MediaColumns.MIME_TYPE, resolver.getType(targetUri));
+                                contentValues.put(MediaStore.MediaColumns.SIZE, file.length());
+                                Uri mediastoreTargetUri = resolver.insert(MediaStore.Downloads.EXTERNAL_CONTENT_URI, contentValues);
+                                outputStream = resourceApi.openOutputStream(mediastoreTargetUri);
+                            } else {
+                                outputStream = resourceApi.openOutputStream(targetUri);
+                            }
                             while ((bytesRead = inputStream.read(buffer)) > 0) {
                                 outputStream.write(buffer, 0, bytesRead);
                                 // Send a progress event.
