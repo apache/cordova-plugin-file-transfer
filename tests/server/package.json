@@ -1,0 +1,23 @@
+{
+  "name": "cordova-file-transfer-server",
+  "version": "1.0.0",
+  "description": "Mock Server for Cordova Plugin File Transfer Tests",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "keywords": [
+    "mock",
+    "file-transfer",
+    "testing",
+    "server"
+  ],
+  "author": "Apache Software Foundation",
+  "license": "Apache-2.0",
+  "dependencies": {
+    "busboy": "^0.3.1",
+    "forever": "^4.0.1",
+    "iconv": "^3.0.0",
+    "json-stringify-safe": "^5.0.1"
+  }
+}

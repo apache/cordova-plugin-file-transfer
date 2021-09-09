@@ -30,5 +30,5 @@
 
     <hook type="after_prepare" src="hooks/after_prepare.js" />
 
-    <preference name="FILETRANSFER_SERVER_ADDRESS" default="http://rwswbpiopr.localtunnel.me"/>
+    <preference name="FILETRANSFER_SERVER_ADDRESS" default="http://localhost"/>
 </plugin>

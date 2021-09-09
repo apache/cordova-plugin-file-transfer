@@ -64,6 +64,13 @@ jobs:
         if: ${{ endswith(env.repo, '/cordova-paramedic')　!= true }}
         run: npm i -g github:erisu/cordova-paramedic#ci/paramedic-plugin-improvement
 
+      # PLUGIN'S EXTRA STEP
+      - name: Run file transfer server setup
+        run: |
+          npm i
+          npx forever start index.js
+        working-directory: ./tests/server
+
       - name: Run paramedic tests
         env:
           test_config: 'browser.config.json'
