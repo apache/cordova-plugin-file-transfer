@@ -52,8 +52,12 @@ import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
 
+import android.content.ContentResolver;
+import android.content.ContentValues;
+import android.content.Context;
 import android.net.Uri;
 import android.os.Build;
+import android.provider.MediaStore;
 import android.webkit.CookieManager;
 
 public class FileTransfer extends CordovaPlugin {
