@@ -114,7 +114,7 @@ jobs:
 
       - name: Run paramedic install
         if: ${{ endswith(env.repo, '/cordova-paramedic')　!= true }}
-        run: npm i -g github:erisu/cordova-paramedic#ci/paramedic-plugin-improvement
+        run: npm i -g github:apache/cordova-paramedic
 
       - uses: reactivecircus/android-emulator-runner@5de26e4bd23bf523e8a4b7f077df8bfb8e52b50e
         env:

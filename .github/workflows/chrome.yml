@@ -62,7 +62,7 @@ jobs:
 
       - name: Run paramedic install
         if: ${{ endswith(env.repo, '/cordova-paramedic')　!= true }}
-        run: npm i -g github:erisu/cordova-paramedic#ci/paramedic-plugin-improvement
+        run: npm i -g github:apache/cordova-paramedic
 
       # PLUGIN'S EXTRA STEP
       - name: Run file transfer server setup
