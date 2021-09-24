@@ -563,7 +563,7 @@ exports.defineAutoTests = function () {
                 it(
                     'filetransfer.spec.11 should call the error callback on abort()',
                     function (done) {
-                        var fileURL = 'http://cordova.apache.org/downloads/BlueZedEx.mp3';
+                        var fileURL = 'http://cordova.apache.org/static/downloads/BlueZedEx.mp3';
                         fileURL = fileURL + '?q=' + new Date().getTime();
                         var specContext = this;
 
@@ -583,7 +583,7 @@ exports.defineAutoTests = function () {
                 it(
                     'filetransfer.spec.9 should not leave partial file due to abort',
                     function (done) {
-                        var fileURL = 'http://cordova.apache.org/downloads/logos_2.zip';
+                        var fileURL = 'http://cordova.apache.org/static/downloads/logos.zip';
                         var specContext = this;
 
                         var fileSystemWin = function () {
@@ -631,7 +631,7 @@ exports.defineAutoTests = function () {
                 it(
                     'filetransfer.spec.10 should be stopped by abort()',
                     function (done) {
-                        var fileURL = 'http://cordova.apache.org/downloads/BlueZedEx.mp3';
+                        var fileURL = 'http://cordova.apache.org/static/downloads/BlueZedEx.mp3';
                         fileURL = fileURL + '?q=' + new Date().getTime();
                         var specContext = this;
 
