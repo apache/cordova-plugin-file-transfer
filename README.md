@@ -23,6 +23,8 @@ description: Upload and download files.
 
 # cordova-plugin-file-transfer
 
+[![Android Testsuite](https://github.com/apache/cordova-plugin-file-transfer/actions/workflows/android.yml/badge.svg)](https://github.com/apache/cordova-plugin-file-transfer/actions/workflows/android.yml) [![Chrome Testsuite](https://github.com/apache/cordova-plugin-file-transfer/actions/workflows/chrome.yml/badge.svg)](https://github.com/apache/cordova-plugin-file-transfer/actions/workflows/chrome.yml) [![iOS Testsuite](https://github.com/apache/cordova-plugin-file-transfer/actions/workflows/ios.yml/badge.svg)](https://github.com/apache/cordova-plugin-file-transfer/actions/workflows/ios.yml) [![Lint Test](https://github.com/apache/cordova-plugin-file-transfer/actions/workflows/lint.yml/badge.svg)](https://github.com/apache/cordova-plugin-file-transfer/actions/workflows/lint.yml)
+
 # Usage notice
 
 With the new features introduced in the [Fetch API](https://developer.mozilla.org/en-US/docs/Web/API/Fetch_API) and the [XMLHttpRequest](https://developer.mozilla.org/en-US/docs/Web/API/XMLHttpRequest), this plugin may not be needed any more for your use case. For small file transfers, you probably won't require this plugin. But, if you plan to handle large downloads, suffering from slow saving, timeouts, or crashes, this plugin is better suited for your use case over the Fetch API or the XMLHttpRequest.
