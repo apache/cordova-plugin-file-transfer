@@ -21,22 +21,22 @@
 
 /* global Windows, WinJS */
 
-var FTErr = require('./FileTransferError');
-var ProgressEvent = require('cordova-plugin-file.ProgressEvent');
-var FileUploadResult = require('cordova-plugin-file.FileUploadResult');
-var FileProxy = require('cordova-plugin-file.FileProxy');
+const FTErr = require('./FileTransferError');
+const ProgressEvent = require('cordova-plugin-file.ProgressEvent');
+const FileUploadResult = require('cordova-plugin-file.FileUploadResult');
+const FileProxy = require('cordova-plugin-file.FileProxy');
 
-var appData = Windows.Storage.ApplicationData.current;
+const appData = Windows.Storage.ApplicationData.current;
 
-var LINE_START = '--';
-var LINE_END = '\r\n';
-var BOUNDARY = '+++++';
+const LINE_START = '--';
+const LINE_END = '\r\n';
+const BOUNDARY = '+++++';
 
-var fileTransferOps = [];
+const fileTransferOps = [];
 
 // Some private helper functions, hidden by the module
 function cordovaPathToNative (path) {
-    var cleanPath = String(path);
+    let cleanPath = String(path);
     // turn / into \\
     cleanPath = cleanPath.replace(/\//g, '\\');
     // turn  \\ into \
@@ -51,7 +51,7 @@ function nativePathToCordova (path) {
 }
 
 function alreadyCancelled (opId) {
-    var op = fileTransferOps[opId];
+    const op = fileTransferOps[opId];
     return op && op.state === FileTransferOperation.CANCELLED;
 }
 
@@ -62,21 +62,21 @@ function doUpload (upload, uploadId, filePath, server, successCallback, errorCal
     }
 
     // update internal TransferOperation object with newly created promise
-    var uploadOperation = upload.startAsync();
+    const uploadOperation = upload.startAsync();
     fileTransferOps[uploadId].promise = uploadOperation;
 
     uploadOperation.then(
         function (result) {
             // Update TransferOperation object with new state, delete promise property
             // since it is not actual anymore
-            var currentUploadOp = fileTransferOps[uploadId];
+            const currentUploadOp = fileTransferOps[uploadId];
             if (currentUploadOp) {
                 currentUploadOp.state = FileTransferOperation.DONE;
                 currentUploadOp.promise = null;
             }
 
-            var response = result.getResponseInformation();
-            var ftResult = new FileUploadResult(result.progress.bytesSent, response.statusCode, '');
+            const response = result.getResponseInformation();
+            const ftResult = new FileUploadResult(result.progress.bytesSent, response.statusCode, '');
 
             // if server's response doesn't contain any data, then resolve operation now
             if (result.progress.bytesReceived === 0) {
@@ -85,7 +85,7 @@ function doUpload (upload, uploadId, filePath, server, successCallback, errorCal
             }
 
             // otherwise create a data reader, attached to response stream to get server's response
-            var reader = new Windows.Storage.Streams.DataReader(result.getResultStreamAt(0));
+            const reader = new Windows.Storage.Streams.DataReader(result.getResultStreamAt(0));
             reader.loadAsync(result.progress.bytesReceived).then(function (size) {
                 ftResult.response = reader.readString(size);
                 successCallback(ftResult);
@@ -93,23 +93,23 @@ function doUpload (upload, uploadId, filePath, server, successCallback, errorCal
             });
         },
         function (error) {
-            var source = nativePathToCordova(filePath);
+            const source = nativePathToCordova(filePath);
 
             // Handle download error here.
             // Wrap this routines into promise due to some async methods
-            var getTransferError = new WinJS.Promise(function (resolve) {
+            const getTransferError = new WinJS.Promise(function (resolve) {
                 if (error.message === 'Canceled') {
                     // If download was cancelled, message property will be specified
                     resolve(new FTErr(FTErr.ABORT_ERR, source, server, null, null, error));
                 } else {
                     // in the other way, try to get response property
-                    var response = upload.getResponseInformation();
+                    const response = upload.getResponseInformation();
                     if (!response) {
                         resolve(new FTErr(FTErr.CONNECTION_ERR, source, server));
                     } else {
-                        var reader = new Windows.Storage.Streams.DataReader(upload.getResultStreamAt(0));
+                        const reader = new Windows.Storage.Streams.DataReader(upload.getResultStreamAt(0));
                         reader.loadAsync(upload.progress.bytesReceived).then(function (size) {
-                            var responseText = reader.readString(size);
+                            const responseText = reader.readString(size);
                             resolve(new FTErr(FTErr.FILE_NOT_FOUND_ERR, source, server, response.statusCode, responseText, error));
                             reader.close();
                         });
@@ -119,7 +119,7 @@ function doUpload (upload, uploadId, filePath, server, successCallback, errorCal
 
             // Update TransferOperation object with new state, delete promise property
             // since it is not actual anymore
-            var currentUploadOp = fileTransferOps[uploadId];
+            const currentUploadOp = fileTransferOps[uploadId];
             if (currentUploadOp) {
                 currentUploadOp.state = FileTransferOperation.CANCELLED;
                 currentUploadOp.promise = null;
@@ -131,7 +131,7 @@ function doUpload (upload, uploadId, filePath, server, successCallback, errorCal
             });
         },
         function (evt) {
-            var progressEvent = new ProgressEvent('progress', {
+            const progressEvent = new ProgressEvent('progress', {
                 loaded: evt.progress.bytesSent,
                 total: evt.progress.totalBytesToSend,
                 target: evt.resultFile
@@ -151,7 +151,7 @@ FileTransferOperation.PENDING = 0;
 FileTransferOperation.DONE = 1;
 FileTransferOperation.CANCELLED = 2;
 
-var HTTP_E_STATUS_NOT_MODIFIED = -2145844944;
+const HTTP_E_STATUS_NOT_MODIFIED = -2145844944;
 
 module.exports = {
     /*
@@ -159,24 +159,24 @@ exec(win, fail, 'FileTransfer', 'upload',
 [filePath, server, fileKey, fileName, mimeType, params, trustAllHosts, chunkedMode, headers, this._id, httpMethod]);
 */
     upload: function (successCallback, errorCallback, options) {
-        var filePath = options[0];
-        var server = options[1];
-        var fileKey = options[2] || 'source';
-        var fileName = options[3];
-        var mimeType = options[4];
-        var params = options[5];
+        let filePath = options[0];
+        const server = options[1];
+        const fileKey = options[2] || 'source';
+        let fileName = options[3];
+        let mimeType = options[4];
+        const params = options[5];
         // var trustAllHosts = options[6]; // todo
         // var chunkedMode = options[7]; // todo
-        var headers = options[8] || {};
-        var uploadId = options[9];
-        var httpMethod = options[10];
+        const headers = options[8] || {};
+        const uploadId = options[9];
+        const httpMethod = options[10];
 
-        var isMultipart = typeof headers['Content-Type'] === 'undefined';
+        const isMultipart = typeof headers['Content-Type'] === 'undefined';
 
         function stringToByteArray (str) {
-            var byteCharacters = atob(str);
-            var byteNumbers = new Array(byteCharacters.length);
-            for (var i = 0; i < byteCharacters.length; i++) {
+            const byteCharacters = atob(str);
+            const byteNumbers = new Array(byteCharacters.length);
+            for (let i = 0; i < byteCharacters.length; i++) {
                 byteNumbers[i] = byteCharacters.charCodeAt(i);
             }
             return new Uint8Array(byteNumbers);
@@ -190,11 +190,11 @@ exec(win, fail, 'FileTransfer', 'upload',
         if (filePath.indexOf('data:') === 0 && filePath.indexOf('base64') !== -1) {
             // First a DataWriter object is created, backed by an in-memory stream where
             // the data will be stored.
-            var writer = Windows.Storage.Streams.DataWriter(new Windows.Storage.Streams.InMemoryRandomAccessStream());
+            const writer = Windows.Storage.Streams.DataWriter(new Windows.Storage.Streams.InMemoryRandomAccessStream());
             writer.unicodeEncoding = Windows.Storage.Streams.UnicodeEncoding.utf8;
             writer.byteOrder = Windows.Storage.Streams.ByteOrder.littleEndian;
 
-            var commaIndex = filePath.indexOf(',');
+            const commaIndex = filePath.indexOf(',');
             if (commaIndex === -1) {
                 errorCallback(new FTErr(FTErr.INVALID_URL_ERR, fileName, server, null, null, 'No comma in data: URI'));
                 return;
@@ -203,12 +203,12 @@ exec(win, fail, 'FileTransfer', 'upload',
             // Create internal download operation object
             fileTransferOps[uploadId] = new FileTransferOperation(FileTransferOperation.PENDING, null);
 
-            var fileDataString = filePath.substr(commaIndex + 1);
+            const fileDataString = filePath.substr(commaIndex + 1);
 
             // setting request headers for uploader
-            var uploader = new Windows.Networking.BackgroundTransfer.BackgroundUploader();
+            const uploader = new Windows.Networking.BackgroundTransfer.BackgroundUploader();
             uploader.method = httpMethod;
-            for (var header in headers) {
+            for (const header in headers) {
                 if (Object.prototype.hasOwnProperty.call(headers, header)) {
                     uploader.setRequestHeader(header, headers[header]);
                 }
@@ -216,8 +216,8 @@ exec(win, fail, 'FileTransfer', 'upload',
 
             if (isMultipart) {
                 // adding params supplied to request payload
-                var multipartParams = '';
-                for (var key in params) {
+                let multipartParams = '';
+                for (const key in params) {
                     if (Object.prototype.hasOwnProperty.call(params, key)) {
                         multipartParams += LINE_START + BOUNDARY + LINE_END;
                         multipartParams += 'Content-Disposition: form-data; name="' + key + '"';
@@ -227,12 +227,12 @@ exec(win, fail, 'FileTransfer', 'upload',
                     }
                 }
 
-                var multipartFile = LINE_START + BOUNDARY + LINE_END;
+                let multipartFile = LINE_START + BOUNDARY + LINE_END;
                 multipartFile += 'Content-Disposition: form-data; name="file";';
                 multipartFile += ' filename="' + fileName + '"' + LINE_END;
                 multipartFile += 'Content-Type: ' + mimeType + LINE_END + LINE_END;
 
-                var bound = LINE_END + LINE_START + BOUNDARY + LINE_START + LINE_END;
+                const bound = LINE_END + LINE_START + BOUNDARY + LINE_START + LINE_END;
 
                 uploader.setRequestHeader('Content-Type', 'multipart/form-data; boundary=' + BOUNDARY);
                 writer.writeString(multipartParams);
@@ -243,7 +243,7 @@ exec(win, fail, 'FileTransfer', 'upload',
                 writer.writeBytes(stringToByteArray(fileDataString));
             }
 
-            var stream;
+            let stream;
 
             // The call to store async sends the actual contents of the writer
             // to the backing stream.
@@ -279,9 +279,9 @@ exec(win, fail, 'FileTransfer', 'upload',
                     }
 
                     // create download object. This will throw an exception if URL is malformed
-                    var uri = new Windows.Foundation.Uri(server);
+                    const uri = new Windows.Foundation.Uri(server);
 
-                    var createUploadOperation;
+                    let createUploadOperation;
                     try {
                         createUploadOperation = uploader.createUploadFromStreamAsync(uri, stream);
                     } catch (e) {
@@ -294,7 +294,7 @@ exec(win, fail, 'FileTransfer', 'upload',
                             doUpload(upload, uploadId, filePath, server, successCallback, errorCallback);
                         },
                         function (err) {
-                            var errorObj = new FTErr(FTErr.INVALID_URL_ERR);
+                            const errorObj = new FTErr(FTErr.INVALID_URL_ERR);
                             errorObj.exception = err;
                             errorCallback(errorObj);
                         }
@@ -340,23 +340,23 @@ exec(win, fail, 'FileTransfer', 'upload',
                 }
 
                 // setting request headers for uploader
-                var uploader = new Windows.Networking.BackgroundTransfer.BackgroundUploader();
+                const uploader = new Windows.Networking.BackgroundTransfer.BackgroundUploader();
                 uploader.method = httpMethod;
-                for (var header in headers) {
+                for (const header in headers) {
                     if (Object.prototype.hasOwnProperty.call(headers, header)) {
                         uploader.setRequestHeader(header, headers[header]);
                     }
                 }
 
                 // create download object. This will throw an exception if URL is malformed
-                var uri = new Windows.Foundation.Uri(server);
+                const uri = new Windows.Foundation.Uri(server);
 
-                var createUploadOperation;
+                let createUploadOperation;
                 try {
                     if (isMultipart) {
                         // adding params supplied to request payload
-                        var transferParts = [];
-                        for (var key in params) {
+                        const transferParts = [];
+                        for (const key in params) {
                             // Create content part for params only if value is specified because CreateUploadAsync fails otherwise
                             if (
                                 Object.prototype.hasOwnProperty.call(params, key) &&
@@ -364,7 +364,7 @@ exec(win, fail, 'FileTransfer', 'upload',
                                 params[key] !== undefined &&
                                 params[key].toString() !== ''
                             ) {
-                                var contentPart = new Windows.Networking.BackgroundTransfer.BackgroundTransferContentPart();
+                                const contentPart = new Windows.Networking.BackgroundTransfer.BackgroundTransferContentPart();
                                 contentPart.setHeader('Content-Disposition', 'form-data; name="' + key + '"');
                                 contentPart.setText(params[key]);
                                 transferParts.push(contentPart);
@@ -372,7 +372,7 @@ exec(win, fail, 'FileTransfer', 'upload',
                         }
 
                         // Adding file to upload to request payload
-                        var fileToUploadPart = new Windows.Networking.BackgroundTransfer.BackgroundTransferContentPart(fileKey, fileName);
+                        const fileToUploadPart = new Windows.Networking.BackgroundTransfer.BackgroundTransferContentPart(fileKey, fileName);
                         fileToUploadPart.setHeader('Content-Type', mimeType);
                         fileToUploadPart.setFile(storageFile);
                         transferParts.push(fileToUploadPart);
@@ -391,7 +391,7 @@ exec(win, fail, 'FileTransfer', 'upload',
                         doUpload(upload, uploadId, filePath, server, successCallback, errorCallback);
                     },
                     function (err) {
-                        var errorObj = new FTErr(FTErr.INVALID_URL_ERR);
+                        const errorObj = new FTErr(FTErr.INVALID_URL_ERR);
                         errorObj.exception = err;
                         errorCallback(errorObj);
                     }
@@ -405,10 +405,10 @@ exec(win, fail, 'FileTransfer', 'upload',
 
     // [source, target, trustAllHosts, id, headers]
     download: function (successCallback, errorCallback, options) {
-        var source = options[0];
-        var target = options[1];
-        var downloadId = options[3];
-        var headers = options[4] || {};
+        const source = options[0];
+        let target = options[1];
+        const downloadId = options[3];
+        const headers = options[4] || {};
 
         if (!target) {
             errorCallback(new FTErr(FTErr.FILE_NOT_FOUND_ERR));
@@ -428,22 +428,22 @@ exec(win, fail, 'FileTransfer', 'upload',
         }
         target = cordovaPathToNative(target);
 
-        var path = target.substr(0, target.lastIndexOf('\\'));
-        var fileName = target.substr(target.lastIndexOf('\\') + 1);
+        const path = target.substr(0, target.lastIndexOf('\\'));
+        const fileName = target.substr(target.lastIndexOf('\\') + 1);
         if (path === null || fileName === null) {
             errorCallback(new FTErr(FTErr.FILE_NOT_FOUND_ERR));
             return;
         }
         // Download to a temp file to avoid the file deletion on 304
         // CB-7006 Empty file is created on file transfer if server response is 304
-        var tempFileName = '~' + fileName;
+        const tempFileName = '~' + fileName;
 
-        var download = null;
+        let download = null;
 
         // Create internal download operation object
         fileTransferOps[downloadId] = new FileTransferOperation(FileTransferOperation.PENDING, null);
 
-        var downloadCallback = function (storageFolder) {
+        const downloadCallback = function (storageFolder) {
             storageFolder.createFileAsync(tempFileName, Windows.Storage.CreationCollisionOption.replaceExisting).then(
                 function (storageFile) {
                     if (alreadyCancelled(downloadId)) {
@@ -452,8 +452,8 @@ exec(win, fail, 'FileTransfer', 'upload',
                     }
 
                     // if download isn't cancelled, contunue with creating and preparing download operation
-                    var downloader = new Windows.Networking.BackgroundTransfer.BackgroundDownloader();
-                    for (var header in headers) {
+                    const downloader = new Windows.Networking.BackgroundTransfer.BackgroundDownloader();
+                    for (const header in headers) {
                         if (Object.prototype.hasOwnProperty.call(headers, header)) {
                             downloader.setRequestHeader(header, headers[header]);
                         }
@@ -461,7 +461,7 @@ exec(win, fail, 'FileTransfer', 'upload',
 
                     // create download object. This will throw an exception if URL is malformed
                     try {
-                        var uri = Windows.Foundation.Uri(source);
+                        const uri = Windows.Foundation.Uri(source);
                         download = downloader.createDownload(uri, storageFile);
                     } catch (e) {
                         // so we handle this and call errorCallback
@@ -469,7 +469,7 @@ exec(win, fail, 'FileTransfer', 'upload',
                         return;
                     }
 
-                    var downloadOperation = download.startAsync();
+                    const downloadOperation = download.startAsync();
                     // update internal TransferOperation object with newly created promise
                     fileTransferOps[downloadId].promise = downloadOperation;
 
@@ -477,7 +477,7 @@ exec(win, fail, 'FileTransfer', 'upload',
                         function () {
                             // Update TransferOperation object with new state, delete promise property
                             // since it is not actual anymore
-                            var currentDownloadOp = fileTransferOps[downloadId];
+                            const currentDownloadOp = fileTransferOps[downloadId];
                             if (currentDownloadOp) {
                                 currentDownloadOp.state = FileTransferOperation.DONE;
                                 currentDownloadOp.promise = null;
@@ -485,7 +485,7 @@ exec(win, fail, 'FileTransfer', 'upload',
 
                             storageFile.renameAsync(fileName, Windows.Storage.CreationCollisionOption.replaceExisting).done(
                                 function () {
-                                    var nativeURI = storageFile.path
+                                    const nativeURI = storageFile.path
                                         .replace(appData.localFolder.path, 'ms-appdata:///local')
                                         .replace(appData.temporaryFolder.path, 'ms-appdata:///temp')
                                         .replace(/\\/g, '/');
@@ -500,7 +500,7 @@ exec(win, fail, 'FileTransfer', 'upload',
                             );
                         },
                         function (error) {
-                            var getTransferError = new WinJS.Promise(function (resolve) {
+                            const getTransferError = new WinJS.Promise(function (resolve) {
                                 // Handle download error here. If download was cancelled,
                                 // message property will be specified
                                 if (error.message === 'Canceled') {
@@ -509,7 +509,7 @@ exec(win, fail, 'FileTransfer', 'upload',
                                     resolve(new FTErr(FTErr.NOT_MODIFIED_ERR, source, target, 304, null, error));
                                 } else {
                                     // in the other way, try to get response property
-                                    var response = download.getResponseInformation();
+                                    const response = download.getResponseInformation();
                                     if (!response) {
                                         resolve(new FTErr(FTErr.CONNECTION_ERR, source, target));
                                     } else {
@@ -517,9 +517,9 @@ exec(win, fail, 'FileTransfer', 'upload',
                                             resolve(new FTErr(FTErr.FILE_NOT_FOUND_ERR, source, target, response.statusCode, null, error));
                                             return;
                                         }
-                                        var reader = new Windows.Storage.Streams.DataReader(download.getResultStreamAt(0));
+                                        const reader = new Windows.Storage.Streams.DataReader(download.getResultStreamAt(0));
                                         reader.loadAsync(download.progress.bytesReceived).then(function (bytesLoaded) {
-                                            var payload = reader.readString(bytesLoaded);
+                                            const payload = reader.readString(bytesLoaded);
                                             resolve(
                                                 new FTErr(FTErr.FILE_NOT_FOUND_ERR, source, target, response.statusCode, payload, error)
                                             );
@@ -530,7 +530,7 @@ exec(win, fail, 'FileTransfer', 'upload',
                             getTransferError.then(function (fileTransferError) {
                                 // Update TransferOperation object with new state, delete promise property
                                 // since it is not actual anymore
-                                var currentDownloadOp = fileTransferOps[downloadId];
+                                const currentDownloadOp = fileTransferOps[downloadId];
                                 if (currentDownloadOp) {
                                     currentDownloadOp.state = FileTransferOperation.CANCELLED;
                                     currentDownloadOp.promise = null;
@@ -543,7 +543,7 @@ exec(win, fail, 'FileTransfer', 'upload',
                             });
                         },
                         function (evt) {
-                            var progressEvent = new ProgressEvent('progress', {
+                            const progressEvent = new ProgressEvent('progress', {
                                 loaded: evt.progress.bytesReceived,
                                 total: evt.progress.totalBytesToReceive,
                                 target: evt.resultFile
@@ -562,15 +562,15 @@ exec(win, fail, 'FileTransfer', 'upload',
             );
         };
 
-        var fileNotFoundErrorCallback = function (error) {
+        const fileNotFoundErrorCallback = function (error) {
             errorCallback(new FTErr(FTErr.FILE_NOT_FOUND_ERR, source, target, null, null, error));
         };
 
         Windows.Storage.StorageFolder.getFolderFromPathAsync(path).then(downloadCallback, function (error) {
             // Handle non-existent directory
             if (error.number === -2147024894) {
-                var parent = path.substr(0, path.lastIndexOf('\\'));
-                var folderNameToCreate = path.substr(path.lastIndexOf('\\') + 1);
+                const parent = path.substr(0, path.lastIndexOf('\\'));
+                const folderNameToCreate = path.substr(path.lastIndexOf('\\') + 1);
 
                 Windows.Storage.StorageFolder.getFolderFromPathAsync(parent).then(function (parentFolder) {
                     parentFolder.createFolderAsync(folderNameToCreate).then(downloadCallback, fileNotFoundErrorCallback);
@@ -582,10 +582,10 @@ exec(win, fail, 'FileTransfer', 'upload',
     },
 
     abort: function (successCallback, error, options) {
-        var fileTransferOpId = options[0];
+        const fileTransferOpId = options[0];
 
         // Try to find transferOperation with id specified, and cancel its' promise
-        var currentOp = fileTransferOps[fileTransferOpId];
+        const currentOp = fileTransferOps[fileTransferOpId];
         if (currentOp) {
             currentOp.state = FileTransferOperation.CANCELLED;
             currentOp.promise && currentOp.promise.cancel();

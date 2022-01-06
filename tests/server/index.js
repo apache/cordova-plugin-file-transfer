@@ -1,7 +1,7 @@
 const http = require('http');
 const stringify = require('json-stringify-safe');
 const Busboy = require('busboy');
-var { Iconv } = require('iconv');
+const { Iconv } = require('iconv');
 
 const port = process.env.PORT || 5000;
 const DIRECT_UPLOAD_LIMIT = 85; // bytes
@@ -18,7 +18,7 @@ function parseMultipartForm (req, res, finishCb) {
     const busboy = new Busboy({ headers: req.headers });
 
     busboy.on('file', function (fieldname, file, filename, encoding, mimetype) {
-        var currentFile = { size: 0 };
+        const currentFile = { size: 0 };
 
         file.on('data', function (data) {
             currentFile.name = filename;
@@ -62,7 +62,7 @@ function respondWithParsedForm (req, res, parseResultObj) {
 
 function respondWithParsedFormNonUTF (req, res, parseResultObj) {
     parseResultObj.latin1Symbols = LATIN1_SYMBOLS;
-    var buffer = iconv.convert(stringify(parseResultObj));
+    const buffer = iconv.convert(stringify(parseResultObj));
     res.writeHead(200, { 'Content-Type': 'application/json' });
     res.write(buffer);
     res.end('\n');
@@ -111,7 +111,7 @@ http.createServer(function (req, res) {
             parseMultipartForm(req, res, respondWithParsedForm);
         } else {
             console.log('direct upload');
-            var body = '';
+            let body = '';
             req.on('data', function (chunk) {
                 body += chunk;
                 if (body.length > DIRECT_UPLOAD_LIMIT) {

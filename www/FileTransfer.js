@@ -21,13 +21,13 @@
 
 /* global cordova, FileSystem */
 
-var argscheck = require('cordova/argscheck');
-var exec = require('cordova/exec');
-var FileTransferError = require('./FileTransferError');
-var ProgressEvent = require('cordova-plugin-file.ProgressEvent');
+const argscheck = require('cordova/argscheck');
+const exec = require('cordova/exec');
+const FileTransferError = require('./FileTransferError');
+const ProgressEvent = require('cordova-plugin-file.ProgressEvent');
 
 function newProgressEvent (result) {
-    var pe = new ProgressEvent();
+    const pe = new ProgressEvent();
     pe.lengthComputable = result.lengthComputable;
     pe.loaded = result.loaded;
     pe.total = result.total;
@@ -35,24 +35,24 @@ function newProgressEvent (result) {
 }
 
 function getUrlCredentials (urlString) {
-    var credentialsPattern = /^https?:\/\/(?:(?:(([^:@/]*)(?::([^@/]*))?)?@)?([^:/?#]*)(?::(\d*))?).*$/;
-    var credentials = credentialsPattern.exec(urlString);
+    const credentialsPattern = /^https?:\/\/(?:(?:(([^:@/]*)(?::([^@/]*))?)?@)?([^:/?#]*)(?::(\d*))?).*$/;
+    const credentials = credentialsPattern.exec(urlString);
 
     return credentials && credentials[1];
 }
 
 function getBasicAuthHeader (urlString) {
-    var header = null;
+    let header = null;
 
     // This is changed due to MS Windows doesn't support credentials in http uris
     // so we detect them by regexp and strip off from result url
     // Proof: http://social.msdn.microsoft.com/Forums/windowsapps/en-US/a327cf3c-f033-4a54-8b7f-03c56ba3203f/windows-foundation-uri-security-problem
 
     if (window.btoa) {
-        var credentials = getUrlCredentials(urlString);
+        const credentials = getUrlCredentials(urlString);
         if (credentials) {
-            var authHeader = 'Authorization';
-            var authHeaderValue = 'Basic ' + window.btoa(credentials);
+            const authHeader = 'Authorization';
+            const authHeaderValue = 'Basic ' + window.btoa(credentials);
 
             header = {
                 name: authHeader,
@@ -65,10 +65,10 @@ function getBasicAuthHeader (urlString) {
 }
 
 function convertHeadersToArray (headers) {
-    var result = [];
-    for (var header in headers) {
+    const result = [];
+    for (const header in headers) {
         if (Object.prototype.hasOwnProperty.call(headers, header)) {
-            var headerValue = headers[header];
+            const headerValue = headers[header];
             result.push({
                 name: header,
                 value: headerValue.toString()
@@ -78,13 +78,13 @@ function convertHeadersToArray (headers) {
     return result;
 }
 
-var idCounter = 0;
+let idCounter = 0;
 
 /**
  * FileTransfer uploads a file to a remote server.
  * @constructor
  */
-var FileTransfer = function () {
+const FileTransfer = function () {
     this._id = ++idCounter;
     this.onprogress = null; // optional callback
 };
@@ -102,14 +102,14 @@ var FileTransfer = function () {
 FileTransfer.prototype.upload = function (filePath, server, successCallback, errorCallback, options, trustAllHosts) {
     argscheck.checkArgs('ssFFO*', 'FileTransfer.upload', arguments);
     // check for options
-    var fileKey = null;
-    var fileName = null;
-    var mimeType = null;
-    var params = null;
-    var chunkedMode = true;
-    var headers = null;
-    var httpMethod = null;
-    var basicAuthHeader = getBasicAuthHeader(server);
+    let fileKey = null;
+    let fileName = null;
+    let mimeType = null;
+    let params = null;
+    let chunkedMode = true;
+    let headers = null;
+    let httpMethod = null;
+    const basicAuthHeader = getBasicAuthHeader(server);
     if (basicAuthHeader) {
         server = server.replace(getUrlCredentials(server) + '@', '');
 
@@ -144,15 +144,15 @@ FileTransfer.prototype.upload = function (filePath, server, successCallback, err
         params = params && convertHeadersToArray(params);
     }
 
-    var fail =
+    const fail =
         errorCallback &&
         function (e) {
-            var error = new FileTransferError(e.code, e.source, e.target, e.http_status, e.body, e.exception);
+            const error = new FileTransferError(e.code, e.source, e.target, e.http_status, e.body, e.exception);
             errorCallback(error);
         };
 
-    var self = this;
-    var win = function (result) {
+    const self = this;
+    const win = function (result) {
         if (typeof result.lengthComputable !== 'undefined') {
             if (self.onprogress) {
                 self.onprogress(newProgressEvent(result));
@@ -189,9 +189,9 @@ FileTransfer.prototype.upload = function (filePath, server, successCallback, err
  */
 FileTransfer.prototype.download = function (source, target, successCallback, errorCallback, trustAllHosts, options) {
     argscheck.checkArgs('ssFF*', 'FileTransfer.download', arguments);
-    var self = this;
+    const self = this;
 
-    var basicAuthHeader = getBasicAuthHeader(source);
+    const basicAuthHeader = getBasicAuthHeader(source);
     if (basicAuthHeader) {
         source = source.replace(getUrlCredentials(source) + '@', '');
 
@@ -200,7 +200,7 @@ FileTransfer.prototype.download = function (source, target, successCallback, err
         options.headers[basicAuthHeader.name] = basicAuthHeader.value;
     }
 
-    var headers = null;
+    let headers = null;
     if (options) {
         headers = options.headers || null;
     }
@@ -209,13 +209,13 @@ FileTransfer.prototype.download = function (source, target, successCallback, err
         headers = convertHeadersToArray(headers);
     }
 
-    var win = function (result) {
+    const win = function (result) {
         if (typeof result.lengthComputable !== 'undefined') {
             if (self.onprogress) {
                 return self.onprogress(newProgressEvent(result));
             }
         } else if (successCallback) {
-            var entry = null;
+            let entry = null;
             if (result.isDirectory) {
                 entry = new (require('cordova-plugin-file.DirectoryEntry'))();
             } else if (result.isFile) {
@@ -233,10 +233,10 @@ FileTransfer.prototype.download = function (source, target, successCallback, err
         }
     };
 
-    var fail =
+    const fail =
         errorCallback &&
         function (e) {
-            var error = new FileTransferError(e.code, e.source, e.target, e.http_status, e.body, e.exception);
+            const error = new FileTransferError(e.code, e.source, e.target, e.http_status, e.body, e.exception);
             errorCallback(error);
         };
 
