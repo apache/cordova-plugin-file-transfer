@@ -104,7 +104,7 @@ static CFIndex WriteDataToStream(NSData* data, CFWriteStreamRef stream)
 {
     [req setValue:@"XMLHttpRequest" forHTTPHeaderField:@"X-Requested-With"];
 
-    NSString* userAgent = [self.commandDelegate userAgent];
+    NSString* userAgent = @"";
     if (userAgent) {
         [req setValue:userAgent forHTTPHeaderField:@"User-Agent"];
     }
