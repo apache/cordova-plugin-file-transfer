@@ -25,21 +25,21 @@ exports.defineAutoTests = function () {
     'use strict';
 
     // constants
-    var ONE_SECOND = 1000; // in milliseconds
-    var GRACE_TIME_DELTA = 600; // in milliseconds
-    var DEFAULT_FILESYSTEM_SIZE = 1024 * 50; // filesystem size in bytes
-    var UNKNOWN_HOST = 'http://foobar.apache.org';
-    var DOWNLOAD_TIMEOUT = 15 * ONE_SECOND;
-    var LONG_TIMEOUT = 60 * ONE_SECOND;
-    var UPLOAD_TIMEOUT = 15 * ONE_SECOND;
-    var ABORT_DELAY = 100; // for abort() tests
-    var LATIN1_SYMBOLS = '¥§©ÆÖÑøøø¼';
-    var DATA_URI_PREFIX = 'data:image/png;base64,';
-    var DATA_URI_CONTENT =
+    const ONE_SECOND = 1000; // in milliseconds
+    const GRACE_TIME_DELTA = 600; // in milliseconds
+    const DEFAULT_FILESYSTEM_SIZE = 1024 * 50; // filesystem size in bytes
+    const UNKNOWN_HOST = 'http://foobar.apache.org';
+    const DOWNLOAD_TIMEOUT = 15 * ONE_SECOND;
+    const LONG_TIMEOUT = 60 * ONE_SECOND;
+    const UPLOAD_TIMEOUT = 15 * ONE_SECOND;
+    const ABORT_DELAY = 100; // for abort() tests
+    const LATIN1_SYMBOLS = '¥§©ÆÖÑøøø¼';
+    const DATA_URI_PREFIX = 'data:image/png;base64,';
+    const DATA_URI_CONTENT =
         'iVBORw0KGgoAAAANSUhEUgAAAAUAAAAFCAYAAACNbyblAAAAHElEQVQI12P4//8/w38GIAXDIBKE0DHxgljNBAAO9TXL0Y4OHwAAAABJRU5ErkJggg==';
-    var DATA_URI_CONTENT_LENGTH = 85; // bytes. (This is the raw file size: used https://en.wikipedia.org/wiki/File:Red-dot-5px.png from https://en.wikipedia.org/wiki/Data_URI_scheme)
-    var RETRY_COUNT = 100; // retry some flaky tests (yes, THIS many times, due to Heroku server instability)
-    var RETRY_INTERVAL = 100;
+    const DATA_URI_CONTENT_LENGTH = 85; // bytes. (This is the raw file size: used https://en.wikipedia.org/wiki/File:Red-dot-5px.png from https://en.wikipedia.org/wiki/Data_URI_scheme)
+    const RETRY_COUNT = 100; // retry some flaky tests (yes, THIS many times, due to Heroku server instability)
+    const RETRY_INTERVAL = 100;
 
     // upload test server address
     // NOTE:
@@ -47,16 +47,16 @@ exports.defineAutoTests = function () {
     // Will get it from the config
     // you can specify it as a 'FILETRANSFER_SERVER_ADDRESS' variable upon test plugin installation
     // or change the default value in plugin.xml
-    var SERVER = '';
-    var SERVER_WITH_CREDENTIALS = '';
+    let SERVER = '';
+    let SERVER_WITH_CREDENTIALS = '';
 
     // flags
-    var isWindows = cordova.platformId === 'windows';
-    var isBrowser = cordova.platformId === 'browser';
-    var isWindowsPhone = isWindows && WinJS.Utilities.isPhone;
-    var isIE = isBrowser && navigator.userAgent.indexOf('Trident') >= 0;
-    var isIos = cordova.platformId === 'ios';
-    var isIot = cordova.platformId === 'android' && navigator.userAgent.indexOf('iot') >= 0;
+    const isWindows = cordova.platformId === 'windows';
+    const isBrowser = cordova.platformId === 'browser';
+    const isWindowsPhone = isWindows && WinJS.Utilities.isPhone;
+    const isIE = isBrowser && navigator.userAgent.indexOf('Trident') >= 0;
+    const isIos = cordova.platformId === 'ios';
+    const isIot = cordova.platformId === 'android' && navigator.userAgent.indexOf('iot') >= 0;
 
     // tests
     describe('FileTransferError', function () {
@@ -65,7 +65,7 @@ exports.defineAutoTests = function () {
         });
 
         it('should be constructable', function () {
-            var transferError = new FileTransferError();
+            const transferError = new FileTransferError();
             expect(transferError).toBeDefined();
         });
 
@@ -90,7 +90,7 @@ exports.defineAutoTests = function () {
         });
 
         it('should be constructable', function () {
-            var transferOptions = new FileUploadOptions();
+            const transferOptions = new FileUploadOptions();
             expect(transferOptions).toBeDefined();
         });
     });
@@ -100,7 +100,7 @@ exports.defineAutoTests = function () {
         this.tempRoot = null;
 
         // named callbacks
-        var unexpectedCallbacks = {
+        const unexpectedCallbacks = {
             httpFail: function () {},
             httpWin: function () {},
             fileSystemFail: function () {},
@@ -109,14 +109,14 @@ exports.defineAutoTests = function () {
             fileOperationWin: function () {}
         };
 
-        var expectedCallbacks = {
+        const expectedCallbacks = {
             unsupportedOperation: function (response) {
                 console.log('spec called unsupported functionality; response:', response);
             }
         };
 
         // helpers
-        var deleteFile = function (fileSystem, name, done) {
+        const deleteFile = function (fileSystem, name, done) {
             fileSystem.getFile(
                 name,
                 null,
@@ -136,8 +136,8 @@ exports.defineAutoTests = function () {
             );
         };
 
-        var writeFile = function (fileSystem, name, content, success, done) {
-            var fileOperationFail = function () {
+        const writeFile = function (fileSystem, name, content, success, done) {
+            const fileOperationFail = function () {
                 unexpectedCallbacks.fileOperationFail();
                 done();
             };
@@ -160,7 +160,7 @@ exports.defineAutoTests = function () {
                         };
 
                         if (cordova.platformId === 'browser') {
-                            var blob = new Blob([content + '\n'], { type: 'text/plain' });
+                            const blob = new Blob([content + '\n'], { type: 'text/plain' });
                             writer.write(blob);
                         } else {
                             writer.write(content + '\n');
@@ -173,7 +173,7 @@ exports.defineAutoTests = function () {
             );
         };
 
-        var defaultOnProgressHandler = function (event) {
+        const defaultOnProgressHandler = function (event) {
             if (event.lengthComputable) {
                 expect(event.loaded).toBeGreaterThan(1);
                 expect(event.total).toBeGreaterThan(0);
@@ -190,7 +190,7 @@ exports.defineAutoTests = function () {
             }
         };
 
-        var getMalformedUrl = function () {
+        const getMalformedUrl = function () {
             if (cordova.platformId === 'android') {
                 // bad protocol causes a MalformedUrlException on Android
                 return 'httpssss://example.com';
@@ -200,7 +200,7 @@ exports.defineAutoTests = function () {
             }
         };
 
-        var setServerAddress = function (address) {
+        const setServerAddress = function (address) {
             SERVER = address;
             SERVER_WITH_CREDENTIALS = SERVER.replace('http://', 'http://cordova_user:cordova_password@');
         };
@@ -210,7 +210,7 @@ exports.defineAutoTests = function () {
         //      signifies a completed async call, each async call needs its own done(), and
         //      therefore its own beforeEach
         beforeEach(function (done) {
-            var specContext = this;
+            const specContext = this;
 
             window.requestFileSystem(
                 LocalFileSystem.PERSISTENT,
@@ -226,7 +226,7 @@ exports.defineAutoTests = function () {
         });
 
         beforeEach(function (done) {
-            var specContext = this;
+            const specContext = this;
 
             window.requestFileSystem(
                 LocalFileSystem.TEMPORARY,
@@ -244,14 +244,14 @@ exports.defineAutoTests = function () {
         // spy on all named callbacks
         beforeEach(function () {
             // ignore the actual implementations of the unexpected callbacks
-            for (var callback in unexpectedCallbacks) {
+            for (const callback in unexpectedCallbacks) {
                 if (Object.prototype.hasOwnProperty.call(unexpectedCallbacks, callback)) {
                     spyOn(unexpectedCallbacks, callback);
                 }
             }
 
             // but run the implementations of the expected callbacks
-            for (callback in expectedCallbacks) {
+            for (const callback in expectedCallbacks) {
                 if (Object.prototype.hasOwnProperty.call(expectedCallbacks, callback)) {
                     spyOn(expectedCallbacks, callback).and.callThrough();
                 }
@@ -261,7 +261,7 @@ exports.defineAutoTests = function () {
         // at the end, check that none of the unexpected callbacks got called,
         // and act on the expected callbacks
         afterEach(function () {
-            for (var callback in unexpectedCallbacks) {
+            for (const callback in unexpectedCallbacks) {
                 if (Object.prototype.hasOwnProperty.call(unexpectedCallbacks, callback)) {
                     expect(unexpectedCallbacks[callback]).not.toHaveBeenCalled();
                 }
@@ -275,10 +275,10 @@ exports.defineAutoTests = function () {
         it('util spec: get file transfer server url', function () {
             try {
                 // attempt to synchronously load medic config
-                var xhr = new XMLHttpRequest();
+                const xhr = new XMLHttpRequest();
                 xhr.open('GET', '../fileTransferOpts.json', false);
                 xhr.send(null);
-                var parsedCfg = JSON.parse(xhr.responseText);
+                const parsedCfg = JSON.parse(xhr.responseText);
                 if (parsedCfg.serverAddress) {
                     setServerAddress(parsedCfg.serverAddress);
                 }
@@ -301,12 +301,12 @@ exports.defineAutoTests = function () {
         });
 
         it('filetransfer.spec.1 should be constructable', function () {
-            var transfer = new FileTransfer();
+            const transfer = new FileTransfer();
             expect(transfer).toBeDefined();
         });
 
         it('filetransfer.spec.2 should expose proper functions', function () {
-            var transfer = new FileTransfer();
+            const transfer = new FileTransfer();
 
             expect(transfer.upload).toBeDefined();
             expect(transfer.download).toBeDefined();
@@ -343,7 +343,7 @@ exports.defineAutoTests = function () {
             //         - 'cordova-filetransfer.jitsu.com'
             describe('download', function () {
                 // helpers
-                var verifyDownload = function (fileEntry, specContext) {
+                const verifyDownload = function (fileEntry, specContext) {
                     expect(fileEntry.name).toBe(specContext.fileName);
                 };
 
@@ -359,12 +359,12 @@ exports.defineAutoTests = function () {
                 it(
                     'filetransfer.spec.4 should download a file',
                     function (done) {
-                        var fileURL = SERVER + '/robots.txt';
-                        var specContext = this;
+                        const fileURL = SERVER + '/robots.txt';
+                        const specContext = this;
 
-                        var fileWin = function (blob) {
+                        const fileWin = function (blob) {
                             if (specContext.transfer.onprogress.calls.any()) {
-                                var lastProgressEvent = specContext.transfer.onprogress.calls.mostRecent().args[0];
+                                const lastProgressEvent = specContext.transfer.onprogress.calls.mostRecent().args[0];
                                 expect(lastProgressEvent.loaded).not.toBeGreaterThan(blob.size);
                             } else {
                                 console.log('no progress events were emitted');
@@ -373,17 +373,17 @@ exports.defineAutoTests = function () {
                             done();
                         };
 
-                        var fileSystemFail = function () {
+                        const fileSystemFail = function () {
                             unexpectedCallbacks.fileSystemFail();
                             done();
                         };
 
-                        var downloadFail = function () {
+                        const downloadFail = function () {
                             unexpectedCallbacks.httpFail();
                             done();
                         };
 
-                        var downloadWin = function (entry) {
+                        const downloadWin = function (entry) {
                             verifyDownload(entry, specContext);
 
                             // verify the FileEntry representing this file
@@ -398,15 +398,15 @@ exports.defineAutoTests = function () {
                 it(
                     'filetransfer.spec.4.1 should download a file using target name with space',
                     function (done) {
-                        var fileURL = SERVER + '/robots.txt';
+                        const fileURL = SERVER + '/robots.txt';
                         this.fileName = 'test file.txt';
                         this.localFilePath = this.root.toURL() + this.fileName;
 
-                        var specContext = this;
+                        const specContext = this;
 
-                        var fileWin = function (blob) {
+                        const fileWin = function (blob) {
                             if (specContext.transfer.onprogress.calls.any()) {
-                                var lastProgressEvent = specContext.transfer.onprogress.calls.mostRecent().args[0];
+                                const lastProgressEvent = specContext.transfer.onprogress.calls.mostRecent().args[0];
                                 expect(lastProgressEvent.loaded).not.toBeGreaterThan(blob.size);
                             } else {
                                 console.log('no progress events were emitted');
@@ -415,17 +415,17 @@ exports.defineAutoTests = function () {
                             done();
                         };
 
-                        var fileSystemFail = function () {
+                        const fileSystemFail = function () {
                             unexpectedCallbacks.fileSystemFail();
                             done();
                         };
 
-                        var downloadFail = function () {
+                        const downloadFail = function () {
                             unexpectedCallbacks.httpFail();
                             done();
                         };
 
-                        var downloadWin = function (entry) {
+                        const downloadWin = function (entry) {
                             verifyDownload(entry, specContext);
 
                             // verify the FileEntry representing this file
@@ -440,15 +440,15 @@ exports.defineAutoTests = function () {
                 it(
                     'filetransfer.spec.5 should download a file using http basic auth',
                     function (done) {
-                        var fileURL = SERVER_WITH_CREDENTIALS + '/download_basic_auth';
-                        var specContext = this;
+                        const fileURL = SERVER_WITH_CREDENTIALS + '/download_basic_auth';
+                        const specContext = this;
 
-                        var downloadWin = function (entry) {
+                        const downloadWin = function (entry) {
                             verifyDownload(entry, specContext);
                             done();
                         };
 
-                        var downloadFail = function () {
+                        const downloadFail = function () {
                             unexpectedCallbacks.httpFail();
                             done();
                         };
@@ -463,15 +463,15 @@ exports.defineAutoTests = function () {
                     function (done) {
                         // NOTE:
                         //      using server without credentials
-                        var fileURL = SERVER + '/download_basic_auth';
+                        const fileURL = SERVER + '/download_basic_auth';
 
-                        var downloadFail = function (error) {
+                        const downloadFail = function (error) {
                             expect(error.http_status).toBe(401);
                             expect(error.http_status).not.toBe(404, 'Ensure ' + fileURL + ' is in the white list');
                             done();
                         };
 
-                        var downloadWin = function () {
+                        const downloadWin = function () {
                             unexpectedCallbacks.httpWin();
                             done();
                         };
@@ -494,20 +494,20 @@ exports.defineAutoTests = function () {
                             return;
                         }
 
-                        var fileURL = window.location.protocol + '//' + window.location.pathname.replace(/ /g, '%20');
-                        var specContext = this;
+                        const fileURL = window.location.protocol + '//' + window.location.pathname.replace(/ /g, '%20');
+                        const specContext = this;
 
                         if (!/^file:/.exec(fileURL)) {
                             done();
                             return;
                         }
 
-                        var downloadWin = function (entry) {
+                        const downloadWin = function (entry) {
                             verifyDownload(entry, specContext);
                             done();
                         };
 
-                        var downloadFail = function () {
+                        const downloadFail = function () {
                             unexpectedCallbacks.httpFail();
                             done();
                         };
@@ -520,26 +520,26 @@ exports.defineAutoTests = function () {
                 it(
                     'filetransfer.spec.8 should download a file using https://',
                     function (done) {
-                        var fileURL = 'https://www.apache.org/licenses/';
-                        var specContext = this;
+                        const fileURL = 'https://www.apache.org/licenses/';
+                        const specContext = this;
 
-                        var downloadFail = function () {
+                        const downloadFail = function () {
                             unexpectedCallbacks.httpFail();
                             done();
                         };
 
-                        var fileOperationFail = function () {
+                        const fileOperationFail = function () {
                             unexpectedCallbacks.fileOperationFail();
                             done();
                         };
 
-                        var fileSystemFail = function () {
+                        const fileSystemFail = function () {
                             unexpectedCallbacks.fileSystemFail();
                             done();
                         };
 
-                        var fileWin = function (file) {
-                            var reader = new FileReader();
+                        const fileWin = function (file) {
+                            const reader = new FileReader();
 
                             reader.onerror = fileOperationFail;
                             reader.onload = function () {
@@ -550,7 +550,7 @@ exports.defineAutoTests = function () {
                             reader.readAsText(file);
                         };
 
-                        var downloadWin = function (entry) {
+                        const downloadWin = function (entry) {
                             verifyDownload(entry, specContext);
                             entry.file(fileWin, fileSystemFail);
                         };
@@ -563,11 +563,11 @@ exports.defineAutoTests = function () {
                 it(
                     'filetransfer.spec.11 should call the error callback on abort()',
                     function (done) {
-                        var fileURL = 'http://cordova.apache.org/static/downloads/BlueZedEx.mp3';
+                        let fileURL = 'http://cordova.apache.org/static/downloads/BlueZedEx.mp3';
                         fileURL = fileURL + '?q=' + new Date().getTime();
-                        var specContext = this;
+                        const specContext = this;
 
-                        var downloadWin = function () {
+                        const downloadWin = function () {
                             unexpectedCallbacks.httpWin();
                             done();
                         };
@@ -583,21 +583,21 @@ exports.defineAutoTests = function () {
                 it(
                     'filetransfer.spec.9 should not leave partial file due to abort',
                     function (done) {
-                        var fileURL = 'http://cordova.apache.org/static/downloads/logos.zip';
-                        var specContext = this;
+                        const fileURL = 'http://cordova.apache.org/static/downloads/logos.zip';
+                        const specContext = this;
 
-                        var fileSystemWin = function () {
+                        const fileSystemWin = function () {
                             unexpectedCallbacks.fileSystemWin();
                             done();
                         };
 
-                        var downloadWin = function () {
+                        const downloadWin = function () {
                             unexpectedCallbacks.httpWin();
                             done();
                         };
 
-                        var downloadFail = function (error) {
-                            var result = !!(error.code === FileTransferError.ABORT_ERR || error.code === FileTransferError.CONNECTION_ERR);
+                        const downloadFail = function (error) {
+                            const result = !!(error.code === FileTransferError.ABORT_ERR || error.code === FileTransferError.CONNECTION_ERR);
                             if (!result) {
                                 fail(
                                     'Expected ' +
@@ -631,18 +631,18 @@ exports.defineAutoTests = function () {
                 it(
                     'filetransfer.spec.10 should be stopped by abort()',
                     function (done) {
-                        var fileURL = 'http://cordova.apache.org/static/downloads/BlueZedEx.mp3';
+                        let fileURL = 'http://cordova.apache.org/static/downloads/BlueZedEx.mp3';
                         fileURL = fileURL + '?q=' + new Date().getTime();
-                        var specContext = this;
+                        const specContext = this;
 
                         expect(specContext.transfer.abort).not.toThrow(); // should be a no-op.
 
-                        var downloadWin = function () {
+                        const downloadWin = function () {
                             unexpectedCallbacks.httpWin();
                             done();
                         };
 
-                        var downloadFail = function (error) {
+                        const downloadFail = function (error) {
                             expect(error.code).toBe(FileTransferError.ABORT_ERR);
 
                             // delay calling done() to wait for the bogus abort()
@@ -665,9 +665,9 @@ exports.defineAutoTests = function () {
                 it(
                     'filetransfer.spec.12 should get http status on failure',
                     function (done) {
-                        var fileURL = SERVER + '/404';
+                        const fileURL = SERVER + '/404';
 
-                        var downloadFail = function (error) {
+                        const downloadFail = function (error) {
                             expect(error.http_status).not.toBe(401, 'Ensure ' + fileURL + ' is in the white list');
                             expect(error.http_status).toBe(404);
 
@@ -676,7 +676,7 @@ exports.defineAutoTests = function () {
                             done();
                         };
 
-                        var downloadWin = function () {
+                        const downloadWin = function () {
                             unexpectedCallbacks.httpWin();
                             done();
                         };
@@ -689,9 +689,9 @@ exports.defineAutoTests = function () {
                 it(
                     'filetransfer.spec.13 should get http body on failure',
                     function (done) {
-                        var fileURL = SERVER + '/404';
+                        const fileURL = SERVER + '/404';
 
-                        var downloadFail = function (error) {
+                        const downloadFail = function (error) {
                             expect(error.http_status).not.toBe(401, 'Ensure ' + fileURL + ' is in the white list');
                             expect(error.http_status).toBe(404);
 
@@ -701,7 +701,7 @@ exports.defineAutoTests = function () {
                             done();
                         };
 
-                        var downloadWin = function () {
+                        const downloadWin = function () {
                             unexpectedCallbacks.httpWin();
                             done();
                         };
@@ -712,9 +712,9 @@ exports.defineAutoTests = function () {
                 );
 
                 it('filetransfer.spec.14 should handle malformed urls', function (done) {
-                    var fileURL = getMalformedUrl();
+                    const fileURL = getMalformedUrl();
 
-                    var downloadFail = function (error) {
+                    const downloadFail = function (error) {
                         // Note: Android needs the bad protocol to be added to the access list
                         // <access origin=".*"/> won't match because ^https?:// is prepended to the regex
                         // The bad protocol must begin with http to avoid automatic prefix
@@ -724,7 +724,7 @@ exports.defineAutoTests = function () {
                         done();
                     };
 
-                    var downloadWin = function () {
+                    const downloadWin = function () {
                         unexpectedCallbacks.httpWin();
                         done();
                     };
@@ -735,14 +735,14 @@ exports.defineAutoTests = function () {
                 it(
                     'filetransfer.spec.15 should handle unknown host',
                     function (done) {
-                        var fileURL = UNKNOWN_HOST;
+                        const fileURL = UNKNOWN_HOST;
 
-                        var downloadFail = function (error) {
+                        const downloadFail = function (error) {
                             expect(error.code).toBe(FileTransferError.CONNECTION_ERR);
                             done();
                         };
 
-                        var downloadWin = function () {
+                        const downloadWin = function () {
                             unexpectedCallbacks.httpWin();
                             done();
                         };
@@ -756,9 +756,9 @@ exports.defineAutoTests = function () {
                 );
 
                 it('filetransfer.spec.16 should handle bad file path', function (done) {
-                    var fileURL = SERVER;
+                    const fileURL = SERVER;
 
-                    var downloadWin = function () {
+                    const downloadWin = function () {
                         unexpectedCallbacks.httpWin();
                         done();
                     };
@@ -769,15 +769,15 @@ exports.defineAutoTests = function () {
                 it(
                     'filetransfer.spec.17 progress should work with gzip encoding',
                     function (done) {
-                        var fileURL = 'http://www.apache.org/';
-                        var specContext = this;
+                        const fileURL = 'http://www.apache.org/';
+                        const specContext = this;
 
-                        var downloadWin = function (entry) {
+                        const downloadWin = function (entry) {
                             verifyDownload(entry, specContext);
                             done();
                         };
 
-                        var downloadFail = function () {
+                        const downloadFail = function () {
                             unexpectedCallbacks.httpFail();
                             done();
                         };
@@ -795,13 +795,13 @@ exports.defineAutoTests = function () {
                             return;
                         }
 
-                        var fileURL = SERVER + '/robots.txt';
+                        const fileURL = SERVER + '/robots.txt';
 
-                        var downloadWin = function (entry) {
+                        const downloadWin = function (entry) {
                             expect(entry.toNativeURL).toBeDefined();
                             expect(entry.toNativeURL).toEqual(jasmine.any(Function));
 
-                            var nativeURL = entry.toNativeURL();
+                            const nativeURL = entry.toNativeURL();
 
                             expect(nativeURL).toBeTruthy();
                             expect(nativeURL).toEqual(jasmine.any(String));
@@ -815,7 +815,7 @@ exports.defineAutoTests = function () {
                             done();
                         };
 
-                        var downloadFail = function () {
+                        const downloadFail = function () {
                             unexpectedCallbacks.httpFail();
                             done();
                         };
@@ -826,27 +826,27 @@ exports.defineAutoTests = function () {
                 );
 
                 it('filetransfer.spec.28 (compatibility) should be able to download a file using local paths', function (done) {
-                    var fileURL = SERVER + '/robots.txt';
-                    var specContext = this;
+                    const fileURL = SERVER + '/robots.txt';
+                    const specContext = this;
 
-                    var unsupported = function (response) {
+                    const unsupported = function (response) {
                         expectedCallbacks.unsupportedOperation(response);
                         done();
                     };
 
-                    var downloadWin = function (entry) {
+                    const downloadWin = function (entry) {
                         verifyDownload(entry, specContext);
                         done();
                     };
 
-                    var internalFilePath;
+                    let internalFilePath;
                     if (specContext.root.toInternalURL) {
                         internalFilePath = specContext.root.toInternalURL() + specContext.fileName;
                     } else {
                         internalFilePath = specContext.localFilePath;
                     }
 
-                    var downloadFail = function () {
+                    const downloadFail = function () {
                         unexpectedCallbacks.httpFail();
                         done();
                     };
@@ -869,13 +869,13 @@ exports.defineAutoTests = function () {
                 it(
                     'filetransfer.spec.33 should properly handle 304',
                     function (done) {
-                        var downloadFail = function (error) {
+                        const downloadFail = function (error) {
                             expect(error.http_status).toBe(304);
                             expect(error.code).toBe(FileTransferError.NOT_MODIFIED_ERR);
                             done();
                         };
 
-                        var downloadWin = function () {
+                        const downloadWin = function () {
                             unexpectedCallbacks.httpWin();
                             done();
                         };
@@ -888,24 +888,24 @@ exports.defineAutoTests = function () {
                 it(
                     'filetransfer.spec.35 304 should not result in the deletion of a cached file',
                     function (done) {
-                        var specContext = this;
+                        const specContext = this;
 
-                        var fileOperationFail = function () {
+                        const fileOperationFail = function () {
                             unexpectedCallbacks.fileOperationFail();
                             done();
                         };
 
-                        var fileSystemFail = function () {
+                        const fileSystemFail = function () {
                             unexpectedCallbacks.fileSystemFail();
                             done();
                         };
 
-                        var httpWin = function () {
+                        const httpWin = function () {
                             unexpectedCallbacks.httpWin();
                             done();
                         };
 
-                        var downloadFail = function (error) {
+                        const downloadFail = function (error) {
                             expect(error.http_status).toBe(304);
                             expect(error.code).toBe(FileTransferError.NOT_MODIFIED_ERR);
 
@@ -913,8 +913,8 @@ exports.defineAutoTests = function () {
                                 specContext.fileName,
                                 { create: false },
                                 function (entry) {
-                                    var fileWin = function (file) {
-                                        var reader = new FileReader();
+                                    const fileWin = function (file) {
+                                        const reader = new FileReader();
 
                                         reader.onerror = fileOperationFail;
                                         reader.onloadend = function () {
@@ -961,27 +961,27 @@ exports.defineAutoTests = function () {
                             pending();
                         }
 
-                        var fileURL = SERVER + '/download_non_utf';
-                        var specContext = this;
+                        const fileURL = SERVER + '/download_non_utf';
+                        const specContext = this;
 
-                        var fileOperationFail = function () {
+                        const fileOperationFail = function () {
                             unexpectedCallbacks.fileOperationFail();
                             done();
                         };
 
-                        var fileSystemFail = function () {
+                        const fileSystemFail = function () {
                             unexpectedCallbacks.fileSystemFail();
                             done();
                         };
 
-                        var httpFail = function () {
+                        const httpFail = function () {
                             unexpectedCallbacks.httpFail();
                             done();
                         };
 
-                        var fileWin = function (blob) {
+                        const fileWin = function (blob) {
                             if (specContext.transfer.onprogress.calls.any()) {
-                                var lastProgressEvent = specContext.transfer.onprogress.calls.mostRecent().args[0];
+                                const lastProgressEvent = specContext.transfer.onprogress.calls.mostRecent().args[0];
                                 expect(lastProgressEvent.loaded).not.toBeGreaterThan(blob.size);
                             } else {
                                 console.log('no progress events were emitted');
@@ -989,7 +989,7 @@ exports.defineAutoTests = function () {
 
                             expect(blob.size).toBeGreaterThan(0);
 
-                            var reader = new FileReader();
+                            const reader = new FileReader();
 
                             reader.onerror = fileOperationFail;
                             reader.onloadend = function () {
@@ -1000,7 +1000,7 @@ exports.defineAutoTests = function () {
                             reader.readAsBinaryString(blob);
                         };
 
-                        var downloadWin = function (entry) {
+                        const downloadWin = function (entry) {
                             verifyDownload(entry, specContext);
 
                             // verify the FileEntry representing this file
@@ -1021,11 +1021,11 @@ exports.defineAutoTests = function () {
                 this.localFilePath = null;
 
                 // helpers
-                var verifyUpload = function (uploadResult, specContext) {
+                const verifyUpload = function (uploadResult, specContext) {
                     expect(uploadResult.bytesSent).toBeGreaterThan(0);
                     expect(uploadResult.responseCode).toBe(200);
 
-                    var obj = null;
+                    let obj = null;
                     try {
                         obj = JSON.parse(uploadResult.response);
                         expect(obj.fields).toBeDefined();
@@ -1039,7 +1039,7 @@ exports.defineAutoTests = function () {
                 };
 
                 beforeEach(function (done) {
-                    var specContext = this;
+                    const specContext = this;
 
                     specContext.fileName = 'fileToUpload.txt';
                     specContext.fileContents = 'upload test file';
@@ -1054,7 +1054,7 @@ exports.defineAutoTests = function () {
                     specContext.uploadOptions.mimeType = 'text/plain';
                     specContext.uploadOptions.params = specContext.uploadParams;
 
-                    var fileWin = function (entry) {
+                    const fileWin = function (entry) {
                         specContext.localFilePath = entry.toURL();
                         done();
                     };
@@ -1071,10 +1071,10 @@ exports.defineAutoTests = function () {
                 it(
                     'filetransfer.spec.18 should be able to upload a file',
                     function (done) {
-                        var fileURL = SERVER + '/upload';
-                        var specContext = this;
+                        const fileURL = SERVER + '/upload';
+                        const specContext = this;
 
-                        var uploadWin = function (uploadResult) {
+                        const uploadWin = function (uploadResult) {
                             verifyUpload(uploadResult, specContext);
 
                             if (cordova.platformId === 'ios') {
@@ -1085,7 +1085,7 @@ exports.defineAutoTests = function () {
                             done();
                         };
 
-                        var uploadFail = function () {
+                        const uploadFail = function () {
                             unexpectedCallbacks.httpFail();
                             done();
                         };
@@ -1099,15 +1099,15 @@ exports.defineAutoTests = function () {
                 it(
                     'filetransfer.spec.19 should be able to upload a file with http basic auth',
                     function (done) {
-                        var fileURL = SERVER_WITH_CREDENTIALS + '/upload_basic_auth';
-                        var specContext = this;
+                        const fileURL = SERVER_WITH_CREDENTIALS + '/upload_basic_auth';
+                        const specContext = this;
 
-                        var uploadWin = function (uploadResult) {
+                        const uploadWin = function (uploadResult) {
                             verifyUpload(uploadResult, specContext);
                             done();
                         };
 
-                        var uploadFail = function () {
+                        const uploadFail = function () {
                             unexpectedCallbacks.httpFail();
                             done();
                         };
@@ -1121,22 +1121,22 @@ exports.defineAutoTests = function () {
                 it(
                     'filetransfer.spec.21 should be stopped by abort()',
                     function (done) {
-                        var fileURL = SERVER + '/upload';
-                        var specContext = this;
+                        const fileURL = SERVER + '/upload';
+                        const specContext = this;
 
-                        var uploadFail = function (e) {
+                        const uploadFail = function (e) {
                             expect(e.code).toBe(FileTransferError.ABORT_ERR);
 
                             // delay calling done() to wait for the bogus abort()
                             setTimeout(done, GRACE_TIME_DELTA * 2);
                         };
 
-                        var uploadWin = function () {
+                        const uploadWin = function () {
                             unexpectedCallbacks.httpWin();
                             done();
                         };
 
-                        var fileWin = function () {
+                        const fileWin = function () {
                             expect(specContext.transfer.abort).not.toThrow();
 
                             // NOTE: removing uploadOptions cause Android to timeout
@@ -1158,7 +1158,7 @@ exports.defineAutoTests = function () {
 
                         // windows store and ios are too fast, win is called before we have a chance to abort
                         // so let's get them busy - while not providing an extra load to the slow Android emulators
-                        var arrayLength = (isWindows && !isWindowsPhone) || isIos ? 3000000 : isIot ? 150000 : 200000;
+                        const arrayLength = (isWindows && !isWindowsPhone) || isIos ? 3000000 : isIot ? 150000 : 200000;
                         writeFile(specContext.root, specContext.fileName, new Array(arrayLength).join('aborttest!'), fileWin, done);
                     },
                     UPLOAD_TIMEOUT
@@ -1167,16 +1167,16 @@ exports.defineAutoTests = function () {
                 it(
                     'filetransfer.spec.22 should get http status and body on failure',
                     function (done) {
-                        var fileURL = SERVER + '/403';
-                        var retryCount = 0;
-                        var self = this;
+                        const fileURL = SERVER + '/403';
+                        let retryCount = 0;
+                        const self = this;
 
-                        var uploadWin = function () {
+                        const uploadWin = function () {
                             unexpectedCallbacks.httpWin();
                             done();
                         };
 
-                        var uploadFail = function (error) {
+                        const uploadFail = function (error) {
                             if (error.http_status === 503 && ++retryCount <= RETRY_COUNT) {
                                 // Heroku often gives this error, retry in 1 second
                                 console.log('retrying... ' + retryCount);
@@ -1196,15 +1196,15 @@ exports.defineAutoTests = function () {
                 );
 
                 it('filetransfer.spec.24 should handle malformed urls', function (done) {
-                    var fileURL = getMalformedUrl();
+                    const fileURL = getMalformedUrl();
 
-                    var uploadFail = function (error) {
+                    const uploadFail = function (error) {
                         expect(error.code).toBe(FileTransferError.INVALID_URL_ERR);
                         expect(error.http_status).not.toBe(401, 'Ensure ' + fileURL + ' is in the white list');
                         done();
                     };
 
-                    var uploadWin = function () {
+                    const uploadWin = function () {
                         unexpectedCallbacks.httpWin();
                         done();
                     };
@@ -1215,15 +1215,15 @@ exports.defineAutoTests = function () {
                 it(
                     'filetransfer.spec.25 should handle unknown host',
                     function (done) {
-                        var fileURL = UNKNOWN_HOST;
+                        const fileURL = UNKNOWN_HOST;
 
-                        var uploadFail = function (error) {
+                        const uploadFail = function (error) {
                             expect(error.code).toBe(FileTransferError.CONNECTION_ERR);
                             expect(error.http_status).not.toBe(401, 'Ensure ' + fileURL + ' is in the white list');
                             done();
                         };
 
-                        var uploadWin = function () {
+                        const uploadWin = function () {
                             unexpectedCallbacks.httpWin();
                             done();
                         };
@@ -1236,15 +1236,15 @@ exports.defineAutoTests = function () {
                 it(
                     'filetransfer.spec.25 should handle missing file',
                     function (done) {
-                        var fileURL = SERVER + '/upload';
+                        const fileURL = SERVER + '/upload';
 
-                        var uploadFail = function (error) {
+                        const uploadFail = function (error) {
                             expect(error.code).toBe(FileTransferError.FILE_NOT_FOUND_ERR);
                             expect(error.http_status).not.toBe(401, 'Ensure ' + fileURL + ' is in the white list');
                             done();
                         };
 
-                        var uploadWin = function () {
+                        const uploadWin = function () {
                             unexpectedCallbacks.httpWin();
                             done();
                         };
@@ -1255,14 +1255,14 @@ exports.defineAutoTests = function () {
                 );
 
                 it('filetransfer.spec.26 should handle bad file path', function (done) {
-                    var fileURL = SERVER + '/upload';
+                    const fileURL = SERVER + '/upload';
 
-                    var uploadFail = function (error) {
+                    const uploadFail = function (error) {
                         expect(error.http_status).not.toBe(401, 'Ensure ' + fileURL + ' is in the white list');
                         done();
                     };
 
-                    var uploadWin = function () {
+                    const uploadWin = function () {
                         unexpectedCallbacks.httpWin();
                         done();
                     };
@@ -1273,16 +1273,16 @@ exports.defineAutoTests = function () {
                 it(
                     'filetransfer.spec.27 should be able to set custom headers',
                     function (done) {
-                        var fileURL = SERVER + '/upload_echo_headers';
-                        var retryCount = 0;
-                        var self = this;
+                        const fileURL = SERVER + '/upload_echo_headers';
+                        let retryCount = 0;
+                        const self = this;
 
-                        var uploadWin = function (uploadResult) {
+                        const uploadWin = function (uploadResult) {
                             expect(uploadResult.bytesSent).toBeGreaterThan(0);
                             expect(uploadResult.responseCode).toBe(200);
                             expect(uploadResult.response).toBeDefined();
 
-                            var responseHtml = decodeURIComponent(uploadResult.response);
+                            const responseHtml = decodeURIComponent(uploadResult.response);
 
                             expect(responseHtml).toMatch(/CustomHeader1[\s\S]*CustomValue1/i);
                             expect(responseHtml).toMatch(
@@ -1293,7 +1293,7 @@ exports.defineAutoTests = function () {
                             done();
                         };
 
-                        var uploadFail = function () {
+                        const uploadFail = function () {
                             if (++retryCount >= RETRY_COUNT) {
                                 unexpectedCallbacks.httpFail();
                                 done();
@@ -1323,25 +1323,25 @@ exports.defineAutoTests = function () {
                 it(
                     'filetransfer.spec.29 (compatibility) should be able to upload a file using local paths',
                     function (done) {
-                        var fileURL = SERVER + '/upload';
-                        var specContext = this;
+                        const fileURL = SERVER + '/upload';
+                        const specContext = this;
 
-                        var unsupported = function (response) {
+                        const unsupported = function (response) {
                             expectedCallbacks.unsupportedOperation(response);
                             done();
                         };
 
-                        var uploadWin = function (uploadResult) {
+                        const uploadWin = function (uploadResult) {
                             verifyUpload(uploadResult, specContext);
                             done();
                         };
 
-                        var uploadFail = function () {
+                        const uploadFail = function () {
                             unexpectedCallbacks.httpFail();
                             done();
                         };
 
-                        var internalFilePath;
+                        let internalFilePath;
                         if (specContext.root.toInternalURL) {
                             internalFilePath = specContext.root.toInternalURL() + specContext.fileName;
                         } else {
@@ -1368,10 +1368,10 @@ exports.defineAutoTests = function () {
                 it(
                     'filetransfer.spec.31 should be able to upload a file using PUT method',
                     function (done) {
-                        var fileURL = SERVER + '/upload';
-                        var specContext = this;
+                        const fileURL = SERVER + '/upload';
+                        const specContext = this;
 
-                        var uploadWin = function (uploadResult) {
+                        const uploadWin = function (uploadResult) {
                             verifyUpload(uploadResult, specContext);
 
                             if (cordova.platformId === 'ios') {
@@ -1382,7 +1382,7 @@ exports.defineAutoTests = function () {
                             done();
                         };
 
-                        var uploadFail = function () {
+                        const uploadFail = function () {
                             unexpectedCallbacks.httpFail();
                             done();
                         };
@@ -1398,10 +1398,10 @@ exports.defineAutoTests = function () {
                 it(
                     'filetransfer.spec.32 should be able to upload a file (non-multipart)',
                     function (done) {
-                        var fileURL = SERVER + '/upload';
-                        var specContext = this;
+                        const fileURL = SERVER + '/upload';
+                        const specContext = this;
 
-                        var uploadWin = function (uploadResult) {
+                        const uploadWin = function (uploadResult) {
                             expect(uploadResult.bytesSent).toBeGreaterThan(0);
                             expect(uploadResult.responseCode).toBe(200);
                             expect(uploadResult.response).toBeDefined();
@@ -1418,7 +1418,7 @@ exports.defineAutoTests = function () {
                             done();
                         };
 
-                        var uploadFail = function () {
+                        const uploadFail = function () {
                             unexpectedCallbacks.httpFail();
                             done();
                         };
@@ -1437,10 +1437,10 @@ exports.defineAutoTests = function () {
                 it(
                     'filetransfer.spec.34 should not delete a file on upload error',
                     function (done) {
-                        var fileURL = SERVER + '/upload';
-                        var specContext = this;
+                        const fileURL = SERVER + '/upload';
+                        const specContext = this;
 
-                        var uploadFail = function (e) {
+                        const uploadFail = function (e) {
                             expect(e.code).toBe(FileTransferError.ABORT_ERR);
 
                             // check that the file is there
@@ -1459,12 +1459,12 @@ exports.defineAutoTests = function () {
                             );
                         };
 
-                        var uploadWin = function () {
+                        const uploadWin = function () {
                             unexpectedCallbacks.httpWin();
                             done();
                         };
 
-                        var fileWin = function () {
+                        const fileWin = function () {
                             expect(specContext.transfer.abort).not.toThrow();
 
                             // abort at the first onprogress event
@@ -1497,13 +1497,13 @@ exports.defineAutoTests = function () {
                             pending();
                         }
 
-                        var fileURL = SERVER + '/upload_non_utf';
-                        var specContext = this;
+                        const fileURL = SERVER + '/upload_non_utf';
+                        const specContext = this;
 
-                        var uploadWin = function (uploadResult) {
+                        const uploadWin = function (uploadResult) {
                             verifyUpload(uploadResult, specContext);
 
-                            var obj = null;
+                            let obj = null;
                             try {
                                 obj = JSON.parse(uploadResult.response);
                                 expect(obj.latin1Symbols).toBe(LATIN1_SYMBOLS);
@@ -1519,7 +1519,7 @@ exports.defineAutoTests = function () {
                             done();
                         };
 
-                        var uploadFail = function () {
+                        const uploadFail = function () {
                             unexpectedCallbacks.httpFail();
                             done();
                         };
@@ -1533,13 +1533,13 @@ exports.defineAutoTests = function () {
                 it(
                     'filetransfer.spec.38 should be able to upload a file using data: source uri',
                     function (done) {
-                        var fileURL = SERVER + '/upload';
-                        var specContext = this;
+                        const fileURL = SERVER + '/upload';
+                        const specContext = this;
 
-                        var uploadWin = function (uploadResult) {
+                        const uploadWin = function (uploadResult) {
                             verifyUpload(uploadResult, specContext);
 
-                            var obj = null;
+                            let obj = null;
                             try {
                                 obj = JSON.parse(uploadResult.response);
                                 expect(obj.files.file.size).toBe(DATA_URI_CONTENT_LENGTH);
@@ -1555,7 +1555,7 @@ exports.defineAutoTests = function () {
                             done();
                         };
 
-                        var dataUri = DATA_URI_PREFIX + DATA_URI_CONTENT;
+                        const dataUri = DATA_URI_PREFIX + DATA_URI_CONTENT;
                         // NOTE: removing uploadOptions cause Android to timeout
                         specContext.transfer.upload(
                             dataUri,
@@ -1575,9 +1575,9 @@ exports.defineAutoTests = function () {
                 it(
                     'filetransfer.spec.39 should be able to upload a file using data: source uri (non-multipart)',
                     function (done) {
-                        var fileURL = SERVER + '/upload';
+                        const fileURL = SERVER + '/upload';
 
-                        var uploadWin = function (uploadResult) {
+                        const uploadWin = function (uploadResult) {
                             expect(uploadResult.responseCode).toBe(200);
                             expect(uploadResult.bytesSent).toBeGreaterThan(0);
 
@@ -1589,7 +1589,7 @@ exports.defineAutoTests = function () {
                             done();
                         };
 
-                        var uploadFail = function () {
+                        const uploadFail = function () {
                             unexpectedCallbacks.httpFail();
                             done();
                         };
@@ -1599,7 +1599,7 @@ exports.defineAutoTests = function () {
                             'Content-Type': 'image/png'
                         };
 
-                        var dataUri = DATA_URI_PREFIX + DATA_URI_CONTENT;
+                        const dataUri = DATA_URI_PREFIX + DATA_URI_CONTENT;
                         // NOTE: removing uploadOptions cause Android to timeout
                         this.transfer.upload(dataUri, fileURL, uploadWin, uploadFail, this.uploadOptions);
                     },
@@ -1609,11 +1609,11 @@ exports.defineAutoTests = function () {
                 it(
                     'filetransfer.spec.40 should not fail to upload a file using data: source uri when the data is empty',
                     function (done) {
-                        var fileURL = SERVER + '/upload';
+                        const fileURL = SERVER + '/upload';
 
-                        var dataUri = DATA_URI_PREFIX;
+                        const dataUri = DATA_URI_PREFIX;
 
-                        var uploadFail = function () {
+                        const uploadFail = function () {
                             unexpectedCallbacks.httpFail();
                             done();
                         };
@@ -1632,7 +1632,7 @@ exports.defineAutoTests = function () {
                             // request body will be empty in this case instead of 0\n\n.
                             pending();
                         }
-                        var fileURL = SERVER + '/upload';
+                        const fileURL = SERVER + '/upload';
 
                         // Content-Type header disables multipart
                         this.uploadOptions.headers = {
@@ -1642,9 +1642,9 @@ exports.defineAutoTests = function () {
                         // turn off the onprogress handler
                         this.transfer.onprogress = function () {};
 
-                        var dataUri = DATA_URI_PREFIX;
+                        const dataUri = DATA_URI_PREFIX;
 
-                        var uploadFail = function () {
+                        const uploadFail = function () {
                             unexpectedCallbacks.httpFail();
                             done();
                         };
@@ -1656,11 +1656,11 @@ exports.defineAutoTests = function () {
                 );
 
                 describe('chunkedMode handling', function () {
-                    var testChunkedModeWin = function (uploadResult, specContext) {
-                        var multipartModeEnabled = !(
+                    const testChunkedModeWin = function (uploadResult, specContext) {
+                        const multipartModeEnabled = !(
                             specContext.uploadOptions.headers && specContext.uploadOptions.headers['Content-Type']
                         );
-                        var obj = null;
+                        let obj = null;
                         try {
                             obj = JSON.parse(uploadResult.response);
 
@@ -1684,10 +1684,10 @@ exports.defineAutoTests = function () {
                         }
                     };
 
-                    var testChunkedModeBase = function (chunkedMode, multipart, done) {
-                        var retryCount = 0;
-                        var fileURL = SERVER + '/upload_echo_headers';
-                        var specContext = this;
+                    const testChunkedModeBase = function (chunkedMode, multipart, done) {
+                        let retryCount = 0;
+                        const fileURL = SERVER + '/upload_echo_headers';
+                        const specContext = this;
 
                         specContext.uploadOptions.chunkedMode = chunkedMode;
                         if (!multipart) {
@@ -1697,7 +1697,7 @@ exports.defineAutoTests = function () {
                             };
                         }
 
-                        var uploadFail = function () {
+                        const uploadFail = function () {
                             if (++retryCount >= RETRY_COUNT) {
                                 unexpectedCallbacks.httpFail();
                                 done();
@@ -1785,28 +1785,28 @@ exports.defineAutoTests = function () {
 exports.defineManualTests = function (contentEl, createActionButton) {
     'use strict';
 
-    var imageURL = 'http://apache.org/images/feather-small.gif';
-    var videoURL = 'http://techslides.com/demos/sample-videos/small.mp4';
+    const imageURL = 'http://apache.org/images/feather-small.gif';
+    const videoURL = 'http://techslides.com/demos/sample-videos/small.mp4';
 
     function clearResults () {
-        var results = document.getElementById('info');
+        const results = document.getElementById('info');
         results.innerHTML = '';
     }
 
     function downloadImg (source, urlFn, element, directory) {
-        var filename = source.substring(source.lastIndexOf('/') + 1);
+        let filename = source.substring(source.lastIndexOf('/') + 1);
         filename = (directory || '') + filename;
 
         function download (fileSystem) {
-            var ft = new FileTransfer();
+            const ft = new FileTransfer();
             console.log('Starting download');
 
-            var progress = document.getElementById('loadingStatus');
+            const progress = document.getElementById('loadingStatus');
             progress.value = 0;
 
             ft.onprogress = function (progressEvent) {
                 if (progressEvent.lengthComputable) {
-                    var currPercents = parseInt(100 * (progressEvent.loaded / progressEvent.total), 10);
+                    const currPercents = parseInt(100 * (progressEvent.loaded / progressEvent.total), 10);
                     if (currPercents > progress.value) {
                         progress.value = currPercents;
                     }
@@ -1885,8 +1885,8 @@ exports.defineManualTests = function (contentEl, createActionButton) {
 
     /******************************************************************************/
 
-    var progress_tag = '<progress id="loadingStatus" value="0" max="100" style="width: 100%;"></progress>';
-    var file_transfer_tests =
+    const progress_tag = '<progress id="loadingStatus" value="0" max="100" style="width: 100%;"></progress>';
+    const file_transfer_tests =
         '<h2>Image File Transfer Tests</h2>' +
         '<h3>The following tests should display an image of the Apache feather in the status box</h3>' +
         '<div id="cdv_image"></div>' +
@@ -1945,7 +1945,7 @@ exports.defineManualTests = function (contentEl, createActionButton) {
     createActionButton(
         'Download and play video (cdvfile)',
         function () {
-            var videoElement = document.createElement('video');
+            const videoElement = document.createElement('video');
             videoElement.controls = 'controls';
             downloadImg(
                 videoURL,
@@ -1961,7 +1961,7 @@ exports.defineManualTests = function (contentEl, createActionButton) {
     createActionButton(
         'Download and play video (native)',
         function () {
-            var videoElement = document.createElement('video');
+            const videoElement = document.createElement('video');
             videoElement.controls = 'controls';
             downloadImg(
                 videoURL,
