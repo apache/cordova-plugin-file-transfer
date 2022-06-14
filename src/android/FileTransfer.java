@@ -664,11 +664,13 @@ public class FileTransfer extends CordovaPlugin {
 
         final String objectId = args.getString(3);
         final JSONObject headers = args.optJSONObject(4);
+        final boolean suppressProgress = args.optBoolean(5) || false;
 
         final Uri sourceUri = resourceApi.remapUri(Uri.parse(source));
         int uriType = CordovaResourceApi.getUriType(sourceUri);
         final boolean useHttps = uriType == CordovaResourceApi.URI_TYPE_HTTPS;
         final boolean isLocalTransfer = !useHttps && uriType != CordovaResourceApi.URI_TYPE_HTTP;
+
         if (uriType == CordovaResourceApi.URI_TYPE_UNKNOWN) {
             JSONObject error = createFileTransferError(INVALID_URL_ERR, source, target, null, 0, null);
             LOG.e(LOG_TAG, "Unsupported URI: " + sourceUri);
@@ -797,10 +799,12 @@ public class FileTransfer extends CordovaPlugin {
                             while ((bytesRead = inputStream.read(buffer)) > 0) {
                                 outputStream.write(buffer, 0, bytesRead);
                                 // Send a progress event.
-                                progress.setLoaded(inputStream.getTotalRawBytesRead());
-                                PluginResult progressResult = new PluginResult(PluginResult.Status.OK, progress.toJSONObject());
-                                progressResult.setKeepCallback(true);
-                                context.sendPluginResult(progressResult);
+                                if (!suppressProgress) {
+                                  progress.setLoaded(inputStream.getTotalRawBytesRead());
+                                  PluginResult progressResult = new PluginResult(PluginResult.Status.OK, progress.toJSONObject());
+                                  progressResult.setKeepCallback(true);
+                                  context.sendPluginResult(progressResult);
+                                }
                             }
                         } finally {
                             synchronized (context) {

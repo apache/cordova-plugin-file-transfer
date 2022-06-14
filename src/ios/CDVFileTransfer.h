@@ -81,6 +81,7 @@ extern NSString* const kOptionsKeyCookie;
 @property (nonatomic, assign) long long bytesTransfered;
 @property (nonatomic, assign) long long bytesExpected;
 @property (nonatomic, assign) BOOL trustAllHosts;
+@property (nonatomic, assign) BOOL suppressProgress;
 @property (strong) NSFileHandle* targetFileHandle;
 @property (nonatomic, strong) CDVFileTransferEntityLengthRequest* entityLengthRequest;
 @property (nonatomic, strong) CDVFile *filePlugin;
