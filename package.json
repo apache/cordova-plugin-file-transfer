@@ -8,7 +8,6 @@
     "platforms": [
       "android",
       "ios",
-      "windows",
       "browser"
     ]
   },
@@ -25,7 +24,6 @@
     "ecosystem:cordova",
     "cordova-android",
     "cordova-ios",
-    "cordova-windows",
     "cordova-browser"
   ],
   "author": "Apache Software Foundation",
