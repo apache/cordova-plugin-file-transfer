@@ -65,13 +65,6 @@
         <framework src="AssetsLibrary.framework" />
     </platform>
 
-    <!-- windows -->
-    <platform name="windows">
-        <js-module src="src/windows/FileTransferProxy.js" name="FileTransferProxy">
-            <runs />
-        </js-module>
-    </platform>
-
     <!-- browser -->
     <platform name="browser">
         <js-module src="www/browser/FileTransfer.js" name="BrowserFileTransfer">
