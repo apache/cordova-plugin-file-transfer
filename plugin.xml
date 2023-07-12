@@ -29,7 +29,11 @@
     <repo>https://github.com/apache/cordova-plugin-file-transfer</repo>
     <issue>https://github.com/apache/cordova-plugin-file-transfer/issues</issue>
 
-    <dependency id="cordova-plugin-file" version=">=7.0.0" />
+    <engines>
+        <engine name="cordova-android" version=">=12.0.0" />
+    </engines>
+
+    <dependency id="cordova-plugin-file" version="^8.0.0" />
 
     <js-module src="www/FileTransferError.js" name="FileTransferError">
         <clobbers target="window.FileTransferError" />
