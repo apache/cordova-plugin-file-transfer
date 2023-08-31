@@ -19,7 +19,7 @@
  *
  */
 
-/* global cordova, FileTransfer, FileTransferError, FileUploadOptions, WinJS, LocalFileSystem */
+/* global cordova, FileTransfer, FileTransferError, FileUploadOptions, LocalFileSystem */
 
 exports.defineAutoTests = function () {
     'use strict';
@@ -30,7 +30,6 @@ exports.defineAutoTests = function () {
     const DEFAULT_FILESYSTEM_SIZE = 1024 * 50; // filesystem size in bytes
     const UNKNOWN_HOST = 'http://foobar.apache.org';
     const DOWNLOAD_TIMEOUT = 15 * ONE_SECOND;
-    const LONG_TIMEOUT = 60 * ONE_SECOND;
     const UPLOAD_TIMEOUT = 15 * ONE_SECOND;
     const ABORT_DELAY = 100; // for abort() tests
     const LATIN1_SYMBOLS = '¥§©ÆÖÑøøø¼';
@@ -486,7 +485,6 @@ exports.defineAutoTests = function () {
                 it(
                     'filetransfer.spec.7 should download a file using file:// (when hosted from file://)',
                     function (done) {
-
                         const fileURL = window.location.protocol + '//' + window.location.pathname.replace(/ /g, '%20');
                         const specContext = this;
 

@@ -19,7 +19,7 @@
  *
  */
 
-/* global cordova, FileSystem */
+/* global FileSystem */
 
 const argscheck = require('cordova/argscheck');
 const exec = require('cordova/exec');
