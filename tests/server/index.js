@@ -21,21 +21,21 @@ function parseMultipartForm (req, res, finishCb) {
         const { filename } = info;
         const currentFile = { size: 0 };
 
-        file.on('data', function (data) {
+        file.on('data', (data) => {
             currentFile.name = filename;
             currentFile.size += data.length;
         });
 
-        file.on('close', function () {
+        file.on('close', () => {
             files.file = currentFile;
         });
     });
 
-    bb.on('field', function (fieldname, val, fieldnameTruncated, valTruncated, encoding, mimetype) {
-        fields[fieldname] = val;
+    bb.on('field', (name, val, info) => {
+        fields[name] = val;
     });
 
-    bb.on('close', function () {
+    bb.on('close', () => {
         console.log(stringify({ fields, files }));
 
         // This is needed due to this bug: https://github.com/mscdex/busboy/issues/73
