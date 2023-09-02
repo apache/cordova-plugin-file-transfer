@@ -1,6 +1,6 @@
 const http = require('http');
 const stringify = require('json-stringify-safe');
-const Busboy = require('busboy');
+const busboy = require('busboy');
 const { Iconv } = require('iconv');
 
 const port = process.env.PORT || 5001;
@@ -15,9 +15,10 @@ function parseMultipartForm (req, res, finishCb) {
 
     const fields = {};
     const files = {};
-    const busboy = new Busboy({ headers: req.headers });
+    const bb = busboy({ headers: req.headers });
 
-    busboy.on('file', function (fieldname, file, filename, encoding, mimetype) {
+    bb.on('file', (name, file, info) => {
+        const { filename } = info;
         const currentFile = { size: 0 };
 
         file.on('data', function (data) {
@@ -25,16 +26,16 @@ function parseMultipartForm (req, res, finishCb) {
             currentFile.size += data.length;
         });
 
-        file.on('end', function () {
+        file.on('close', function () {
             files.file = currentFile;
         });
     });
 
-    busboy.on('field', function (fieldname, val, fieldnameTruncated, valTruncated, encoding, mimetype) {
+    bb.on('field', function (fieldname, val, fieldnameTruncated, valTruncated, encoding, mimetype) {
         fields[fieldname] = val;
     });
 
-    busboy.on('finish', function () {
+    bb.on('close', function () {
         console.log(stringify({ fields, files }));
 
         // This is needed due to this bug: https://github.com/mscdex/busboy/issues/73
@@ -43,7 +44,7 @@ function parseMultipartForm (req, res, finishCb) {
         }
     });
 
-    busboy.on('error', function (err) {
+    bb.on('error', function (err) {
         console.error(`error: ${err}: ${JSON.stringify(err)}`);
         errorOccured = true;
 
@@ -51,7 +52,7 @@ function parseMultipartForm (req, res, finishCb) {
         res.end(`Could not parse multipart form: ${err}\n`);
     });
 
-    req.pipe(busboy);
+    req.pipe(bb);
 }
 
 function respondWithParsedForm (req, res, parseResultObj) {
@@ -115,7 +116,7 @@ http.createServer(function (req, res) {
             req.on('data', function (chunk) {
                 body += chunk;
                 if (body.length > DIRECT_UPLOAD_LIMIT) {
-                    req.connection.destroy();
+                    req.socket.destroy();
                 }
             });
 
@@ -150,7 +151,7 @@ http.createServer(function (req, res) {
         res.end('404\n');
     }
 
-    console.log(req.connection.remoteAddress + ' ' + req.method + ' ' + req.url + ' ' + res.statusCode + ' ' + req.headers['user-agent']);
+    console.log(req.socket.remoteAddress + ' ' + req.method + ' ' + req.url + ' ' + res.statusCode + ' ' + req.headers['user-agent']);
 }).listen(port, '0.0.0.0');
 
 console.log('Server running on ' + port);
