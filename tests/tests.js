@@ -19,7 +19,7 @@
  *
  */
 
-/* global cordova, FileTransfer, FileTransferError, FileUploadOptions, WinJS, LocalFileSystem */
+/* global cordova, FileTransfer, FileTransferError, FileUploadOptions, LocalFileSystem */
 
 exports.defineAutoTests = function () {
     'use strict';
@@ -30,7 +30,6 @@ exports.defineAutoTests = function () {
     const DEFAULT_FILESYSTEM_SIZE = 1024 * 50; // filesystem size in bytes
     const UNKNOWN_HOST = 'http://foobar.apache.org';
     const DOWNLOAD_TIMEOUT = 15 * ONE_SECOND;
-    const LONG_TIMEOUT = 60 * ONE_SECOND;
     const UPLOAD_TIMEOUT = 15 * ONE_SECOND;
     const ABORT_DELAY = 100; // for abort() tests
     const LATIN1_SYMBOLS = '¥§©ÆÖÑøøø¼';
@@ -51,9 +50,7 @@ exports.defineAutoTests = function () {
     let SERVER_WITH_CREDENTIALS = '';
 
     // flags
-    const isWindows = cordova.platformId === 'windows';
     const isBrowser = cordova.platformId === 'browser';
-    const isWindowsPhone = isWindows && WinJS.Utilities.isPhone;
     const isIE = isBrowser && navigator.userAgent.indexOf('Trident') >= 0;
     const isIos = cordova.platformId === 'ios';
     const isIot = cordova.platformId === 'android' && navigator.userAgent.indexOf('iot') >= 0;
@@ -488,12 +485,6 @@ exports.defineAutoTests = function () {
                 it(
                     'filetransfer.spec.7 should download a file using file:// (when hosted from file://)',
                     function (done) {
-                        // for Windows platform it's ms-appdata:/// by default, not file://
-                        if (isWindows) {
-                            pending();
-                            return;
-                        }
-
                         const fileURL = window.location.protocol + '//' + window.location.pathname.replace(/ /g, '%20');
                         const specContext = this;
 
@@ -557,7 +548,7 @@ exports.defineAutoTests = function () {
 
                         specContext.transfer.download(fileURL, specContext.localFilePath, downloadWin, downloadFail);
                     },
-                    isWindows ? LONG_TIMEOUT : DOWNLOAD_TIMEOUT
+                    DOWNLOAD_TIMEOUT
                 );
 
                 it(
@@ -625,7 +616,7 @@ exports.defineAutoTests = function () {
 
                         specContext.transfer.download(fileURL, specContext.localFilePath, downloadWin, downloadFail);
                     },
-                    isWindows ? LONG_TIMEOUT : DOWNLOAD_TIMEOUT
+                    DOWNLOAD_TIMEOUT
                 );
 
                 it(
@@ -752,7 +743,7 @@ exports.defineAutoTests = function () {
 
                         this.transfer.download(fileURL, this.localFilePath, downloadWin, downloadFail);
                     },
-                    isWindows ? LONG_TIMEOUT : DOWNLOAD_TIMEOUT
+                    DOWNLOAD_TIMEOUT
                 );
 
                 it('filetransfer.spec.16 should handle bad file path', function (done) {
@@ -806,11 +797,7 @@ exports.defineAutoTests = function () {
                             expect(nativeURL).toBeTruthy();
                             expect(nativeURL).toEqual(jasmine.any(String));
 
-                            if (isWindows) {
-                                expect(nativeURL.substring(0, 14)).toBe('ms-appdata:///');
-                            } else {
-                                expect(nativeURL.substring(0, 7)).toBe('file://');
-                            }
+                            expect(nativeURL.substring(0, 7)).toBe('file://');
 
                             done();
                         };
@@ -1156,9 +1143,9 @@ exports.defineAutoTests = function () {
                             }, GRACE_TIME_DELTA);
                         };
 
-                        // windows store and ios are too fast, win is called before we have a chance to abort
+                        // ios is too fast, win is called before we have a chance to abort
                         // so let's get them busy - while not providing an extra load to the slow Android emulators
-                        const arrayLength = (isWindows && !isWindowsPhone) || isIos ? 3000000 : isIot ? 150000 : 200000;
+                        const arrayLength = isIos ? 3000000 : isIot ? 150000 : 200000;
                         writeFile(specContext.root, specContext.fileName, new Array(arrayLength).join('aborttest!'), fileWin, done);
                     },
                     UPLOAD_TIMEOUT
@@ -1746,9 +1733,6 @@ exports.defineAutoTests = function () {
                     it(
                         'filetransfer.spec.43 chunkedMode=true, multipart=false',
                         function (done) {
-                            if (isWindows) {
-                                pending();
-                            }
                             testChunkedModeBase.call(this, true, false, done);
                         },
                         UPLOAD_TIMEOUT * 11
@@ -1765,9 +1749,6 @@ exports.defineAutoTests = function () {
                     it(
                         'filetransfer.spec.45 chunkedMode=true, multipart=true',
                         function (done) {
-                            if (isWindows) {
-                                pending();
-                            }
                             testChunkedModeBase.call(this, true, true, done);
                         },
                         UPLOAD_TIMEOUT * 11
