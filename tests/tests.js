@@ -554,7 +554,7 @@ exports.defineAutoTests = function () {
                 it(
                     'filetransfer.spec.11 should call the error callback on abort()',
                     function (done) {
-                        let fileURL = 'http://cordova.apache.org/static/downloads/BlueZedEx.mp3';
+                        let fileURL = 'https://cordova.apache.org/static/downloads/BlueZedEx.mp3';
                         fileURL = fileURL + '?q=' + new Date().getTime();
                         const specContext = this;
 
@@ -574,7 +574,7 @@ exports.defineAutoTests = function () {
                 it(
                     'filetransfer.spec.9 should not leave partial file due to abort',
                     function (done) {
-                        const fileURL = 'http://cordova.apache.org/static/downloads/logos.zip';
+                        const fileURL = 'https://cordova.apache.org/static/downloads/logos.zip';
                         const specContext = this;
 
                         const fileSystemWin = function () {
@@ -622,7 +622,7 @@ exports.defineAutoTests = function () {
                 it(
                     'filetransfer.spec.10 should be stopped by abort()',
                     function (done) {
-                        let fileURL = 'http://cordova.apache.org/static/downloads/BlueZedEx.mp3';
+                        let fileURL = 'https://cordova.apache.org/static/downloads/BlueZedEx.mp3';
                         fileURL = fileURL + '?q=' + new Date().getTime();
                         const specContext = this;
 
@@ -760,7 +760,7 @@ exports.defineAutoTests = function () {
                 it(
                     'filetransfer.spec.17 progress should work with gzip encoding',
                     function (done) {
-                        const fileURL = 'http://www.apache.org/';
+                        const fileURL = 'https://www.apache.org/';
                         const specContext = this;
 
                         const downloadWin = function (entry) {
@@ -1766,7 +1766,7 @@ exports.defineAutoTests = function () {
 exports.defineManualTests = function (contentEl, createActionButton) {
     'use strict';
 
-    const imageURL = 'http://apache.org/images/feather-small.gif';
+    const imageURL = 'https://apache.org/images/feather-small.gif';
     const videoURL = 'http://techslides.com/demos/sample-videos/small.mp4';
 
     function clearResults () {
