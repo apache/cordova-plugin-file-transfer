@@ -1,6 +1,6 @@
 {
   "name": "cordova-plugin-file-transfer",
-  "version": "2.0.0-dev",
+  "version": "2.0.0",
   "description": "Cordova File Transfer Plugin",
   "types": "./types/index.d.ts",
   "cordova": {
