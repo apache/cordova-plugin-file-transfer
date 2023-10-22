@@ -794,13 +794,23 @@ public class FileTransfer extends CordovaPlugin {
                             byte[] buffer = new byte[MAX_BUFFER_SIZE];
                             int bytesRead = 0;
                             outputStream = new FileOutputStream(file);
+                            int throttle = 0;
                             while ((bytesRead = inputStream.read(buffer)) > 0) {
                                 outputStream.write(buffer, 0, bytesRead);
+
+                                if(throttle <= 100)
+                                {
+                                    throttle++;
+                                    continue;
+                                }
+
                                 // Send a progress event.
                                 progress.setLoaded(inputStream.getTotalRawBytesRead());
                                 PluginResult progressResult = new PluginResult(PluginResult.Status.OK, progress.toJSONObject());
                                 progressResult.setKeepCallback(true);
                                 context.sendPluginResult(progressResult);
+
+                                throttle = 0;
                             }
                         } finally {
                             synchronized (context) {
