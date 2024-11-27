@@ -21,7 +21,7 @@
 <plugin xmlns="http://apache.org/cordova/ns/plugins/1.0"
     xmlns:android="http://schemas.android.com/apk/res/android"
     id="cordova-plugin-file-transfer"
-    version="2.0.0-dev">
+    version="2.0.1-dev">
     <name>File Transfer</name>
     <description>Cordova File Transfer Plugin</description>
     <license>Apache 2.0</license>
@@ -29,7 +29,11 @@
     <repo>https://github.com/apache/cordova-plugin-file-transfer</repo>
     <issue>https://github.com/apache/cordova-plugin-file-transfer/issues</issue>
 
-    <dependency id="cordova-plugin-file" version=">=5.0.0" />
+    <engines>
+        <engine name="cordova-android" version=">=12.0.0" />
+    </engines>
+
+    <dependency id="cordova-plugin-file" version="^8.0.0" />
 
     <js-module src="www/FileTransferError.js" name="FileTransferError">
         <clobbers target="window.FileTransferError" />
@@ -45,10 +49,6 @@
             <feature name="FileTransfer" >
                 <param name="android-package" value="org.apache.cordova.filetransfer.FileTransfer"/>
             </feature>
-        </config-file>
-
-        <config-file target="AndroidManifest.xml" parent="/*">
-            <uses-permission android:name="android.permission.WRITE_EXTERNAL_STORAGE" />
         </config-file>
 
         <source-file src="src/android/FileTransfer.java" target-dir="src/org/apache/cordova/filetransfer" />
@@ -67,13 +67,6 @@
         <source-file src="src/ios/CDVFileTransfer.m" />
 
         <framework src="AssetsLibrary.framework" />
-    </platform>
-
-    <!-- windows -->
-    <platform name="windows">
-        <js-module src="src/windows/FileTransferProxy.js" name="FileTransferProxy">
-            <runs />
-        </js-module>
     </platform>
 
     <!-- browser -->

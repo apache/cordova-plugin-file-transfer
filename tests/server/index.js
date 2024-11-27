@@ -1,9 +1,30 @@
+/*
+ *
+ * Licensed to the Apache Software Foundation (ASF) under one
+ * or more contributor license agreements.  See the NOTICE file
+ * distributed with this work for additional information
+ * regarding copyright ownership.  The ASF licenses this file
+ * to you under the Apache License, Version 2.0 (the
+ * "License"); you may not use this file except in compliance
+ * with the License.  You may obtain a copy of the License at
+ *
+ *   http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing,
+ * software distributed under the License is distributed on an
+ * "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY
+ * KIND, either express or implied.  See the License for the
+ * specific language governing permissions and limitations
+ * under the License.
+ *
+ */
+
 const http = require('http');
 const stringify = require('json-stringify-safe');
-const Busboy = require('busboy');
-var { Iconv } = require('iconv');
+const busboy = require('busboy');
+const { Iconv } = require('iconv');
 
-const port = process.env.PORT || 5000;
+const port = process.env.PORT || 5001;
 const DIRECT_UPLOAD_LIMIT = 85; // bytes
 
 // convert from UTF-8 to ISO-8859-1
@@ -15,26 +36,27 @@ function parseMultipartForm (req, res, finishCb) {
 
     const fields = {};
     const files = {};
-    const busboy = new Busboy({ headers: req.headers });
+    const bb = busboy({ headers: req.headers });
 
-    busboy.on('file', function (fieldname, file, filename, encoding, mimetype) {
-        var currentFile = { size: 0 };
+    bb.on('file', (name, file, info) => {
+        const { filename } = info;
+        const currentFile = { size: 0 };
 
-        file.on('data', function (data) {
+        file.on('data', (data) => {
             currentFile.name = filename;
             currentFile.size += data.length;
         });
 
-        file.on('end', function () {
+        file.on('close', () => {
             files.file = currentFile;
         });
     });
 
-    busboy.on('field', function (fieldname, val, fieldnameTruncated, valTruncated, encoding, mimetype) {
-        fields[fieldname] = val;
+    bb.on('field', (name, val, info) => {
+        fields[name] = val;
     });
 
-    busboy.on('finish', function () {
+    bb.on('close', () => {
         console.log(stringify({ fields, files }));
 
         // This is needed due to this bug: https://github.com/mscdex/busboy/issues/73
@@ -43,7 +65,7 @@ function parseMultipartForm (req, res, finishCb) {
         }
     });
 
-    busboy.on('error', function (err) {
+    bb.on('error', function (err) {
         console.error(`error: ${err}: ${JSON.stringify(err)}`);
         errorOccured = true;
 
@@ -51,7 +73,7 @@ function parseMultipartForm (req, res, finishCb) {
         res.end(`Could not parse multipart form: ${err}\n`);
     });
 
-    req.pipe(busboy);
+    req.pipe(bb);
 }
 
 function respondWithParsedForm (req, res, parseResultObj) {
@@ -62,7 +84,7 @@ function respondWithParsedForm (req, res, parseResultObj) {
 
 function respondWithParsedFormNonUTF (req, res, parseResultObj) {
     parseResultObj.latin1Symbols = LATIN1_SYMBOLS;
-    var buffer = iconv.convert(stringify(parseResultObj));
+    const buffer = iconv.convert(stringify(parseResultObj));
     res.writeHead(200, { 'Content-Type': 'application/json' });
     res.write(buffer);
     res.end('\n');
@@ -111,11 +133,11 @@ http.createServer(function (req, res) {
             parseMultipartForm(req, res, respondWithParsedForm);
         } else {
             console.log('direct upload');
-            var body = '';
+            let body = '';
             req.on('data', function (chunk) {
                 body += chunk;
                 if (body.length > DIRECT_UPLOAD_LIMIT) {
-                    req.connection.destroy();
+                    req.socket.destroy();
                 }
             });
 
@@ -150,7 +172,7 @@ http.createServer(function (req, res) {
         res.end('404\n');
     }
 
-    console.log(req.connection.remoteAddress + ' ' + req.method + ' ' + req.url + ' ' + res.statusCode + ' ' + req.headers['user-agent']);
+    console.log(req.socket.remoteAddress + ' ' + req.method + ' ' + req.url + ' ' + res.statusCode + ' ' + req.headers['user-agent']);
 }).listen(port, '0.0.0.0');
 
 console.log('Server running on ' + port);

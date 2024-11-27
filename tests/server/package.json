@@ -15,9 +15,9 @@
   "author": "Apache Software Foundation",
   "license": "Apache-2.0",
   "dependencies": {
-    "busboy": "^0.3.1",
-    "forever": "^4.0.1",
-    "iconv": "^3.0.0",
+    "busboy": "^1.6.0",
+    "forever": "^4.0.3",
+    "iconv": "^3.0.1",
     "json-stringify-safe": "^5.0.1"
   }
 }

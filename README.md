@@ -59,7 +59,6 @@ cordova plugin add cordova-plugin-file-transfer
 - Android
 - Browser
 - iOS
-- Windows
 
 # FileTransfer
 
@@ -203,12 +202,6 @@ A `FileUploadResult` object is passed to the success callback of the
 
 - __withCredentials__: _boolean_ that tells the browser to set the withCredentials flag on the XMLHttpRequest
 
-### Windows Quirks
-
-- An option parameter with empty/null value is excluded in the upload operation due to the Windows API design.
-
-- __chunkedMode__ is not supported and all uploads are set to non-chunked mode.
-
 ## download
 
 __Parameters__:
@@ -318,10 +311,6 @@ __exception__ is never defined.
 - 3 = `FileTransferError.CONNECTION_ERR`
 - 4 = `FileTransferError.ABORT_ERR`
 - 5 = `FileTransferError.NOT_MODIFIED_ERR`
-
-## Windows Quirks
-
-- The plugin implementation is based on [BackgroundDownloader](https://msdn.microsoft.com/en-us/library/windows/apps/windows.networking.backgroundtransfer.backgrounddownloader.aspx)/[BackgroundUploader](https://msdn.microsoft.com/en-us/library/windows/apps/windows.networking.backgroundtransfer.backgrounduploader.aspx), which entails the latency issues on Windows devices (creation/starting of an operation can take up to a few seconds). You can use XHR or [HttpClient](https://msdn.microsoft.com/en-us/library/windows/apps/windows.web.http.httpclient.aspx) as a quicker alternative for small downloads.
 
 ## Backwards Compatibility Notes
 
