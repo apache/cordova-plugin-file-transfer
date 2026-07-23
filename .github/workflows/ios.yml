@@ -98,7 +98,7 @@ jobs:
         if: ${{ endswith(env.repo, '/cordova-paramedic') != true }}
         run: npm i -g github:apache/cordova-paramedic
 
-     # PLUGIN'S EXTRA STEP
+      # PLUGIN'S EXTRA STEP
       - name: Run file transfer server setup
         run: |
           npm i
