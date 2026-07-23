@@ -134,6 +134,13 @@ jobs:
           emulator-options: -no-window -gpu swiftshader_indirect -noaudio -no-boot-anim
           script: echo "Pregenerate the AVD before running Paramedic"
 
+      # PLUGIN'S EXTRA STEP
+      - name: Run file transfer server setup
+        run: |
+          npm i
+          npx forever start index.js
+        working-directory: ./tests/server
+
       - name: Run paramedic tests
         uses: reactivecircus/android-emulator-runner@a421e43855164a8197daf9d8d40fe71c6996bb0d # v2.38.0
         env:
