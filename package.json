@@ -13,7 +13,8 @@
   },
   "scripts": {
     "test": "npm run lint",
-    "lint": "eslint ."
+    "lint": "eslint .",
+    "lint:fix": "npm run lint -- --fix"
   },
   "repository": "github:apache/cordova-plugin-file-transfer",
   "bugs": "https://github.com/apache/cordova-plugin-file-transfer/issues",
@@ -39,6 +40,6 @@
     }
   },
   "devDependencies": {
-    "@cordova/eslint-config": "^5.0.0"
+    "@cordova/eslint-config": "^6.0.1"
   }
 }
