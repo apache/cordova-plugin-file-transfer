@@ -17,6 +17,7 @@
 
 .*
 tests
+eslint.config.js
 
 # ASF release workspace
 .asf-release/
