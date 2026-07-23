@@ -1,29 +1,40 @@
 ---
+# cordova-docs build metadata
 title: File Transfer
 description: Upload and download files.
 ---
 <!--
-# license: Licensed to the Apache Software Foundation (ASF) under one
-#         or more contributor license agreements.  See the NOTICE file
-#         distributed with this work for additional information
-#         regarding copyright ownership.  The ASF licenses this file
-#         to you under the Apache License, Version 2.0 (the
-#         "License"); you may not use this file except in compliance
-#         with the License.  You may obtain a copy of the License at
 #
-#           http://www.apache.org/licenses/LICENSE-2.0
+# Licensed to the Apache Software Foundation (ASF) under one
+# or more contributor license agreements.  See the NOTICE file
+# distributed with this work for additional information
+# regarding copyright ownership.  The ASF licenses this file
+# to you under the Apache License, Version 2.0 (the
+# "License"); you may not use this file except in compliance
+# with the License.  You may obtain a copy of the License at
 #
-#         Unless required by applicable law or agreed to in writing,
-#         software distributed under the License is distributed on an
-#         "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY
-#         KIND, either express or implied.  See the License for the
-#         specific language governing permissions and limitations
-#         under the License.
+#   http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing,
+# software distributed under the License is distributed on an
+# "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY
+# KIND, either express or implied.  See the License for the
+# specific language governing permissions and limitations
+# under the License.
+#
 -->
 
 # cordova-plugin-file-transfer
 
-[![Android Testsuite](https://github.com/apache/cordova-plugin-file-transfer/actions/workflows/android.yml/badge.svg)](https://github.com/apache/cordova-plugin-file-transfer/actions/workflows/android.yml) [![Chrome Testsuite](https://github.com/apache/cordova-plugin-file-transfer/actions/workflows/chrome.yml/badge.svg)](https://github.com/apache/cordova-plugin-file-transfer/actions/workflows/chrome.yml) [![iOS Testsuite](https://github.com/apache/cordova-plugin-file-transfer/actions/workflows/ios.yml/badge.svg)](https://github.com/apache/cordova-plugin-file-transfer/actions/workflows/ios.yml) [![Lint Test](https://github.com/apache/cordova-plugin-file-transfer/actions/workflows/lint.yml/badge.svg)](https://github.com/apache/cordova-plugin-file-transfer/actions/workflows/lint.yml)
+[![npm - Latest](https://img.shields.io/npm/v/cordova-plugin-file-transfer/latest?label=Latest%20Release%20(npm))](https://npmjs.com/package/cordova-plugin-file-transfer)
+[![GitHub](https://img.shields.io/github/package-json/v/apache/cordova-plugin-file-transfer?label=Development%20(Git))](https://github.com/apache/cordova-plugin-file-transfer)
+
+[![GitHub - Node Workflow](https://github.com/apache/cordova-plugin-file-transfer/actions/workflows/ci.yml/badge.svg?branch=master)](https://github.com/apache/cordova-plugin-file-transfer/actions/workflows/ci.yml?query=branch%3Amaster)
+[![Android Testsuite](https://github.com/apache/cordova-plugin-file-transfer/actions/workflows/android.yml/badge.svg)](https://github.com/apache/cordova-plugin-file-transfer/actions/workflows/android.yml)
+[![Chrome Testsuite](https://github.com/apache/cordova-plugin-file-transfer/actions/workflows/chrome.yml/badge.svg)](https://github.com/apache/cordova-plugin-file-transfer/actions/workflows/chrome.yml)
+[![iOS Testsuite](https://github.com/apache/cordova-plugin-file-transfer/actions/workflows/ios.yml/badge.svg)](https://github.com/apache/cordova-plugin-file-transfer/actions/workflows/ios.yml)
+[![Lint Test](https://github.com/apache/cordova-plugin-file-transfer/actions/workflows/lint.yml/badge.svg)](https://github.com/apache/cordova-plugin-file-transfer/actions/workflows/lint.yml)
+[![GitHub - Release Audit Workflow](https://github.com/apache/cordova-plugin-file-transfer/actions/workflows/release-audit.yml/badge.svg?branch=master)](https://github.com/apache/cordova-plugin-file-transfer/actions/workflows/release-audit.yml?query=branch%3Amaster)
 
 # Usage notice
 
