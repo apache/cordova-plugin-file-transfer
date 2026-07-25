@@ -20,7 +20,29 @@
 -->
 # Release Notes
 
-### 2.0.0 (Sep 08, 2023)
+## 2.0.1
+
+**Fixes:**
+
+* fix(ios): cast to `CDVFile` when getting the plugin by `getCommandInstance` ([#385](https://github.com/apache/cordova-plugin-file-transfer/pull/385)) [[7b869a2](https://github.com/apache/cordova-plugin-file-transfer/commit/7b869a2)]
+* fix(ios): Set minimum XCode version in GitHub Action to 15 ([#386](https://github.com/apache/cordova-plugin-file-transfer/pull/386)) [[41b0605](https://github.com/apache/cordova-plugin-file-transfer/commit/41b0605)]
+
+**Others:**
+
+* chore: update linter ([#396](https://github.com/apache/cordova-plugin-file-transfer/pull/396)) [[e7a7a1f](https://github.com/apache/cordova-plugin-file-transfer/commit/e7a7a1f)]
+* chore: sync workflows with paramedic, add release audit & missing license headers ([#390](https://github.com/apache/cordova-plugin-file-transfer/pull/390)) [[86ad889](https://github.com/apache/cordova-plugin-file-transfer/commit/86ad889)]
+* chore: add asf config ([#375](https://github.com/apache/cordova-plugin-file-transfer/pull/375)) [[f12b73e](https://github.com/apache/cordova-plugin-file-transfer/commit/f12b73e)]
+* chore: bump version 2.0.1-dev [[2c15ad2](https://github.com/apache/cordova-plugin-file-transfer/commit/2c15ad2)]
+* chore(ci): draft release ([#395](https://github.com/apache/cordova-plugin-file-transfer/pull/395)) [[02dd05e](https://github.com/apache/cordova-plugin-file-transfer/commit/02dd05e)]
+* chore(deps-dev): bump flatted from 3.2.7 to 3.4.3 ([#393](https://github.com/apache/cordova-plugin-file-transfer/pull/393)) [[485ae29](https://github.com/apache/cordova-plugin-file-transfer/commit/485ae29)]
+* chore(deps-dev): bump minimatch from 3.1.2 to 3.1.5 ([#392](https://github.com/apache/cordova-plugin-file-transfer/pull/392)) [[c20f683](https://github.com/apache/cordova-plugin-file-transfer/commit/c20f683)]
+* chore(deps-dev): bump js-yaml from 4.1.0 to 4.3.0 ([#394](https://github.com/apache/cordova-plugin-file-transfer/pull/394)) [[33f34e0](https://github.com/apache/cordova-plugin-file-transfer/commit/33f34e0)]
+* chore(deps): bump brace-expansion from 1.1.11 to 1.1.12 in /tests/server ([#382](https://github.com/apache/cordova-plugin-file-transfer/pull/382)) [[345c6cf](https://github.com/apache/cordova-plugin-file-transfer/commit/345c6cf)]
+* chore(INFRA): Set up default protection ruleset for default and release branches ([#389](https://github.com/apache/cordova-plugin-file-transfer/pull/389)) [[c8d6b90](https://github.com/apache/cordova-plugin-file-transfer/commit/c8d6b90)]
+* ci: sync workflow w/ paramedic ([#379](https://github.com/apache/cordova-plugin-file-transfer/pull/379)) [[24e2e99](https://github.com/apache/cordova-plugin-file-transfer/commit/24e2e99)]
+* doc(readme): update badges, update license header ([#391](https://github.com/apache/cordova-plugin-file-transfer/pull/391)) [[8793e51](https://github.com/apache/cordova-plugin-file-transfer/commit/8793e51)]
+
+## 2.0.0 (Sep 08, 2023)
 
 **Breaking Changes:**
 
@@ -71,11 +93,11 @@
 * [GH-267](https://github.com/apache/cordova-plugin-file-transfer/pull/267) doc: undeprecate the plugin
 * [GH-211](https://github.com/apache/cordova-plugin-file-transfer/pull/211) doc: remove outdated translations
 
-### 1.7.1 (Jan 24, 2018)
+## 1.7.1 (Jan 24, 2018)
 
 * [CB-13749](https://issues.apache.org/jira/browse/CB-13749) Add build-tools-26.0.2 to travis
 
-### 1.7.0 (Nov 06, 2017)
+## 1.7.0 (Nov 06, 2017)
 
 * Updated `README` with Deprecated Status
 * [CB-13472](https://issues.apache.org/jira/browse/CB-13472) (CI) Fixed Travis **Android** builds again
@@ -84,19 +106,19 @@
 * [CB-13000](https://issues.apache.org/jira/browse/CB-13000) (CI) Speed up **Android** builds
 * [CB-12847](https://issues.apache.org/jira/browse/CB-12847) added `bugs` entry to `package.json`.
 
-### 1.6.3 (Apr 27, 2017)
+## 1.6.3 (Apr 27, 2017)
 
 * [CB-12685](https://issues.apache.org/jira/browse/CB-12685) added `package.json` to tests folder
 * [CB-10696](https://issues.apache.org/jira/browse/CB-10696) **iOS**: Encode target path with spaces
 
-### 1.6.2 (Feb 28, 2017)
+## 1.6.2 (Feb 28, 2017)
 
 * [CB-12353](https://issues.apache.org/jira/browse/CB-12353) Corrected merges usage in `plugin.xml`
 * [CB-12369](https://issues.apache.org/jira/browse/CB-12369) Add plugin typings from `DefinitelyTyped`
 * [CB-12363](https://issues.apache.org/jira/browse/CB-12363) Added build badges for **iOS 9.3** and **iOS 10.0**
 * [CB-12230](https://issues.apache.org/jira/browse/CB-12230) Removed **Windows 8.1** build badges
 
-### 1.6.1 (Dec 07, 2016)
+## 1.6.1 (Dec 07, 2016)
 
 * [CB-12224](https://issues.apache.org/jira/browse/CB-12224) Updated version and RELEASENOTES.md for release 1.6.1
 * [CB-12154](https://issues.apache.org/jira/browse/CB-12154) file-transfer progressEvent.total = -1 on iOS
@@ -110,7 +132,7 @@
 * [CB-11926](https://issues.apache.org/jira/browse/CB-11926) Tests can use local server
 * [CB-11832](https://issues.apache.org/jira/browse/CB-11832) Incremented plugin version.
 
-### 1.6.0 (Sep 08, 2016)
+## 1.6.0 (Sep 08, 2016)
 
 * [CB-11795](https://issues.apache.org/jira/browse/CB-11795) Add 'protective' entry to cordovaDependencies
 * [CB-9022](https://issues.apache.org/jira/browse/CB-9022) Fix exception thrown by call to `remapApi` on main thread
@@ -129,7 +151,7 @@
 * [CB-11003](https://issues.apache.org/jira/browse/CB-11003) Adding sample section to documentation.
 * [CB-10996](https://issues.apache.org/jira/browse/CB-10996) Adding front matter to README.md
 
-### 1.5.1 (Apr 15, 2016)
+## 1.5.1 (Apr 15, 2016)
 
 * [CB-10536](https://issues.apache.org/jira/browse/CB-10536) Removing flaky test assertions about abort callback latency
 * Removing the expectation in `spec.34` for the transfer method to be called.
@@ -138,7 +160,7 @@
 * [CB-10771](https://issues.apache.org/jira/browse/CB-10771) Fixing failure when empty string passed as a value for option parameter in upload function
 * [CB-10636](https://issues.apache.org/jira/browse/CB-10636) Add `JSHint` for plugins
 
-### 1.5.0 (Jan 15, 2016)
+## 1.5.0 (Jan 15, 2016)
 
 * [CB-10208](https://issues.apache.org/jira/browse/CB-10208) Fix `file-transfer` multipart form data upload format on **Windows**
 * [CB-9837](https://issues.apache.org/jira/browse/CB-9837) Add data `URI` support to `file-transfer` upload on **iOS**
@@ -158,7 +180,7 @@
 * [CB-9563](https://issues.apache.org/jira/browse/CB-9563) Mulptipart form data is used even a header named `Content-Type` is present
 * [CB-8863](https://issues.apache.org/jira/browse/CB-8863) fix block usage of self
 
-### 1.4.0 (Nov 18, 2015)
+## 1.4.0 (Nov 18, 2015)
 
 * [CB-10035](https://issues.apache.org/jira/browse/CB-10035) Updated `RELEASENOTES` to be newest to oldest
 * [CB-9879](https://issues.apache.org/jira/browse/CB-9879) `getCookie`s can cause unhandled `NullPointerException`
@@ -173,7 +195,7 @@
 * [CB-9385](https://issues.apache.org/jira/browse/CB-9385) Return `FILE_NOT_FOUND_ERR` when receiving `404` code on **iOS**
 * [CB-9791](https://issues.apache.org/jira/browse/CB-9791) Decreased download and upload tests timeout
 
-### 1.3.0 (Sep 18, 2015)
+## 1.3.0 (Sep 18, 2015)
 
 * Found issue where : is accepted as a valid header, this is obviously wrong
 * [CB-9562](https://issues.apache.org/jira/browse/CB-9562) Fixed incorrect headers handling on Android
@@ -183,14 +205,14 @@
 * [CB-8816](https://issues.apache.org/jira/browse/CB-8816) Add cdvfile:// support on windows
 * [CB-9376](https://issues.apache.org/jira/browse/CB-9376) Fix FileTransfer plugin manual tests issue - 'undefined' in paths
 
-### 1.2.1 (Jul 7, 2015)
+## 1.2.1 (Jul 7, 2015)
 
 * [CB-9275](https://issues.apache.org/jira/browse/CB-9275) [WP8] Fix build failure on WP8 by using reflection to detect presence of JSON.NET based serialization
 * Updated code per code review.
 * Updated documentation for browser
 * Added option to allow for passing cookies automatically in the browser
 
-### 1.2.0 (Jun 17, 2015)
+## 1.2.0 (Jun 17, 2015)
 
 * [CB-9128](https://issues.apache.org/jira/browse/CB-9128) cordova-plugin-file-transfer documentation translation: cordova-plugin-file-transfer
 * [CB-6503](https://issues.apache.org/jira/browse/CB-6503): Null pointer check for headers in upload (This closes #27)
@@ -209,14 +231,14 @@
 * [CB-8721](https://issues.apache.org/jira/browse/CB-8721) Fixes incorrect headers and upload params parsing on wp8
 * Replace all slashes in windows path
 
-### 1.1.0 (May 06, 2015)
+## 1.1.0 (May 06, 2015)
 
 * [CB-8951](https://issues.apache.org/jira/browse/CB-8951) Fixed crash related to headers parsing on **wp8**
 * [CB-8933](https://issues.apache.org/jira/browse/CB-8933) Increased download and upload test timeout
 * [CB-6313](https://issues.apache.org/jira/browse/CB-6313) **wp8**: Extra boundary in upload
 * [CB-8761](https://issues.apache.org/jira/browse/CB-8761) **wp8**: Copy cookies from WebBrowser
 
-### 1.0.0 (Apr 15, 2015)
+## 1.0.0 (Apr 15, 2015)
 
 * [CB-8746](https://issues.apache.org/jira/browse/CB-8746) bumped version of file dependency
 * [CB-8746](https://issues.apache.org/jira/browse/CB-8746) gave plugin major version bump
@@ -247,7 +269,7 @@
 * [CB-8095](https://issues.apache.org/jira/browse/CB-8095) Rewrite upload method to support progress events properly
 * android: Fix error reporting for unknown uri type on sourceUri instead of targetUri
 
-### 0.5.0 (Feb 04, 2015)
+## 0.5.0 (Feb 04, 2015)
 
 * [CB-8407](https://issues.apache.org/jira/browse/CB-8407) windows: Fix download of `ms-appdata:///` URIs
 * [CB-8095](https://issues.apache.org/jira/browse/CB-8095) windows: Rewrite upload method to support progress events properly
@@ -262,7 +284,7 @@
 * windows: alias appData to Windows.Storage.ApplicationData.current
 * [CB-8093](https://issues.apache.org/jira/browse/CB-8093) Fixes incorrect FileTransferError returned in case of download failure
 
-### 0.4.8 (Dec 02, 2014)
+## 0.4.8 (Dec 02, 2014)
 
 * [CB-8021](https://issues.apache.org/jira/browse/CB-8021) - adds documentation for `httpMethod` to `doc/index.md`. However, translations still need to be addressed.
 * [CB-7223](https://issues.apache.org/jira/browse/CB-7223) spec.27 marked pending for **wp8**
@@ -271,13 +293,13 @@
 * [CB-7977](https://issues.apache.org/jira/browse/CB-7977) Mention `deviceready` in plugin docs
 * [CB-7700](https://issues.apache.org/jira/browse/CB-7700) cordova-plugin-file-transfer documentation translation: cordova-plugin-file-transfer
 
-### 0.4.7 (Oct 03, 2014)
+## 0.4.7 (Oct 03, 2014)
 
 * Construct proper FileEntry with nativeURL property set
 * [CB-7532](https://issues.apache.org/jira/browse/CB-7532) Handle non-existent download dirs properly
 * [CB-7529](https://issues.apache.org/jira/browse/CB-7529) Adds support for 'ms-appdata' URIs for windows
 
-### 0.4.6 (Sep 17, 2014)
+## 0.4.6 (Sep 17, 2014)
 
 * [CB-7471](https://issues.apache.org/jira/browse/CB-7471) cordova-plugin-file-transfer documentation translation
 * [CB-7249](https://issues.apache.org/jira/browse/CB-7249) cordova-plugin-file-transfer documentation translation
@@ -295,7 +317,7 @@
 * added documentation to manual tests
 * [CB-6961](https://issues.apache.org/jira/browse/CB-6961) port file-transfer tests to framework
 
-### 0.4.5 (Aug 06, 2014)
+## 0.4.5 (Aug 06, 2014)
 
 * Upload parameters out of order
 * **FirefoxOS** initial implementation
@@ -312,7 +334,7 @@
 * [CB-6781](https://issues.apache.org/jira/browse/CB-6781): add the exception text to the error object
 * [CB-6890](https://issues.apache.org/jira/browse/CB-6890): Fix pluginManager access for 4.0.x branch
 
-### 0.4.4 (Jun 05, 2014)
+## 0.4.4 (Jun 05, 2014)
 
 * [CB-6127](https://issues.apache.org/jira/browse/CB-6127) Spanish and French Translations added. Github close #21
 * ubuntu: support 'cdvfile' URI
@@ -327,7 +349,7 @@
 * Upleveled from android port with following commits: 3c1ff16 Andrew Grieve - [CB-5762](https://issues.apache.org/jira/browse/CB-5762) android: Fix lengthComputable set wrong for gzip downloads 8374b3d Colin Mahoney - [CB-5631](https://issues.apache.org/jira/browse/CB-5631) Removed SimpleTrackingInputStream.read(byte[] buffer) 6f91ac3 Bas Bosman - [CB-4907](https://issues.apache.org/jira/browse/CB-4907) Close stream when we're finished with it 651460f Christoph Neumann - [CB-6000](https://issues.apache.org/jira/browse/CB-6000) Nginx rejects Content-Type without a space before "boundary". 35f80e4 Ian Clelland - [CB-6050](https://issues.apache.org/jira/browse/CB-6050): Use instance method on actual file plugin object to get FileEntry to return on download
 * [CB-5980](https://issues.apache.org/jira/browse/CB-5980) Updated version and RELEASENOTES.md for release 0.4.1
 
-### 0.4.3 (Apr 17, 2014)
+## 0.4.3 (Apr 17, 2014)
 
 * [CB-6422](https://issues.apache.org/jira/browse/CB-6422) [windows8] use cordova/exec/proxy
 * iOS: Fix error where files were not removed on abort
@@ -341,7 +363,7 @@
 * [CB-6050](https://issues.apache.org/jira/browse/CB-6050): [FireOS] Use instance method on actual file plugin object to get FileEntry to return on download
 * [CB-6460](https://issues.apache.org/jira/browse/CB-6460): Update license headers
 
-### 0.4.2 (Feb 28, 2014)
+## 0.4.2 (Feb 28, 2014)
 
 * [CB-6106](https://issues.apache.org/jira/browse/CB-6106) Ensure that nativeURL is used by file transfer download
 * iOS: Fix default value for trustAllHosts on iOS (YES->NO)
@@ -353,7 +375,7 @@
 * [CB-4907](https://issues.apache.org/jira/browse/CB-4907) Android: Close stream when we're finished with it
 * [CB-6022](https://issues.apache.org/jira/browse/CB-6022) Add backwards-compatibility notes to doc
 
-### 0.4.1 (Feb 05, 2014)
+## 0.4.1 (Feb 05, 2014)
 
 * [CB-5365](https://issues.apache.org/jira/browse/CB-5365) Remove unused exception var to prevent warnings?
 * [CB-2421](https://issues.apache.org/jira/browse/CB-2421) explicitly write the bytesSent,responseCode,result to the FileUploadResult pending release of cordova-plugin-file dependency, added some sanity checks for callbacks
@@ -367,7 +389,7 @@
 * Remove @1 designation from file plugin dependency until pushed to npm
 * [CB-5466](https://issues.apache.org/jira/browse/CB-5466): Update to work with filesystem URLs
 
-### 0.4.0 (Dec 4, 2013)
+## 0.4.0 (Dec 4, 2013)
 
 * [CB-5466](https://issues.apache.org/jira/browse/CB-5466): Partial revert; we're not ready yet for FS urls
 * add ubuntu platform
@@ -375,12 +397,12 @@
 * [CB-5466](https://issues.apache.org/jira/browse/CB-5466): Update FileTransfer plugin to accept filesystem urls
 * Added amazon-fireos platform. Change to use amazon-fireos as the platform if the user agen string contains 'cordova-amazon-fireos'
 
-### 0.3.4 (Oct 28, 2013)
+## 0.3.4 (Oct 28, 2013)
 
 * [CB-5128](https://issues.apache.org/jira/browse/CB-5128): added repo + issue tag to plugin.xml for file transfer plugin
 * [CB-5010](https://issues.apache.org/jira/browse/CB-5010) Incremented plugin version on dev branch.
 
-### 0.3.3 (Oct 9, 2013)
+## 0.3.3 (Oct 9, 2013)
 
 * removed un-needed undef check
 * Fix missing headers in Windows 8 upload proxy
@@ -388,7 +410,7 @@
 * Fix Windows 8 HTMLAnchorElement return host:80 which force Basic Auth Header to replace options Auth Header
 * [CB-4915](https://issues.apache.org/jira/browse/CB-4915) Incremented plugin version on dev branch.
 
-### 0.3.2 (Sept 25, 2013)
+## 0.3.2 (Sept 25, 2013)
 
 * [CB-4889](https://issues.apache.org/jira/browse/CB-4889) bumping&resetting version
 * [windows8] commandProxy was moved
