@@ -75,6 +75,16 @@ const FileTransfer = function () {
     this.onprogress = null; // optional callback
 };
 
+const iOSPathFix = function (path) {
+    if (window.CDV_ASSETS_URL) {
+        const pathstart = window.CDV_ASSETS_URL + '/_app_file_';
+        if (path.startsWith(pathstart)) {
+            return 'file://' + path.substring(pathstart.length);
+        }
+    }
+    return path;
+};
+
 /**
  * Given an absolute file path, uploads a file on the device to a remote server
  * using a multipart HTTP request.
@@ -87,6 +97,9 @@ const FileTransfer = function () {
  */
 FileTransfer.prototype.upload = function (filePath, server, successCallback, errorCallback, options, trustAllHosts) {
     argscheck.checkArgs('ssFFO*', 'FileTransfer.upload', arguments);
+
+    filePath = iOSPathFix(filePath);
+
     // check for options
     let fileKey = null;
     let fileName = null;
@@ -171,6 +184,8 @@ FileTransfer.prototype.upload = function (filePath, server, successCallback, err
 FileTransfer.prototype.download = function (source, target, successCallback, errorCallback, trustAllHosts, options) {
     argscheck.checkArgs('ssFF*', 'FileTransfer.download', arguments);
     const self = this;
+
+    target = iOSPathFix(target);
 
     const basicAuthHeader = getBasicAuthHeader(source);
     if (basicAuthHeader) {
