@@ -80,6 +80,7 @@ extern NSString* const kOptionsKeyCookie;
 @property (assign) int responseCode; // atomic
 @property (nonatomic, assign) long long bytesTransfered;
 @property (nonatomic, assign) long long bytesExpected;
+@property (nonatomic, assign) NSUInteger throttle;
 @property (nonatomic, assign) BOOL trustAllHosts;
 @property (strong) NSFileHandle* targetFileHandle;
 @property (nonatomic, strong) CDVFileTransferEntityLengthRequest* entityLengthRequest;

@@ -20,6 +20,7 @@
 #import <Cordova/CDV.h>
 #import "CDVFileTransfer.h"
 #import "CDVLocalFilesystem.h"
+#import "CDVFile.h"
 
 #import <AssetsLibrary/ALAsset.h>
 #import <AssetsLibrary/ALAssetRepresentation.h>
@@ -594,7 +595,7 @@ static CFIndex WriteDataToStream(NSData* data, CFWriteStreamRef stream)
 
 @implementation CDVFileTransferDelegate
 
-@synthesize callbackId, connection = _connection, source, target, responseData, responseHeaders, command, bytesTransfered, bytesExpected, direction, responseCode, objectId, targetFileHandle, filePlugin;
+@synthesize callbackId, connection = _connection, source, target, responseData, responseHeaders, command, bytesTransfered, bytesExpected, direction, responseCode, objectId, targetFileHandle, filePlugin, throttle;
 
 - (void)connectionDidFinishLoading:(NSURLConnection*)connection
 {
@@ -626,6 +627,7 @@ static CFIndex WriteDataToStream(NSData* data, CFWriteStreamRef stream)
         }
     }
     if (self.direction == CDV_TRANSFER_DOWNLOAD) {
+        self.throttle = 0;
         if (self.targetFileHandle) {
             [self.targetFileHandle closeFile];
             self.targetFileHandle = nil;
@@ -798,7 +800,7 @@ static CFIndex WriteDataToStream(NSData* data, CFWriteStreamRef stream)
 
 - (void)updateProgress
 {
-    if (self.direction == CDV_TRANSFER_DOWNLOAD) {
+    if ((self.direction == CDV_TRANSFER_DOWNLOAD) && (self.throttle == 100)) {
         BOOL lengthComputable = (self.bytesExpected != NSURLResponseUnknownLength);
         // If the response is GZipped, and we have an outstanding HEAD request to get
         // the length, then hold off on sending progress events.
@@ -812,7 +814,9 @@ static CFIndex WriteDataToStream(NSData* data, CFWriteStreamRef stream)
         CDVPluginResult* result = [CDVPluginResult resultWithStatus:CDVCommandStatus_OK messageAsDictionary:downloadProgress];
         [result setKeepCallbackAsBool:true];
         [self.command.commandDelegate sendPluginResult:result callbackId:callbackId];
+        self.throttle = 0;
     }
+    self.throttle ++;
 }
 
 - (void)connection:(NSURLConnection*)connection didSendBodyData:(NSInteger)bytesWritten totalBytesWritten:(NSInteger)totalBytesWritten totalBytesExpectedToWrite:(NSInteger)totalBytesExpectedToWrite
